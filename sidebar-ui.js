@@ -62,8 +62,6 @@ const navigation=createGroup('drawerNavigation', 'دسترسی سریع','Quick 
   'چهار صفحه اصلی سایت','The four main pages','i-menu',true);
 const dataGroup=createGroup('drawerDataGroup','ورود، خروجی و پشتیبان','Import, export & backups',
   'Letterboxd و ذخیرهٔ اطلاعات','Letterboxd and data safety','i-file');
-const moviesGroup=createGroup('drawerMoviesGroup','پوستر و اطلاعات فیلم','Posters & movie details',
-  'دریافت پوستر و اتصال به TMDB','Artwork and TMDB connection','i-film');
 const personalize=createGroup('drawerPersonalizeGroup','ظاهر و لینک سایت','Appearance & site link',
   'تم، زبان و اشتراک‌گذاری','Themes, language and sharing','i-link');
 
@@ -99,7 +97,13 @@ navList.addEventListener('click',e=>{
 
 // Preserves all original operations without duplicating listeners.
 dataGroup.content.append(importBlock,backupBlock);
-moviesGroup.content.append(posterBlock,tmdbBlock);
+// Keep legacy poster/TMDB controls mounted for existing event handlers.
+// They are intentionally not shown in Tools; poster selection and movie
+// metadata remain available inside the Add Film dialog.
+const inactiveTools=el('div','');
+inactiveTools.hidden=true;inactiveTools.id='legacyMovieTools';
+inactiveTools.append(posterBlock,tmdbBlock);
+drawer.appendChild(inactiveTools);
 settings.remove();
 
 const actions=el('div','drawerActionRows');
