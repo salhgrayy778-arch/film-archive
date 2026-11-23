@@ -88,7 +88,7 @@ onMsg = function(message,c) {
   if (!message || typeof message!=='object' || typeof message.t!=='string') return;
   if (!c || (R.host ? R.conns.get(c.peer)!==c : R.conn!==c)) return;
   const m=message,player=rv();
-  const sender=R.host ? (R.members.get(c.peer)||localLabel('مهمان','Guest')) : (R.members.get(c.peer)||localLabel('میزبان','Host'));
+  const sender=R.host ? (R.members.get(c.peer)||localLabel('مهمان','Guest')) : (typeof m.name==='string' && m.name ? m.name.slice(0,24) : (R.members.get(c.peer)||localLabel('میزبان','Host')));
   if (m.t==='hello') {
     const name=String(m.name||localLabel('مهمان','Guest')).slice(0,24);
     R.members.set(c.peer,name);
