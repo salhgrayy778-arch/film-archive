@@ -1365,7 +1365,8 @@ function render(){
   $('grid').hidden = !showingLibrary;
   updateFilterIndicator();
   if(v==='room'){paintRoomAccountGate();return;}
-  if(v==='news'||v==='search'||v==='film')return;
+  if(v==='search'||v==='film'){window.filmDiscovery?.onTabRendered(v);return;}
+  if(v==='news')return;
   if(v==='diary') return renderDiary();
   if(showingSummary) return renderDash();
   if(!showingLibrary) return;
