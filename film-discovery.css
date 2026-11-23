@@ -396,3 +396,19 @@
  .filmResultPoster.filmPosterFallback{padding:10px;gap:7px}
  .filmResultPoster.filmPosterFallback .filmPosterFallbackLabel{font-size:9px}
 }
+
+
+/* Add Film title-only results: distinct, honest visual stand-ins while the
+   server-side original-poster cache continues to grow. */
+.tmSuggestCover .tmTitleOnlyCover,
+.tmSelectedPoster .tmTitleOnlyCover{
+ display:flex;align-items:center;justify-content:center;
+ width:100%;height:100%;min-height:54px;box-sizing:border-box;
+ padding:6px 4px;overflow:hidden;overflow-wrap:anywhere;
+ text-align:center;font-size:9px;line-height:1.45;font-weight:850;color:var(--ink);
+ background:
+  radial-gradient(circle at top left,color-mix(in srgb,var(--gold) 24%,transparent),transparent 65%),
+  linear-gradient(145deg,var(--panel),var(--bg));
+ border:1px solid color-mix(in srgb,var(--gold) 35%,var(--line));
+ border-radius:6px;
+}
