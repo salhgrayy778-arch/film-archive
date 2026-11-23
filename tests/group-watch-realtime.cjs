@@ -43,7 +43,7 @@ function makeBrowser(){
   setTimeout,clearTimeout,setInterval,clearInterval,
   nm:()=>get('rName').value||'Guest',
   localLabel:(a)=>a,toast(){},rst(){},status(){},displayMembers(){},
-  broadcastRoster(){R.roster=(R.roster||0)+1;ctx.rsend({t:'members',list:[{id:R.peer.id,name:nm()},...Array.from(R.members,([id,name])=>({id,name}))]});},
+  broadcastRoster(){R.roster=(R.roster||0)+1;ctx.rsend({t:'members',list:[{id:R.peer.id,name:ctx.nm()},...Array.from(R.members,([id,name])=>({id,name}))]});},
   onMsg(message,conn){
    if(message.t==='hello'){
     R.members.set(conn.peer,message.name||'Guest');
