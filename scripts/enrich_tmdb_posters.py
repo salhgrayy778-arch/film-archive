@@ -28,6 +28,7 @@ EXPORT=ROOT/"data"/"tmdb-universe"/"by-id"
 OUT=ROOT/"data"/"tmdb-extra.json"
 CURATED=ROOT/"data"/"tmdb-catalog.json"
 MAX_ITEMS=25000
+MIN_TMDB_VOTES=1000  # Vote count is a popularity proxy, NOT verified unique viewers.
 
 def read_existing():
     try:
@@ -65,6 +66,9 @@ def fetch_detail(candidate,headers,auth):
           {"language":"en-US","append_to_response":"credits"},headers,auth)
         if detail.get("adult") or detail.get("id")!=movie_id:
             return None
+        # Skip obscure films even if they briefly trend in the daily export.
+        vote_count=int(detail.get("vote_count") or 0)
+        if vote_count < MIN_TMDB_VOTES:return None
         path=detail.get("poster_path") or ""
         if not path:return None
         genre_ids=[genre.get("id") for genre in detail.get("genres",[])
@@ -79,6 +83,7 @@ def fetch_detail(candidate,headers,auth):
             "fa_title":"",
             "release_date":str(detail.get("release_date") or "")[:10],
             "vote_average":round(float(detail.get("vote_average") or 0),1),
+            "vote_count":vote_count,
             "poster_path":path,
             "poster_url":"",
             "popularity":round(popularity,2),
@@ -133,6 +138,8 @@ def run(batch_size):
         print("TMDB API credential absent; original poster enrichment skipped.")
         return 0 if OUT.exists() else 1
     current=read_existing()
+    # Legacy entries without a vote_count can remain in storage; new additions
+    # must pass the popularity threshold. Do not delete already downloaded art.
     if len(current)>=MAX_ITEMS:
         print("Maximum number of cached extra movie posters reached.")
         return 0
@@ -142,7 +149,7 @@ def run(batch_size):
     # the requested batch size while keeping API load bounded.
     candidate_count=min(batch_size*2,len(candidates),MAX_ITEMS-len(current)+batch_size)
     target=min(batch_size,MAX_ITEMS-len(current))
-    print(f"Curated posters: {len(read_curated())}, existing extra: {len(current)}, "
+    print(f"Minimum TMDB votes: {MIN_TMDB_VOTES}; curated posters: {len(read_curated())}, existing extra: {len(current)}, "
           f"candidate attempts: {candidate_count}, new target: {target}",flush=True)
     successes=0
     with ThreadPoolExecutor(max_workers=6) as workers:
