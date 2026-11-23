@@ -29,6 +29,19 @@ check("textContent=translated?" in files["cinema-translation.js"],
 check("new URL('data/home-feed.json',SITE_BASE)" in files["cinema-news.js"],
       "Cinema homepage should fetch same-origin snapshot")
 check("data:image" in index,"Image data URL validation missing")
+# The personal archive must not automatically hydrate from browser storage.
+check("async function loadFilms(){return [];}" in index,"Personal films could load from local storage")
+check("const ok=await syncNow(true,true)" in index,"Save does not wait for Supabase confirmation")
+check("function loadAccountArchive()" in index,"No account-only archive load")
+check("validateAccount()" in index and "'/auth/v1/user'" in index,"No server-side session validation")
+check("user_id=eq." in index,"Account archive query is not scoped by user ID")
+check("function clearPersonalView()" in index,"Logout must reset private archive state")
+check("importLegacyBrowserArchive()" in index,"No explicit legacy browser data migration")
+check("if(!requireCloud())return;" in index,"Edit/import controls are not account gated")
+check("kvSet(KEY" not in index,"Personal movie archive must not be written to localStorage")
+check("const moviesGroup=createGroup(" not in (root/"sidebar-ui.js").read_text(encoding="utf-8"),"Unwanted movie-details sidebar category still visible")
+check("inactiveTools.hidden=true" in (root/"sidebar-ui.js").read_text(encoding="utf-8"),"Legacy poster/TMDB nodes were not preserved")
+
 combined="\n".join(files.values())
 for name,expression in {
     "Supabase secret key":r"\bsb_secret_[A-Za-z0-9_-]{16,}",
