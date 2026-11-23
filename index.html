@@ -1066,6 +1066,52 @@ const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes()-d.get
 
 let state = { films:[], tab:'news', dashView:'overview', q:'', sort:'new', genre:'', editId:null, form:null };
 let cloudReady=false, cloudLoading=false, cloudEpoch=0, cloudQueue=Promise.resolve(), cloudError='';
+
+const blankAccountProfile=()=>({name:'',bio:'',avatar:'',favorites:[],updatedAt:0});
+function normalizeAccountProfile(source){
+ const p=source&&typeof source==='object'&&!Array.isArray(source)?source:{};
+ const avatar=typeof p.avatar==='string'&&p.avatar.length<=170000
+  &&/^data:image\/jpeg;base64,[a-z0-9+/=]+$/i.test(p.avatar)?p.avatar:'';
+ const favorites=[],seen=new Set();
+ for(const item of Array.isArray(p.favorites)?p.favorites.slice(0,60):[]){
+  if(!item||typeof item!=='object')continue;
+  const id=String(item.id||'');
+  if(!/^(?:tmdb:\d{1,12}|archive:[a-zA-Z0-9_-]{1,80}|custom:[a-zA-Z0-9_-]{1,60})$/.test(id)||seen.has(id))continue;
+  const title=String(item.title||'').trim().slice(0,160);
+  if(!title)continue;
+  let poster=String(item.poster||'');
+  if(!/^assets\/(?:catalog|posters)\/[a-z0-9_.-]+\.webp$/i.test(poster)){
+   try{const u=new URL(poster);poster=u.protocol==='https:'&&!u.username&&!u.password&&poster.length<1000?u.href:'';}
+   catch(error){poster='';}
+  }
+  favorites.push({id,title,year:/^\d{4}$/.test(String(item.year||''))?String(item.year):'',poster});
+  seen.add(id);if(favorites.length>=10)break;
+ }
+ return {name:String(p.name||'').trim().slice(0,60),bio:String(p.bio||'').trim().slice(0,500),
+  avatar,favorites,updatedAt:Number.isSafeInteger(p.updatedAt)&&p.updatedAt>=0?p.updatedAt:0};
+}
+let accountProfile=blankAccountProfile(),profileDirty=false;
+function publishAccountProfile(){
+ updateAcct();
+ window.dispatchEvent(new Event('film-account-profile-updated'));
+}
+async function saveAccountProfileDraft(value){
+ if(!cloudReady||!ses||cloudLoading){
+  toast(LX('برای ویرایش پروفایل وارد حسابت شو','Sign in to edit your profile'));return false;
+ }
+ const owner=ses.id,epoch=cloudEpoch,previous=accountProfile;
+ accountProfile=normalizeAccountProfile(value);
+ accountProfile.updatedAt=Math.max(Date.now(),previous.updatedAt+1);
+ profileDirty=true;
+ const ok=await syncNow(true,true);
+ if(!ok){
+  if(ses?.id===owner&&cloudEpoch===epoch){accountProfile=previous;profileDirty=false;publishAccountProfile();}
+  return false;
+ }
+ if(ses?.id===owner&&cloudEpoch===epoch)publishAccountProfile();
+ return ok;
+}
+
 const mem = {};
 const JM=EN?['January','February','March','April','May','June','July','August','September','October','November','December']:['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 const jal=d=>{if(EN){const x=new Date(d+'T12:00:00');return{y:x.getFullYear(),m:x.getMonth()+1};}const p=new Intl.DateTimeFormat('fa-IR-u-nu-latn',{year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date(d+'T12:00:00'));const g=t=>+p.find(x=>x.type===t).value;return{y:g('year'),m:g('month')};};
@@ -2581,7 +2627,9 @@ function mergeDocs(a, b){
   const films = [...map.values()].filter(f=>!(del[f.id] > (f.u||0)));
   return { films, deleted: del };
 }
-const docSig = d => (d.films||[]).map(f=>f.id+':'+(f.u||0)).sort().join(',') + '|' + Object.keys(d.deleted||{}).sort().join(',');
+const docSig = d => (d.films||[]).map(f=>f.id+':'+(f.u||0)).sort().join(',')
+  + '|' + Object.keys(d.deleted||{}).sort().join(',')
+  + '|' + JSON.stringify(normalizeAccountProfile(d.profile));
 
 /* ---------- ارتباط با سرور ---------- */
 function faErr(m){
@@ -2630,7 +2678,8 @@ async function freshToken(){
 function clearPersonalView(){
   cloudEpoch++;cloudReady=false;cloudLoading=false;cloudError='';
   state.films=[];acMeta={snap:{},deleted:{},owner:'',synced:0};syncMsg='';
-  render();updateAcct();
+  accountProfile=blankAccountProfile();profileDirty=false;
+  render();publishAccountProfile();
 }
 async function validateAccount(){
   if(!ses?.id||!ses.access_token)return false;
@@ -2656,12 +2705,14 @@ async function fetchAccountDocument(owner){
   if(rows[0]?.user_id!==undefined&&rows[0].user_id!==owner)throw Error('Wrong account archive');
   const data=rows[0]?.data;
   if(data && (!Array.isArray(data.films)||!data.deleted&&data.deleted!==undefined))throw Error('Invalid archive document');
-  return data?{films:data.films,deleted:data.deleted&&typeof data.deleted==='object'?data.deleted:{}}:null;
+  return data?{films:data.films,deleted:data.deleted&&typeof data.deleted==='object'?data.deleted:{},
+    profile:normalizeAccountProfile(data.profile)}:null;
 }
 async function loadAccountArchive(){
   if(!ses||cloudLoading)return false;
   const owner=ses.id,epoch=++cloudEpoch;
   cloudLoading=true;cloudReady=false;state.films=[];
+  accountProfile=blankAccountProfile();profileDirty=false;
   acMeta={snap:{},deleted:{},owner:'',synced:0};cloudError='';
   setSync(LX('در حال دریافت آرشیو حساب…','Loading your account archive…'));render();
   try{
@@ -2673,13 +2724,16 @@ async function loadAccountArchive(){
       .map(f=>({...f,logs:Array.isArray(f.logs)?f.logs:[]}));
     acMeta={snap:{},deleted:doc?.deleted||{},owner,synced:Date.now()};
     acMeta.snap=hashFilms();
+    accountProfile=normalizeAccountProfile(doc?.profile);profileDirty=false;
     cloudReady=true;cloudError='';
     setSync(LX('آرشیو حساب آماده است ✓','Account archive loaded ✓'));render();
+    publishAccountProfile();
     return true;
   }catch(err){
     console.error('Supabase account load failed',err);
     if(cloudEpoch===epoch){
-      cloudReady=false;state.films=[];cloudError=String(err?.message||'');
+      cloudReady=false;state.films=[];accountProfile=blankAccountProfile();profileDirty=false;
+      cloudError=String(err?.message||'');
       setSync(LX('دریافت آرشیو ناموفق بود','Could not load account archive'));render();
     }
     return false;
@@ -2702,7 +2756,12 @@ function syncNow(manual=false,persist=false){
       const remote=await fetchAccountDocument(owner);
       if(!ses||ses.id!==owner||epoch!==cloudEpoch)throw Error('Account switched');
       const merged=mergeDocs({films:state.films,deleted:acMeta.deleted},remote||{films:[],deleted:{}});
-      if(persist&&(!remote||docSig(merged)!==docSig(remote))){
+      const serverProfile=normalizeAccountProfile(remote?.profile);
+      const localProfile=normalizeAccountProfile(accountProfile);
+      merged.profile=profileDirty||localProfile.updatedAt>serverProfile.updatedAt
+        ?localProfile:serverProfile;
+      const wrote=persist&&(!remote||docSig(merged)!==docSig(remote));
+      if(wrote){
         await restCall('/archives?on_conflict=user_id',{
           method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
           body:JSON.stringify({user_id:owner,data:merged,updated_at:new Date().toISOString()})
@@ -2710,9 +2769,10 @@ function syncNow(manual=false,persist=false){
       }
       if(!ses||ses.id!==owner||epoch!==cloudEpoch)throw Error('Account switched');
       state.films=merged.films;acMeta.deleted=merged.deleted;acMeta.owner=owner;
+      accountProfile=normalizeAccountProfile(merged.profile);profileDirty=false;
       acMeta.snap=hashFilms();acMeta.synced=Date.now();cloudError='';
       setSync(persist?LX('در حساب ذخیره شد ✓','Saved to account ✓'):LX('آرشیو به‌روز شد ✓','Archive updated ✓'));
-      render();return true;
+      render();publishAccountProfile();return true;
     }catch(err){
       console.error('Supabase archive sync failed',err);
       if(ses?.id===owner&&cloudEpoch===epoch){
