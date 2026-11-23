@@ -20,7 +20,7 @@ function transmit(to,message){
 }
 function fail(message){
  clearTimeout(joinTimer);clearTimeout(subscriptionTimer);
- R.roomError='realtime-failed';status();
+ R.roomError='realtime-failed';$('rHost').disabled=false;$('rJoin').disabled=false;status();
  toast(message||label('اتصال واسط اتاق برقرار نشد؛ چند لحظه بعد دوباره تلاش کن','Room relay connection failed; please retry shortly'));
 }
 function handle(payload){
