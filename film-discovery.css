@@ -298,3 +298,69 @@
   display:block;width:100%;height:100%;object-fit:cover
 }
 [hidden]#filmSearchView,[hidden]#filmDetailView{display:none!important}
+
+
+/* Recommendations under every individual movie page. */
+.filmSimilarSection{
+  margin:27px 0 12px;
+  padding:clamp(16px,2.8vw,25px);
+  background:color-mix(in srgb,var(--panel) 94%,var(--bg));
+  border:1px solid color-mix(in srgb,var(--gold) 30%,var(--line));
+  border-radius:18px;
+  box-shadow:0 10px 32px rgba(0,0,0,.1);
+}
+.filmSimilarHeader{
+  display:flex;align-items:end;justify-content:space-between;
+  gap:14px;margin-bottom:17px;
+}
+.filmSimilarEyebrow{display:block;margin-bottom:6px;color:var(--gold);
+  letter-spacing:.17em;font:800 10px/1.6 Arial,sans-serif}
+.filmSimilarHeader h2{font-size:clamp(19px,2.7vw,26px);font-weight:900;margin:0}
+.filmSimilarHeader p{color:var(--mute);margin:6px 0 0;line-height:1.9;font-size:12px}
+.filmSimilarGrid{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:13px;
+}
+.filmSimilarCard{
+  min-width:0;display:flex;flex-direction:column;gap:7px;
+  padding:8px;background:color-mix(in srgb,var(--bg) 63%,var(--panel));
+  border:1px solid var(--line);border-radius:12px;
+  text-decoration:none;color:var(--ink);
+  transition:border-color .2s,transform .2s;
+}
+.filmSimilarCard:is(:hover,:focus-visible){border-color:var(--gold);transform:translateY(-2px)}
+.filmSimilarPoster{
+  display:block;position:relative;aspect-ratio:2/3;overflow:hidden;
+  border-radius:9px;background:var(--strip);
+}
+.filmSimilarPoster img{width:100%;height:100%;object-fit:cover;display:block}
+.filmSimilarNoPoster{
+  display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;
+  text-align:center;padding:12px;box-sizing:border-box;
+  background:linear-gradient(147deg,color-mix(in srgb,var(--gold) 21%,var(--panel)),var(--bg));
+  border:1px solid color-mix(in srgb,var(--gold) 28%,transparent);
+}
+.filmSimilarClapper{font-size:37px;color:var(--gold);opacity:.75}
+.filmSimilarPlaceholderTitle{
+  font-size:clamp(10px,1.25vw,13px);font-weight:900;line-height:1.6;
+  color:var(--ink);overflow-wrap:anywhere;display:-webkit-box;
+  -webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;
+}
+.filmSimilarPlaceholderNote{font-size:9px;color:var(--mute);line-height:1.5}
+.filmSimilarCardName{
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+  font-size:12px;line-height:1.65;font-weight:850;overflow-wrap:anywhere;
+}
+.filmSimilarMeta{font-size:11px;color:var(--gold);font-weight:750}
+.filmSimilarLoading{
+  grid-column:1/-1;border:1px dashed var(--line);border-radius:12px;
+  padding:30px 13px;text-align:center;color:var(--mute);
+  font-size:13px;line-height:2;margin:0;
+}
+@media(max-width:850px){.filmSimilarGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:620px){
+ .filmSimilarGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .filmSimilarSection{margin-top:20px;padding:15px}
+ .filmSimilarHeader p{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.filmSimilarCard{transition:none}}
