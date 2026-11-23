@@ -37,5 +37,7 @@ jobs:
           node --check film-discovery.js
           node --check group-watch.js
           node --check cinema-translation.js
+      - name: Test host and guest watch-room connection
+        run: node tests/group-watch-connection.cjs
       - name: Test movie search, watchlists and deep links
         run: node tests/film-discovery-smoke.cjs
