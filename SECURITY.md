@@ -22,6 +22,26 @@ PeerJS group watch. Security depends on several distinct layers.
 - Original news publishers remain linked; translations are generated only in
   GitHub Actions and rendered as plain text in the browser.
 
+## Account profiles and privacy
+
+- Each signed-in user can set a display name, a short bio, a profile picture,
+  and an ordered list of up to **10 favorite films**.
+- These fields are stored as `profile` within the existing
+  `public.archives.data` JSON object, alongside `films` and `deleted`.
+  No extra Supabase table, bucket, or database migration is required.
+- Uploaded avatars are cropped/resized to 256×256 JPEG and limited before
+  being saved in that private account JSON document. They are **not**
+  placed in a public storage bucket or browser localStorage.
+- Favorite-film suggestions read a locally cached TMDB subset, or the user's
+  private archive. A missing title can be entered manually. Only ten items
+  are retained after input validation.
+- The profile is private to the signed-in account, **not** a publicly
+  searchable member profile. It is cleared from the active screen on logout.
+- **Supabase Row Level Security remains essential**: a client-side owner
+  check alone is not permission enforcement. Verify that the
+  `security/supabase-archives-rls.sql` rules are applied in the actual
+  Supabase project before collecting personal biographies or images.
+
 ## REQUIRED manual Supabase action
 
 Review and run **`security/supabase-archives-rls.sql`** in the Supabase
