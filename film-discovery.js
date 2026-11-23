@@ -553,6 +553,25 @@ function init(){
 }
 window.filmDiscovery={
  openFilm,openSearch,
+ // Shared with the "Add film" combobox: not restricted to the curated 1,100.
+ async searchAllMovies(input,max=12){
+  const term=String(input||'').trim().slice(0,160);
+  if(normalize(term).length<2)return [];
+  await Promise.all([loadCatalog(),loadUniverseBucket(term)]);
+  const maxCount=Math.min(30,Math.max(1,Math.floor(Number(max)||12)));
+  return rankedMovies(term).slice(0,maxCount).map(movie=>{
+   const known=findFilm(movie.id);
+   return known||movie;
+  });
+ },
+ async findAnyMovie(id){
+  const n=idNumber(id);if(!n)return null;
+  await Promise.all([loadCatalog(),loadFeatured()]);
+  return findFilm(n)||await lookupUniverseMovie(n);
+ },
+ async fullIndexInfo(){
+  return await getUniverseManifest();
+ },
  onTabRendered(tab){
   if(tab==='search')renderSearch();
   if(tab==='film'){
