@@ -72,8 +72,13 @@ function cacheIndex(map,key,value){
 }
 async function loadUniverseBucket(term){
  const manifest=await getUniverseManifest();
- if(!manifest)return [];
  const key=universeBucket(term);
+ if(!manifest){
+  // No index yet? Cache the unavailable state for this page load so a
+  // search does not recursively schedule unlimited failed HTTP requests.
+  if(key)cacheIndex(universeBuckets,key,[]);
+  return [];
+ }
  if(!key||!Object.prototype.hasOwnProperty.call(manifest.search_buckets||{},key))return [];
  if(universeBuckets.has(key))return universeBuckets.get(key);
  if(universeTasks.has(key))return universeTasks.get(key);
