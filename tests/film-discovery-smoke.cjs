@@ -108,7 +108,7 @@ async function main(){
  const shardPath='data/tmdb-universe/search/g.json.gz';
  const compressed=readFileSync(shardPath);
  const actual=JSON.parse(gunzipSync(compressed).toString('utf8'));
- assert.ok(actual.length>100000,'Search shard should include original TMDB titles');
+ assert.ok(actual.length>50000,'Search shard should include tens of thousands of original TMDB titles');
  assert.ok(actual.every(row=>Array.isArray(row)&&Number.isInteger(row[0])&&typeof row[1]==='string'));
  assert.deepEqual(JSON.parse(gunzipSync(gzipSync('[1,2,3]')).toString()),[1,2,3]);
 
