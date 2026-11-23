@@ -4,8 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>try{if(localStorage.getItem("film-archive-lang")==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr";}const savedTheme=localStorage.getItem("film-archive-theme");if(savedTheme&&savedTheme!=="auto")document.documentElement.setAttribute("data-theme",savedTheme);}catch(e){}</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='%230D1B1A' stroke='%23C9A25A' stroke-width='2'/%3E%3Ctext x='24' y='31' text-anchor='middle' font-family='serif' font-style='italic' font-size='19' fill='%23C9A25A'%3ESG%3C/text%3E%3C/svg%3E">
-<title>سینمای جهان | اخبار و فیلم‌های جدید</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='%230D1B1A' stroke='%23C9A25A' stroke-width='2'/%3E%3Ctext x='24' y='31' text-anchor='middle' font-family='serif' font-style='italic' font-size='19' fill='%23C9A25A'%3EMF%3C/text%3E%3C/svg%3E">
+<title>My Film Archive | World Cinema News</title>
+<meta name="application-name" content="My Film Archive">
+<meta name="description" content="My Film Archive — global movie news, new releases, a personal film archive, watch diary, and group watch rooms.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="My Film Archive">
+<meta property="og:title" content="My Film Archive">
+<meta property="og:description" content="World Cinema News, Personal Movie Archive, Watch Diary & Group Watch">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="My Film Archive">
+<script>
+try {
+  if(/^https?:$/.test(location.protocol)){
+    const pageUrl=location.origin+location.pathname.replace(/\/index\.html$/i,'/');
+    const canonical=document.createElement('link');canonical.rel='canonical';canonical.href=pageUrl;document.head.appendChild(canonical);
+    const openGraphUrl=document.createElement('meta');openGraphUrl.setAttribute('property','og:url');openGraphUrl.content=pageUrl;document.head.appendChild(openGraphUrl);
+  }
+}catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&family=Cormorant+Garamond:ital,wght@1,600&display=swap" rel="stylesheet">
 <style>
@@ -554,6 +571,7 @@ body{overflow-x:clip;padding-bottom:145px}
 @media(max-width:560px){.dashNav{gap:6px;margin-top:13px}.dashNavBtn{font-size:12px;padding:9px 12px}.dashLibraryHeading h2{font-size:19px}}
 </style>
 <link rel="stylesheet" href="cinema-news.css">
+<link rel="stylesheet" href="sidebar.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -607,8 +625,8 @@ body{overflow-x:clip;padding-bottom:145px}
     <div class="hg"><button class="themeBtn" id="acctBtn" type="button" aria-label="حساب کاربری"></button><button class="themeBtn ib" id="menuBtn" type="button" aria-label="ابزارها و داده‌ها" aria-controls="drawer" aria-expanded="false"><svg class="ic"><use href="#i-menu"/></svg><span>ابزارها</span></button></div>
     <div class="hg"><button class="themeBtn" id="themeBtn" type="button" aria-label="انتخاب تم" aria-controls="themePanel" aria-expanded="false">🎨 تم‌ها</button><button class="themeBtn" id="langBtn" type="button" aria-label="Language">English</button></div>
   </div>
-  <div class="brand" dir="ltr"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor"><circle cx="24" cy="24" r="22" stroke-width="2"/><circle cx="24" cy="24" r="17" stroke-width=".8"/><g fill="currentColor" stroke="none"><circle cx="24" cy="7.5" r="2.2"/><circle cx="24" cy="40.5" r="2.2"/><circle cx="7.5" cy="24" r="2.2"/><circle cx="40.5" cy="24" r="2.2"/></g><text x="24" y="30" text-anchor="middle" font-family="Cormorant Garamond,Georgia,serif" font-style="italic" font-size="17" fill="currentColor" stroke="none">SG</text></svg><span>Saleh Gharaie</span></div>
-  <h1 id="siteMainTitle">سینمای جهان</h1>
+  <div class="brand" dir="ltr"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor"><circle cx="24" cy="24" r="22" stroke-width="2"/><circle cx="24" cy="24" r="17" stroke-width=".8"/><g fill="currentColor" stroke="none"><circle cx="24" cy="7.5" r="2.2"/><circle cx="24" cy="40.5" r="2.2"/><circle cx="7.5" cy="24" r="2.2"/><circle cx="40.5" cy="24" r="2.2"/></g><text x="24" y="30" text-anchor="middle" font-family="Cormorant Garamond,Georgia,serif" font-style="italic" font-size="17" fill="currentColor" stroke="none">MF</text></svg><span>My Film Archive</span></div>
+  <h1 id="siteMainTitle">My Film Archive</h1>
   <p id="stats">در حال بارگذاری…</p>
   <p id="syncLine" class="syncLine"></p>
 </header>
@@ -760,7 +778,7 @@ body{overflow-x:clip;padding-bottom:145px}
     <p class="hint">یک نفر اتاق می‌سازد و کد (یا لینک) را به دیگری می‌دهد. هر دو نفر می‌توانند پخش، توقف و جلو و عقب بردن را کنترل کنند و همگام می‌شود. ویدئو از هیچ سروری رد نمی‌شود؛ هر نفر مستقیم از لینک (یا فایل خودش) می‌بیند. لینک http روی صفحهٔ https یا لینکی که دانلودش محدود است پخش نمی‌شود. اتصال از سرویس رایگان PeerJS استفاده می‌کند و گاهی بدون فیلترشکن یا روی شبکه‌های سخت‌گیر برقرار نمی‌شود.</p>
   </section>
 
-<footer class="sig">© Saleh Gharaie — Personal Cinema Archive</footer>
+<footer class="sig">© My Film Archive — Personal Cinema Archive</footer>
 </main>
 
 <div class="dbg" id="dBg" hidden></div>
@@ -959,7 +977,7 @@ function initDrawer(){
   const d = $('drawer'), bg = $('dBg'), mb = $('menuBtn');
   const set = o => {
     d.classList.toggle('open', o); bg.hidden = !o; d.inert = !o; d.setAttribute('aria-hidden', String(!o)); mb.setAttribute('aria-expanded', String(o));
-    if(o) setTimeout(()=>$('drawerClose').focus(), 60); else if(d.contains(document.activeElement)) mb.focus();
+    if(o) setTimeout(()=>{if(d.classList.contains('open')&&!d.contains(document.activeElement)) $('drawerClose').focus();},60); else if(d.contains(document.activeElement)) mb.focus();
   };
   mb.addEventListener('click', ()=>set(!d.classList.contains('open')));
   $('drawerClose').addEventListener('click', ()=>set(false)); bg.addEventListener('click', ()=>set(false));
@@ -1136,7 +1154,7 @@ function render(){
   const seen = state.films.filter(f=>f.status==='seen').length;
   const want = state.films.length - seen;
   const v = state.tab;
-  $('siteMainTitle').textContent = v==='news' ? LX('نبض سینمای جهان','World Cinema') : LX('آرشیو فیلم‌های من','My Film Archive');
+  $('siteMainTitle').textContent = 'My Film Archive';
   $('stats').textContent = v==='news'
     ? LX('آخرین اخبار، تازه‌اکران‌ها و ترندهای سینمای جهان','Latest movie news, theatrical releases and global trends')
     : state.films.length
@@ -2619,5 +2637,6 @@ init();
 <script src="group-watch.js"></script>
 <script src="mkv-support.js"></script>
 <script src="cinema-news.js"></script>
+<script src="sidebar-ui.js"></script>
 </body>
 </html>
