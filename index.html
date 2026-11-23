@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='%230D1B1A' stroke='%23C9A25A' stroke-width='2'/%3E%3Ctext x='24' y='31' text-anchor='middle' font-family='serif' font-style='italic' font-size='19' fill='%23C9A25A'%3ESG%3C/text%3E%3C/svg%3E">
+<title>آرشیو فیلم‌های من</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&family=Cormorant+Garamond:ital,wght@1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D1B1A; --panel:#14282A; --ink:#EFE6D2; --mute:#A9B3A5; --gold:#C9A25A;
+  --on-gold:#0D1B1A; --line:#27413F; --strip:#071211; --hole:#0D1B1A; --danger:#E5736A;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#EFE8D6; --panel:#F8F3E6; --ink:#10272A; --mute:#58645F; --gold:#7E5E1C;
+    --on-gold:#F8F3E6; --line:#D3C9AE; --strip:#10272A; --hole:#EFE8D6; --danger:#B3261E;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#EFE8D6; --panel:#F8F3E6; --ink:#10272A; --mute:#58645F; --gold:#7E5E1C;
+  --on-gold:#F8F3E6; --line:#D3C9AE; --strip:#10272A; --hole:#EFE8D6; --danger:#B3261E;
+  color-scheme: light;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Vazirmatn',Tahoma,'Segoe UI',sans-serif;
+  line-height:1.7; min-height:100vh; padding-bottom:110px;
+}
+button,input,select,textarea{ font:inherit; color:inherit; }
+button{ cursor:pointer; }
+[hidden]{ display:none !important; }
+:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+/* نوار فیلم بالای صفحه */
+.reel{
+  position:relative;
+  background:
+    linear-gradient(90deg,var(--hole) 55%,transparent 55%) 0 7px/24px 9px repeat-x,
+    linear-gradient(90deg,var(--hole) 55%,transparent 55%) 0 calc(100% - 16px)/24px 9px repeat-x,
+    var(--strip);
+  padding:36px 20px 38px; text-align:center;
+}
+.reel h1{ font-size:30px; font-weight:900; color:#F0E4D2; }
+.reel p{ color:#CDB9A6; font-size:14px; margin-top:2px; }
+.themeBtn{
+  position:absolute; left:12px; top:22px; background:rgba(240,228,210,.12); color:#F0E4D2;
+  border:1px solid rgba(240,228,210,.3); border-radius:20px; padding:2px 12px; font-size:13px;
+}
+
+main{ max-width:760px; margin:0 auto; padding:0 16px; }
+
+.tabs{ display:flex; gap:6px; margin:20px 0 12px; border-bottom:1px solid var(--line); }
+.tab{
+  background:none; border:0; padding:10px 14px; color:var(--mute); font-weight:500;
+  border-bottom:3px solid transparent; margin-bottom:-1px;
+}
+.tab[aria-selected="true"]{ color:var(--ink); border-bottom-color:var(--gold); font-weight:700; }
+
+.tools{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px; }
+.tools input[type=search]{ grid-column:1 / -1; }
+input,select,textarea{
+  width:100%; background:var(--panel); border:1px solid var(--line); border-radius:8px;
+  padding:10px 12px; font-size:15px;
+}
+textarea{ min-height:100px; resize:vertical; }
+
+.grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px 12px; }
+@media(min-width:560px){ .grid{ grid-template-columns:repeat(3,1fr); } }
+@media(min-width:720px){ .grid{ grid-template-columns:repeat(4,1fr); } }
+.card{ background:none; border:0; text-align:right; display:block; width:100%; }
+.poster{
+  aspect-ratio:2/3; width:100%; border-radius:4px; overflow:hidden; background:var(--panel);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center; position:relative;
+}
+.poster img{ width:100%; height:100%; object-fit:cover; display:block; }
+.poster .ph{ padding:12px; font-weight:900; font-size:19px; line-height:1.4; text-align:center; color:#F0E4D2; word-break:break-word; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+.badge{
+  position:absolute; top:8px; right:8px; background:var(--gold); color:var(--on-gold);
+  font-size:12px; font-weight:700; padding:1px 8px; border-radius:20px;
+}
+.card h3{ font-size:15px; font-weight:700; margin-top:8px; line-height:1.4; }
+.card .meta{ font-size:12.5px; color:var(--mute); }
+.stars{ color:var(--gold); font-size:14px; letter-spacing:1px; direction:ltr; text-align:right; }
+
+.empty{ text-align:center; color:var(--mute); padding:50px 10px; }
+.empty b{ display:block; color:var(--ink); font-size:17px; margin-bottom:4px; }
+
+.fab{
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+  background:var(--gold); color:var(--on-gold); border:0; border-radius:40px;
+  padding:14px 28px; font-weight:700; font-size:16px; box-shadow:0 6px 20px rgba(0,0,0,.35);
+}
+
+.backup{ margin:44px 0 10px; padding-top:18px; border-top:1px solid var(--line); color:var(--mute); font-size:13.5px; }
+.backup + .backup{ margin-top:18px; border-top:0; padding-top:0; }
+.backup b{ color:var(--ink); }
+.backup .row{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.btn{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; }
+.btn.primary{ background:var(--gold); color:var(--on-gold); border-color:var(--gold); font-weight:700; }
+.btn.danger{ color:var(--danger); border-color:var(--danger); background:none; }
+
+/* برگه افزودن / ویرایش */
+.overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; z-index:10; align-items:flex-end; justify-content:center; }
+.overlay.open{ display:flex; }
+.sheet{
+  background:var(--bg); width:100%; max-width:560px; max-height:92vh; overflow:auto;
+  border-radius:16px 16px 0 0; padding:20px 18px 28px; border:1px solid var(--line);
+}
+.sheet h2{ font-size:20px; margin-bottom:14px; }
+.field{ margin-bottom:14px; }
+.field label, .lbl{ display:block; font-size:13.5px; color:var(--mute); margin-bottom:4px; }
+.two{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.seg{ display:grid; grid-template-columns:1fr 1fr; }
+.seg button{ background:var(--panel); border:1px solid var(--line); padding:10px; font-weight:500; }
+.seg button:first-child{ border-radius:0 8px 8px 0; }
+.seg button:last-child{ border-radius:8px 0 0 8px; border-right:0; }
+.seg button[aria-pressed="true"]{ background:var(--gold); color:var(--on-gold); border-color:var(--gold); font-weight:700; }
+.rate{ display:flex; gap:4px; direction:ltr; justify-content:flex-end; align-items:center; }
+.rate button{ background:none; border:0; font-size:34px; color:var(--line); padding:0 2px; line-height:1; }
+.rate button.on{ color:var(--gold); }
+.rate button.half{
+  background:linear-gradient(90deg,var(--gold) 50%,var(--line) 50%);
+  -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+}
+.hint{ font-size:12px; color:var(--mute); margin-top:2px; }
+.posterpick{ display:flex; gap:12px; align-items:center; }
+.posterpick .thumb{ width:64px; aspect-ratio:2/3; border-radius:4px; border:1px dashed var(--line); background:var(--panel) center/cover; flex:none; }
+.actions{ display:flex; gap:8px; margin-top:20px; }
+.actions .btn{ flex:1; padding:12px; }
+.actions .btn.primary{ flex:2; }
+.lbLink{ display:inline-block; margin-top:10px; color:var(--gold); font-size:13.5px; }
+.toast{
+  position:fixed; top:14px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg);
+  padding:8px 18px; border-radius:20px; font-size:14px; z-index:30; opacity:0; pointer-events:none; transition:opacity .2s; max-width:90vw; text-align:center;
+}
+.toast.show{ opacity:1; }
+@media (prefers-reduced-motion: reduce){ .toast{ transition:none; } }
+
+main{max-width:1100px}
+.reel h1{font-size:clamp(28px,5vw,44px)}
+.tabs{overflow-x:auto;scrollbar-width:none}.tab{white-space:nowrap}
+@media(min-width:900px){.grid{grid-template-columns:repeat(6,1fr)}}
+@media(min-width:720px){.tools{grid-template-columns:2fr 1fr 1fr}.tools input[type=search]{grid-column:auto}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.card{animation:rise .5s both;animation-delay:calc(var(--i,0)*35ms)}
+.poster{transition:transform .3s,box-shadow .3s,border-color .3s}
+.card:hover .poster{transform:translateY(-6px);box-shadow:0 14px 30px rgba(0,0,0,.45);border-color:var(--gold)}
+.card h3{transition:color .2s}.card:hover h3{color:var(--gold)}
+.overlay.open .sheet{animation:up .3s ease}
+.view{animation:rise .4s both}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:8px}
+@media(min-width:720px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{border:1px solid var(--line);background:var(--panel);border-radius:4px;padding:16px;border-top:3px solid var(--gold)}
+.kpi b{display:block;font-size:34px;font-weight:900;color:var(--gold);line-height:1.3}
+.kpi span{color:var(--mute);font-size:13px}
+.sec{font-size:18px;font-weight:900;margin:28px 0 14px;display:flex;gap:10px;align-items:center}
+.sec::after{content:"";flex:1;height:1px;background:var(--line)}
+.bars{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;height:150px;align-items:end;padding-bottom:24px}
+.bar{position:relative;background:var(--gold);opacity:.85;border-radius:2px 2px 0 0;min-height:2px;transition:height .6s}
+.bar i{position:absolute;top:-20px;width:100%;text-align:center;font-style:normal;font-size:12px}
+.bar em{position:absolute;bottom:-22px;width:100%;text-align:center;font-style:normal;font-size:11px;color:var(--mute)}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(min-width:720px){.strip{grid-template-columns:repeat(6,1fr)}}
+.years{display:flex;gap:8px;flex-wrap:wrap}.years span{border:1px solid var(--line);padding:4px 12px;border-radius:20px;font-size:13px}.years b{color:var(--gold)}
+.dgroup{font-weight:900;color:var(--gold);margin:24px 0 6px}
+.drow{display:flex;gap:12px;width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 0}
+.drow .poster{width:48px;flex:none}.drow .d{font-size:12.5px;color:var(--mute)}.drow p{font-size:13.5px;color:var(--mute)}
+#lgList .lg{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:4px 0;border-bottom:1px solid var(--line)}
+#lgList .lg button{background:none;border:0;color:var(--danger)}
+@media(prefers-reduced-motion:reduce){.card,.view,.overlay.open .sheet{animation:none}.bar{transition:none}}
+
+.fx{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+main,.reel{position:relative;z-index:1}
+.obj{position:absolute;color:var(--gold);opacity:.1}
+.o1{width:300px;top:-70px;right:-100px;animation:spin 120s linear infinite}
+.o4{width:210px;bottom:-60px;right:6%;animation:spin 90s linear infinite reverse}
+.o2{width:170px;bottom:100px;left:-30px;rotate:-14deg;animation:bob 8s ease-in-out infinite}
+.o3{width:80px;top:120px;left:5%;opacity:.16;animation:bob 10s ease-in-out infinite}
+.dust{position:absolute;bottom:0;left:var(--x);width:var(--s);height:var(--s);border-radius:50%;background:var(--gold);opacity:0;animation:drift var(--d) linear var(--w) infinite}
+@keyframes spin{to{rotate:360deg}}
+@keyframes bob{50%{translate:0 -16px}}
+@keyframes drift{10%{opacity:.45}to{translate:36px -105vh;opacity:0}}
+.reel{overflow:hidden}
+.beam{position:absolute;inset:0 0 auto 0;height:100%;margin:auto;width:70%;background:linear-gradient(180deg,rgba(217,179,107,.28),transparent 85%);clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);pointer-events:none;animation:flick 6s ease-in-out infinite}
+@keyframes flick{50%{opacity:.6}}
+.brand{display:inline-flex;align-items:center;gap:10px;color:#D9B36B;direction:ltr;margin-bottom:6px}
+.brand svg{width:40px;height:40px}
+.brand span{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:24px;letter-spacing:3px}
+.sig{text-align:center;color:var(--mute);font-size:12.5px;margin:30px 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;letter-spacing:2px;direction:ltr}
+.stage{position:relative;aspect-ratio:16/9;background:#000;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.stage video{width:100%;height:100%;display:block}
+.vph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:#CDB9A6;pointer-events:none}
+.rstat{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px}
+.rstat i{width:10px;height:10px;border-radius:50%;background:var(--danger)}.rstat i.on{background:#6FCF97;box-shadow:0 0 8px #6FCF97}
+.rrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.rrow input{flex:1;min-width:140px}
+#chLog{height:170px;overflow:auto;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 12px;font-size:14px;margin-bottom:8px}
+#chLog .sys{color:var(--mute);font-size:12.5px}#chLog b{color:var(--gold)}
+@media(prefers-reduced-motion:reduce){.obj,.dust,.beam{animation:none}}
+
+.advrow{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.advp{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:720px){.advp{grid-template-columns:repeat(4,1fr)}}
+.tmr{display:flex;gap:10px;align-items:center;width:100%;text-align:right;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px;margin-top:6px}
+.tmr img,.tmr i{width:34px;aspect-ratio:2/3;object-fit:cover;border-radius:3px;background:var(--line);flex:none}
+.tmr small{display:block;color:var(--mute)}
+.ban{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--gold);border-radius:8px;padding:10px 14px;margin-top:16px;font-size:13.5px}
+.dtop{display:flex;gap:16px;margin-bottom:14px}.dtop .poster{width:120px;flex:none}.dtop h2{margin-bottom:2px}
+.drw{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px;flex-wrap:wrap}.drw span{color:var(--mute);min-width:70px}.drw i{color:var(--mute);font-style:normal}
+
+.syncLine{font-size:12.5px;margin-top:0}
+.heart{color:var(--danger);font-size:13px}
+.msg{min-height:22px;font-size:13.5px;color:var(--danger);margin-top:4px}.msg.ok{color:var(--gold)}
+.linkbtn{background:none;border:0;color:var(--gold);text-decoration:underline;font-size:13.5px;padding:4px 0}
+#auBody p{font-size:14px;color:var(--mute);margin-bottom:10px}
+#auBody p b{color:var(--ink)}
+.chk{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:14.5px}.chk input{width:auto}
+</style>
+</head>
+<body>
+
+<div class="fx" aria-hidden="true">
+  <svg class="obj o1" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2"><circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="8"/><g fill="currentColor"><circle cx="50" cy="22" r="9"/><circle cx="74" cy="36" r="9"/><circle cx="74" cy="64" r="9"/><circle cx="50" cy="78" r="9"/><circle cx="26" cy="64" r="9"/><circle cx="26" cy="36" r="9"/></g></svg>
+  <svg class="obj o4" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2"><circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="8"/><g fill="currentColor"><circle cx="50" cy="22" r="9"/><circle cx="74" cy="36" r="9"/><circle cx="74" cy="64" r="9"/><circle cx="50" cy="78" r="9"/><circle cx="26" cy="64" r="9"/><circle cx="26" cy="36" r="9"/></g></svg>
+  <svg class="obj o2" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="3"><rect x="8" y="38" width="104" height="56" rx="3"/><polygon points="8,34 14,12 112,12 112,34"/><path d="M30 34l8-22M54 34l8-22M78 34l8-22M102 34l8-22"/></svg>
+  <svg class="obj o3" viewBox="0 0 100 100"><path d="M60 8a42 42 0 1 0 32 62A34 34 0 0 1 60 8z" fill="currentColor"/></svg>
+</div>
+<header class="reel">
+  <div class="beam"></div>
+  <button class="themeBtn" id="themeBtn" aria-label="تغییر تم"></button>
+  <button class="themeBtn" id="acctBtn" type="button" aria-label="حساب کاربری" style="left:auto;right:12px"></button>
+  <div class="brand" dir="ltr"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor"><circle cx="24" cy="24" r="22" stroke-width="2"/><circle cx="24" cy="24" r="17" stroke-width=".8"/><g fill="currentColor" stroke="none"><circle cx="24" cy="7.5" r="2.2"/><circle cx="24" cy="40.5" r="2.2"/><circle cx="7.5" cy="24" r="2.2"/><circle cx="40.5" cy="24" r="2.2"/></g><text x="24" y="30" text-anchor="middle" font-family="Cormorant Garamond,Georgia,serif" font-style="italic" font-size="17" fill="currentColor" stroke="none">SG</text></svg><span>Saleh Gharaie</span></div>
+  <h1>آرشیو فیلم‌های من</h1>
+  <p id="stats">در حال بارگذاری…</p>
+  <p id="syncLine" class="syncLine"></p>
+</header>
+
+<main>
+  <div class="ban" id="bkBan" hidden><span>مدتی است پشتیبان نگرفته‌ای؛ اطلاعات فقط روی همین مرورگر ذخیره می‌شود.</span><button class="btn primary" id="bkNow" type="button">ذخیره پشتیبان</button></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="dash" aria-selected="true">داشبورد</button>
+    <button class="tab" role="tab" data-tab="all" aria-selected="false">همه</button>
+    <button class="tab" role="tab" data-tab="seen" aria-selected="false">دیده‌ام</button>
+    <button class="tab" role="tab" data-tab="want" aria-selected="false">می‌خواهم ببینم</button>
+    <button class="tab" role="tab" data-tab="diary" aria-selected="false">دفترچه تماشا</button>
+    <button class="tab" role="tab" data-tab="room" aria-selected="false">تماشای دونفره</button>
+  </div>
+
+  <div class="tools">
+    <input type="search" id="q" placeholder="جستجو در نام فیلم، کارگردان، یادداشت…">
+    <select id="genreFilter" aria-label="فیلتر ژانر"></select>
+    <select id="sort" aria-label="مرتب‌سازی">
+      <option value="new">جدیدترین</option>
+      <option value="rating">بیشترین امتیاز</option>
+      <option value="year">سال ساخت</option>
+      <option value="title">نام فیلم</option>
+    </select>
+    <div class="advrow"><button class="btn" id="advBtn" type="button">فیلتر پیشرفته ▾</button><button class="btn primary" id="rndBtn" type="button">🎲 پیشنهاد تصادفی از فهرست انتظار</button></div>
+    <div id="adv" class="advp" hidden>
+      <input id="aDir" placeholder="کارگردان"><input id="aCast" placeholder="بازیگر">
+      <select id="aCountry" aria-label="کشور"></select>
+      <select id="aRate" aria-label="حداقل امتیاز"><option value="0">هر امتیاز</option><option value="3">۳ به بالا</option><option value="3.5">۳٫۵ به بالا</option><option value="4">۴ به بالا</option><option value="4.5">۴٫۵ به بالا</option></select>
+      <input id="aYf" type="number" placeholder="از سال"><input id="aYt" type="number" placeholder="تا سال">
+      <input id="aRt" type="number" placeholder="حداکثر مدت (دقیقه)"><label class="chk"><input type="checkbox" id="aLiked"> فقط ♥ شده‌ها</label><button class="btn" id="aClr" type="button">پاک کردن فیلترها</button>
+    </div>
+  </div>
+
+  <div id="grid" class="grid"></div>
+  <section id="dash" class="view"></section>
+  <section id="diary" class="view" hidden></section>
+  <section id="room" class="view" hidden>
+    <h2 class="sec">اتاق تماشای دونفره</h2>
+    <div class="stage"><video id="rv" controls playsinline preload="metadata"></video><div class="vph" id="vph">لینک مستقیم فیلم (mp4 یا webm) را وارد کن و «پخش» را بزن.</div></div>
+    <div class="rstat"><i id="dot"></i><span id="rst">آفلاین</span></div>
+    <div class="rrow"><input id="rName" placeholder="نام شما" maxlength="24" autocomplete="off"></div>
+    <div class="rrow"><input id="rUrl" dir="ltr" placeholder="https://…/movie.mp4" autocomplete="off"><button class="btn primary" id="rLoad" type="button">پخش</button></div>
+    <div class="rrow"><button class="btn" id="rHost" type="button">ساخت اتاق</button><input id="rCode" dir="ltr" placeholder="کد اتاق دوست" autocomplete="off"><button class="btn" id="rJoin" type="button">ورود</button><button class="btn danger" id="rLeave" type="button" hidden>خروج</button></div>
+    <div class="hint" id="rInfo" hidden></div>
+    <h2 class="sec">گفتگو</h2>
+    <div id="chLog" aria-live="polite"></div>
+    <div class="rrow"><input id="chIn" maxlength="300" placeholder="پیام…" autocomplete="off"><button class="btn" id="chSend" type="button">ارسال</button></div>
+    <p class="hint">یک نفر اتاق می‌سازد و کد را به دیگری می‌دهد. هر دو نفر می‌توانند پخش، توقف و جلو و عقب بردن را کنترل کنند و همگام می‌شود. ویدئو از هیچ سروری رد نمی‌شود؛ هر نفر مستقیم از لینک می‌بیند، پس لینک باید برای هر دو باز شود. لینک http روی صفحهٔ https یا لینکی که دانلودش محدود است پخش نمی‌شود. اتصال از سرویس رایگان PeerJS استفاده می‌کند و گاهی بدون فیلترشکن یا روی شبکه‌های سخت‌گیر برقرار نمی‌شود.</p>
+  </section>
+
+  <section class="backup">
+    <b>آوردن فیلم‌ها از Letterboxd</b><br>
+    در سایت لترباکس (نسخه وب): Settings ← Data ← Export your data. فایل zip که دانلود می‌شود را همین‌جا انتخاب کن؛ فیلم‌ها، امتیازها، یادداشت‌ها و فهرست انتظارت وارد می‌شود.
+    <div class="row">
+      <button class="btn primary" id="lbBtn">انتخاب فایل Letterboxd</button>
+      <input type="file" id="lbFile" accept=".zip,.csv" multiple hidden>
+    </div>
+  </section>
+
+  <section class="backup">
+    <b>نسخه پشتیبان</b><br>
+    اطلاعات روی همین دستگاه و مرورگر ذخیره می‌شود. برای انتقال به دستگاه دیگر یا اطمینان بیشتر، فایل پشتیبان بگیر.
+    <div class="row">
+      <button class="btn" id="exportBtn">ذخیره فایل پشتیبان</button>
+      <button class="btn" id="importBtn">بازگردانی از فایل</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+  </section>
+<section class="backup"><b>اتصال به TMDB (اطلاعات و پوستر خودکار)</b><br>کلید API رایگان را از themoviedb.org/settings/api بگیر. کلید فقط در مرورگر خودت ذخیره می‌شود؛ در فایل پشتیبان و کد سایت نیست.
+  <div class="row"><input id="tmKeyIn" type="password" dir="ltr" placeholder="API Key یا Read Access Token" autocomplete="off"><button class="btn primary" id="tmKeySave" type="button">ذخیره کلید</button><button class="btn" id="tmKeyDel" type="button">حذف کلید</button></div>
+  <div class="hint" id="tmState"></div></section>
+<footer class="sig">© Saleh Gharaie — Personal Cinema Archive</footer>
+</main>
+
+<button class="fab" id="addBtn">+ فیلم جدید</button>
+
+<div class="overlay" id="overlay">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">فیلم جدید</h2>
+
+    <div class="field">
+      <div class="seg">
+        <button id="stSeen" aria-pressed="true">دیده‌ام</button>
+        <button id="stWant" aria-pressed="false">می‌خواهم ببینم</button>
+      </div>
+    </div>
+
+    <div class="field"><label for="fTitle">نام فیلم *</label><input id="fTitle" autocomplete="off"><button class="btn" id="tmSearch" type="button" style="margin-top:8px">🔎 پر کردن خودکار از TMDB</button><div id="tmRes"></div></div>
+    <div class="field"><label for="fDirector">کارگردان</label><input id="fDirector" autocomplete="off"></div>
+    <div class="two field"><div><label for="fTitleEn" class="lbl">عنوان اصلی / انگلیسی</label><input id="fTitleEn" dir="ltr" autocomplete="off"></div><div><label for="fCountry" class="lbl">کشور</label><input id="fCountry" autocomplete="off"></div></div>
+    <div class="two field"><div><label for="fRuntime" class="lbl">مدت (دقیقه)</label><input id="fRuntime" type="number" inputmode="numeric" min="1" max="1000"></div><div><label for="fCast" class="lbl">بازیگران</label><input id="fCast" autocomplete="off"></div></div>
+    <div class="two field">
+      <div><label for="fYear" class="lbl">سال ساخت</label><input id="fYear" type="number" inputmode="numeric" min="1888" max="2100"></div>
+      <div><label for="fGenre" class="lbl">ژانر</label><select id="fGenre"></select></div>
+    </div>
+
+    <div id="seenOnly">
+      <div class="field">
+        <label>امتیاز من</label>
+        <div class="rate" id="rate"></div>
+        <div class="hint">یک بار لمس: ستاره کامل — دو بار: نیم‌ستاره — سه بار: پاک شدن</div>
+      </div>
+      <div class="field"><label for="fDate">تاریخ تماشا</label><input id="fDate" type="date"></div>
+      <div class="field"><label>دفترچه تماشا (هر بار دیدن فیلم)</label><div id="lgList"></div>
+        <div class="two" style="margin-top:8px"><input id="lgDate" type="date" aria-label="تاریخ"><select id="lgRate" aria-label="امتیاز این نوبت"></select></div>
+        <input id="lgNote" placeholder="یادداشت این نوبت" style="margin-top:8px">
+        <button class="btn" id="lgAdd" type="button" style="margin-top:8px">+ ثبت یک بار تماشا</button>
+        <div class="hint">با ثبت نوبت‌ها، تاریخ و امتیاز بالا فقط برای فیلم‌هایی بدون دفترچه به کار می‌رود.</div></div>
+    </div>
+
+    <div class="field"><label for="fNotes">یادداشت من (نور، قاب‌بندی، صدا، حس فیلم…)</label><textarea id="fNotes"></textarea></div>
+    <div class="field"><label class="chk"><input type="checkbox" id="fLiked"> ♥ دوست داشتم</label></div>
+
+    <div class="field">
+      <label>پوستر</label>
+      <div class="posterpick">
+        <div class="thumb" id="thumb"></div>
+        <div>
+          <button class="btn" id="pickPoster" type="button">انتخاب عکس از گالری</button>
+          <button class="btn" id="clearPoster" type="button" hidden>حذف عکس</button>
+          <input type="file" id="posterFile" accept="image/*" hidden>
+        </div>
+      </div>
+      <a class="lbLink" id="lbLink" target="_blank" rel="noopener" hidden>باز کردن صفحه فیلم در Letterboxd</a>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="cancelBtn">بستن</button>
+      <button class="btn danger" id="delBtn" hidden>حذف</button>
+      <button class="btn primary" id="saveBtn">ذخیره</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="dOv"><div class="sheet" id="dBody" role="dialog" aria-modal="true"></div></div>
+
+<div class="overlay" id="auOv"><div class="sheet" id="auBody" role="dialog" aria-modal="true"></div></div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const KEY = 'film-archive-v1';
+const THEME_KEY = 'film-archive-theme';
+const TM_KEY = 'film-archive-tmdb', BK_KEY = 'film-archive-lastbk';
+const GENRES = ['درام','کمدی','جنایی و معمایی','ترسناک','علمی‌تخیلی','اکشن','عاشقانه','مستند','انیمیشن','فیلم کوتاه','تاریخی و جنگی','سایر'];
+const COLORS = ['#1F3B36','#1C2F44','#3A3A22','#2B3A3F','#40301F','#23364A','#2E4A3F'];
+
+const $ = id => document.getElementById(id);
+const fa = n => Number(n).toLocaleString('fa-IR',{useGrouping:false});
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+
+let state = { films:[], tab:'dash', q:'', sort:'new', genre:'', editId:null, form:null };
+const mem = {};
+const JM=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const jal=d=>{const p=new Intl.DateTimeFormat('fa-IR-u-nu-latn',{year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date(d+'T12:00:00'));const g=t=>+p.find(x=>x.type===t).value;return{y:g('year'),m:g('month')};};
+const fdate=d=>new Date(d+'T12:00:00').toLocaleDateString('fa-IR',{day:'numeric',month:'long',year:'numeric'});
+const validD=d=>/^\d{4}-\d\d-\d\d$/.test(d||'');
+function entries(f){ if(f.logs&&f.logs.length) return f.logs; return f.status==='seen'&&f.date?[{date:f.date,rating:f.rating||0,note:f.notes||''}]:[]; }
+function allEntries(){ return state.films.flatMap(f=>entries(f).map(e=>({...e,film:f}))).filter(e=>validD(e.date)).sort((a,b)=>b.date.localeCompare(a.date)); }
+function posterOf(f){
+  const color = COLORS[[...f.title].reduce((a,c)=>a+c.charCodeAt(0),0) % COLORS.length];
+  return f.poster ? `<img src="${esc(f.poster)}" alt="پوستر ${esc(f.title)}" loading="lazy">` : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
+}
+function renderDash(){
+  const F=state.films, seen=F.filter(f=>f.status==='seen'), rated=seen.filter(f=>f.rating>0);
+  const avg=rated.length?rated.reduce((a,f)=>a+f.rating,0)/rated.length:0;
+  const E=allEntries(), curY=jal(todayISO()).y, months=Array(12).fill(0), years={};
+  E.forEach(e=>{const j=jal(e.date); years[j.y]=(years[j.y]||0)+1; if(j.y===curY) months[j.m-1]++;});
+  const mx=Math.max(1,...months), ids=new Set(), last=[];
+  E.forEach(e=>{ if(!ids.has(e.film.id)&&last.length<6){ids.add(e.film.id);last.push(e.film);} });
+  const yrs=Object.keys(years).sort((a,b)=>b-a);
+  $('dash').innerHTML=`<div class="kpis">
+    <div class="kpi"><b>${fa(F.length)}</b><span>کل فیلم‌ها</span></div>
+    <div class="kpi"><b>${fa(seen.length)}</b><span>دیده‌شده</span></div>
+    <div class="kpi"><b>${fa(F.length-seen.length)}</b><span>فهرست انتظار</span></div>
+    <div class="kpi"><b>${avg?fa(avg.toFixed(1)):'—'}</b><span>میانگین امتیاز (از ۵)</span></div></div>
+    <h2 class="sec">آخرین تماشاها</h2>
+    ${last.length?`<div class="strip">${last.map((f,i)=>`<button class="card" data-id="${f.id}" style="--i:${i}"><div class="poster">${posterOf(f)}</div><h3>${esc(f.title)}</h3>${f.rating?`<div class="stars">${starsText(f.rating)}</div>`:''}</button>`).join('')}</div>`:'<div class="empty">هنوز تماشایی با تاریخ ثبت نشده.</div>'}
+    <h2 class="sec">تماشا در هر ماه سال ${fa(curY)}</h2>
+    <div class="bars">${months.map((c,i)=>`<div class="bar" title="${JM[i]}" style="height:${Math.round(c/mx*110)}px">${c?`<i>${fa(c)}</i>`:''}<em>${fa(i+1)}</em></div>`).join('')}</div>
+    <h2 class="sec">تماشا در هر سال</h2>
+    ${yrs.length?`<div class="years">${yrs.map(y=>`<span>${fa(y)}: <b>${fa(years[y])}</b></span>`).join('')}</div>`:'<div class="empty">—</div>'}`;
+}
+function renderDiary(){
+  const E=allEntries(); let key='';
+  $('diary').innerHTML=E.length?E.map(e=>{
+    const j=jal(e.date), k=j.y+'-'+j.m; let h='';
+    if(k!==key){ key=k; h=`<div class="dgroup">${JM[j.m-1]} ${fa(j.y)}</div>`; }
+    return h+`<button class="drow" data-id="${e.film.id}"><div class="poster">${posterOf(e.film)}</div><div><h3>${esc(e.film.title)} ${e.film.year?`<span class="d">(${fa(e.film.year)})</span>`:''}</h3><div class="d">${fdate(e.date)}</div>${e.rating?`<div class="stars">${starsText(e.rating)}</div>`:''}${e.note?`<p>${esc(e.note)}</p>`:''}</div></button>`;
+  }).join(''):'<div class="empty"><b>دفترچه خالی است</b>برای فیلم‌های دیده‌شده تاریخ تماشا ثبت کن.</div>';
+}
+function paintLogs(){
+  $('lgList').innerHTML=(state.form.logs||[]).map((l,i)=>`<div class="lg"><span>${fdate(l.date)} ${l.rating?`<span class="stars" style="display:inline">${starsText(l.rating)}</span>`:''} ${esc(l.note||'')}</span><button type="button" data-i="${i}" aria-label="حذف">✕</button></div>`).join('');
+}
+
+/* ---------- ذخیره‌سازی (روی هر مرورگر و دستگاه) ---------- */
+async function kvGet(key){
+  try{ const v = localStorage.getItem(key); if(v !== null) return v; }catch(e){}
+  try{ if(window.storage){ const r = await window.storage.get(key); if(r && r.value) return r.value; } }catch(e){}
+  return mem[key] ?? null;
+}
+async function kvSet(key, value){
+  mem[key] = value;
+  let ok = false;
+  try{ localStorage.setItem(key, value); ok = true; }catch(e){}
+  try{ if(window.storage){ const r = await window.storage.set(key, value); if(r) ok = true; } }catch(e){}
+  return ok;
+}
+async function loadFilms(){
+  const v = await kvGet(KEY);
+  try{ return v ? JSON.parse(v) : []; }catch(e){ return []; }
+}
+async function saveFilms(){
+  stamp(); await saveMeta();
+  const ok = await kvSet(KEY, JSON.stringify(state.films));
+  if(!ok) toast('ذخیره خودکار انجام نشد؛ فایل پشتیبان بگیر');
+  scheduleSync();
+  return ok;
+}
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ---------- تم: خودکار / تیره / روشن ---------- */
+const THEMES = ['auto','dark','light'];
+const THEME_LABEL = { auto:'تم: خودکار', dark:'تم: تیره', light:'تم: روشن' };
+let theme = 'auto';
+function applyTheme(){
+  if(theme==='auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', theme);
+  $('themeBtn').textContent = THEME_LABEL[theme];
+}
+async function cycleTheme(){
+  theme = THEMES[(THEMES.indexOf(theme)+1) % THEMES.length];
+  applyTheme(); await kvSet(THEME_KEY, theme);
+}
+
+/* ---------- نمایش ---------- */
+function starsText(n){
+  const full = Math.floor(n);
+  return '★'.repeat(full) + (n - full ? '½' : '');
+}
+
+function render(){
+  const cs = [...new Set(state.films.flatMap(f=>(f.country||'').split('،').map(x=>x.trim())).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fa'));
+  $('aCountry').innerHTML = '<option value="">همه کشورها</option>' + cs.map(c=>`<option${c===state.adv.country?' selected':''}>${esc(c)}</option>`).join('');
+  const seen = state.films.filter(f=>f.status==='seen').length;
+  const want = state.films.length - seen;
+  $('stats').textContent = state.films.length
+    ? `${fa(seen)} فیلم دیده‌ام  •  ${fa(want)} در فهرست انتظار`
+    : 'هنوز فیلمی ثبت نشده';
+  const v = state.tab;
+  $('dash').hidden = v!=='dash'; $('diary').hidden = v!=='diary'; $('room').hidden = v!=='room';
+  document.querySelector('.tools').hidden = $('grid').hidden = (v==='dash'||v==='diary'||v==='room');
+  if(v==='room') return;
+  if(v==='dash') return renderDash();
+  if(v==='diary') return renderDiary();
+
+  const q = state.q.trim().toLowerCase();
+  let list = state.films.filter(f=>{
+    if(state.tab!=='all' && f.status!==state.tab) return false;
+    if(state.genre && f.genre!==state.genre) return false;
+    if(q && !(`${f.title} ${f.titleEn||''} ${f.director||''} ${f.cast||''} ${f.notes||''}`.toLowerCase().includes(q))) return false;
+    if(!passAdv(f)) return false;
+    return true;
+  });
+  const s = state.sort;
+  list.sort((a,b)=>{
+    if(s==='rating') return (b.rating||0)-(a.rating||0);
+    if(s==='year') return (b.year||0)-(a.year||0);
+    if(s==='title') return a.title.localeCompare(b.title,'fa');
+    return (b.created||0)-(a.created||0);
+  });
+
+  if(!list.length){
+    $('grid').innerHTML = `<div class="empty" style="grid-column:1/-1"><b>${state.films.length?'چیزی پیدا نشد':'آرشیوت خالی است'}</b>${state.films.length?'جستجو یا فیلتر را تغییر بده.':'با دکمه «فیلم جدید» اولین فیلمت را اضافه کن، یا فیلم‌هایت را از Letterboxd وارد کن.'}</div>`;
+    return;
+  }
+  $('grid').innerHTML = list.map((f,i)=>{
+    const color = COLORS[[...f.title].reduce((a,c)=>a+c.charCodeAt(0),0) % COLORS.length];
+    const poster = f.poster
+      ? `<img src="${esc(f.poster)}" alt="پوستر ${esc(f.title)}" loading="lazy">`
+      : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
+    const meta = [f.director, f.year ? fa(f.year) : ''].filter(Boolean).join(' - ');
+    return `<button class="card" data-id="${f.id}" style="--i:${Math.min(i,20)}">
+      <div class="poster">${poster}${f.status==='want'?'<span class="badge">می‌خواهم ببینم</span>':''}</div>
+      <h3>${esc(f.title)}${f.liked?' <span class="heart">♥</span>':''}</h3>
+      ${meta?`<div class="meta">${esc(meta)}</div>`:''}
+      ${f.status==='seen' && f.rating ? `<div class="stars">${starsText(f.rating)}</div>`:''}
+    </button>`;
+  }).join('');
+}
+
+/* ---------- برگه افزودن / ویرایش ---------- */
+function buildRate(){
+  $('rate').innerHTML = [1,2,3,4,5].map(n=>`<button type="button" data-n="${n}" aria-label="${fa(n)} ستاره">★</button>`).join('');
+}
+function paintRate(){
+  const r = state.form.rating || 0;
+  [...$('rate').children].forEach(b=>{
+    const n = Number(b.dataset.n);
+    b.classList.toggle('on', r >= n);
+    b.classList.toggle('half', r === n - 0.5);
+  });
+}
+function paintStatus(){
+  const seen = state.form.status==='seen';
+  $('stSeen').setAttribute('aria-pressed', seen);
+  $('stWant').setAttribute('aria-pressed', !seen);
+  $('seenOnly').hidden = !seen;
+}
+function paintPoster(){
+  const p = state.form.poster;
+  $('thumb').style.backgroundImage = p ? `url(${p})` : 'none';
+  $('clearPoster').hidden = !p;
+}
+
+function openSheet(id){
+  const f = id ? state.films.find(x=>x.id===id) : null;
+  state.editId = id || null;
+  state.form = f ? {...f, rating:f.rating||0} : { status:'seen', rating:0, poster:'' };
+  $('sheetTitle').textContent = f ? 'ویرایش فیلم' : 'فیلم جدید';
+  $('fTitle').value = f?.title || '';
+  $('fDirector').value = f?.director || '';
+  $('fTitleEn').value = f?.titleEn || ''; $('fCountry').value = f?.country || ''; $('fRuntime').value = f?.runtime || ''; $('fCast').value = f?.cast || ''; $('tmRes').innerHTML = '';
+  $('fYear').value = f?.year || '';
+  $('fGenre').value = f?.genre || '';
+  $('fDate').value = f ? (f.date || '') : todayISO();
+  $('fNotes').value = f?.notes || ''; $('fLiked').checked = !!f?.liked;
+  state.form.logs = (f?.logs||[]).map(x=>({...x}));
+  $('lgDate').value = todayISO(); $('lgNote').value=''; $('lgRate').value='';
+  $('delBtn').hidden = !f;
+  $('delBtn').textContent = 'حذف';
+  $('delBtn').dataset.armed = '0';
+  const link = $('lbLink');
+  if(f?.lb && /^https?:\/\//i.test(f.lb)){ link.href = f.lb; link.hidden = false; } else { link.hidden = true; }
+  paintStatus(); paintRate(); paintPoster(); paintLogs();
+  $('overlay').classList.add('open');
+  if(!f) setTimeout(()=>$('fTitle').focus(), 50);
+}
+function closeSheet(){ $('overlay').classList.remove('open'); }
+
+async function submitSheet(){
+  const title = $('fTitle').value.trim();
+  if(!title){ toast('نام فیلم را بنویس'); $('fTitle').focus(); return; }
+  const seen = state.form.status==='seen';
+  const data = {
+    title,
+    director: $('fDirector').value.trim(),
+    titleEn: $('fTitleEn').value.trim(), country: $('fCountry').value.trim(), cast: $('fCast').value.trim(),
+    runtime: $('fRuntime').value ? Number($('fRuntime').value) : '',
+    year: $('fYear').value ? Number($('fYear').value) : '',
+    genre: $('fGenre').value,
+    status: state.form.status,
+    rating: seen ? state.form.rating : 0,
+    date: seen ? $('fDate').value : '',
+    notes: $('fNotes').value.trim(), liked: $('fLiked').checked,
+    poster: state.form.poster || '',
+    tmdb: state.form.tmdb || '',
+    logs: seen ? state.form.logs : []
+  };
+  if(data.logs.length) data.date = data.logs[0].date;
+  if(state.editId){
+    const i = state.films.findIndex(x=>x.id===state.editId);
+    state.films[i] = {...state.films[i], ...data};
+  }else{
+    state.films.push({ id: newId(), created: Date.now(), ...data });
+  }
+  closeSheet(); render();
+  if(await saveFilms()) toast('ذخیره شد');
+}
+const newId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+async function deleteFilm(){
+  const b = $('delBtn');
+  if(b.dataset.armed !== '1'){
+    b.dataset.armed = '1'; b.textContent = 'مطمئنی؟ دوباره بزن';
+    setTimeout(()=>{ b.dataset.armed='0'; b.textContent='حذف'; }, 3000);
+    return;
+  }
+  state.films = state.films.filter(x=>x.id!==state.editId);
+  closeSheet(); render();
+  if(await saveFilms()) toast('حذف شد');
+}
+
+function shrinkImage(file){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = ()=>{
+      const w = 300, h = Math.round(img.height * (w / img.width));
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg',0.75));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+/* ---------- پشتیبان ---------- */
+function download(name, text, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type}));
+  a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function exportData(){
+  download('film-archive-backup.json', JSON.stringify({app:'film-archive', films:state.films}, null, 1), 'application/json');
+  kvSet(BK_KEY, String(Date.now())); $('bkBan').hidden = true;
+  toast('فایل پشتیبان ساخته شد');
+}
+async function importBackup(file){
+  try{
+    const obj = JSON.parse(await file.text());
+    const arr = Array.isArray(obj) ? obj : obj.films;
+    if(!Array.isArray(arr)) throw new Error();
+    const ids = new Set(state.films.map(f=>f.id));
+    let added = 0;
+    arr.forEach(f=>{ if(f && f.title && !ids.has(f.id)){ state.films.push(f); added++; } });
+    render(); await saveFilms();
+    toast(`${fa(added)} فیلم اضافه شد`);
+  }catch(e){ toast('فایل پشتیبان معتبر نیست'); }
+}
+
+/* ---------- ورود از Letterboxd (zip یا csv) ---------- */
+function parseCSV(text){
+  const rows = []; let row = [], cur = '', q = false;
+  text = text.replace(/^\uFEFF/, '');
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else q=false; }
+      else cur += c;
+    }else if(c==='"') q = true;
+    else if(c===','){ row.push(cur); cur=''; }
+    else if(c==='\n' || c==='\r'){
+      if(c==='\r' && text[i+1]==='\n') i++;
+      row.push(cur); cur=''; rows.push(row); row=[];
+    } else cur += c;
+  }
+  if(cur!=='' || row.length){ row.push(cur); rows.push(row); }
+  const head = (rows.shift()||[]).map(h=>h.trim());
+  return rows.filter(r=>r.some(x=>x!=='')).map(r=>Object.fromEntries(head.map((h,i)=>[h, r[i] ?? ''])));
+}
+
+/* خواندن zip بدون کتابخانه */
+async function readZip(buf){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let eocd = -1;
+  for(let i=buf.byteLength-22; i>=Math.max(0,buf.byteLength-70000); i--){
+    if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; }
+  }
+  if(eocd<0) throw new Error('zip');
+  const count = dv.getUint16(eocd+10,true);
+  let p = dv.getUint32(eocd+16,true);
+  const dec = new TextDecoder('utf-8');
+  const files = {};
+  for(let n=0;n<count;n++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    const method = dv.getUint16(p+10,true), csize = dv.getUint32(p+20,true);
+    const nl = dv.getUint16(p+28,true), el = dv.getUint16(p+30,true), cl = dv.getUint16(p+32,true);
+    const lho = dv.getUint32(p+42,true);
+    const name = dec.decode(u8.subarray(p+46, p+46+nl));
+    p += 46+nl+el+cl;
+    const ln = name.toLowerCase(); if(!(ln==='likes/films.csv' || (!ln.includes('/') && ln.endsWith('.csv')))) continue;
+    const lnl = dv.getUint16(lho+26,true), lel = dv.getUint16(lho+28,true);
+    const start = lho+30+lnl+lel;
+    const data = u8.subarray(start, start+csize);
+    let out;
+    if(method===0) out = data;
+    else if(method===8){
+      const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      out = new Uint8Array(await new Response(stream).arrayBuffer());
+    } else continue;
+    files[name.toLowerCase()] = dec.decode(out);
+  }
+  return files;
+}
+
+async function importLetterboxd(fileList){
+  try{
+    const csvs = {};
+    for(const f of fileList){
+      if(f.name.toLowerCase().endsWith('.zip')){
+        if(!('DecompressionStream' in window)){ toast('مرورگرت zip را باز نمی‌کند؛ فایل‌های csv را جدا انتخاب کن'); return; }
+        Object.assign(csvs, await readZip(await f.arrayBuffer()));
+      }else csvs[f.name.toLowerCase()] = await f.text();
+    }
+    const rows = n => csvs[n] ? parseCSV(csvs[n]) : [];
+    const byId = new Map(state.films.map(f=>[f.id,f]));
+    const byKey = new Map(state.films.map(f=>[`${f.title.toLowerCase()}|${f.year||''}`, f]));
+    let added = 0, touched = 0;
+    const num = x => Number(x) || 0;
+    const get = (r, status) => {
+      const title = (r.Name||'').trim(); if(!title) return null;
+      touched++;
+      const year = /^\d{4}$/.test(r.Year||'') ? Number(r.Year) : '';
+      const uri = r['Letterboxd URI'] || '';
+      const id = uri ? 'lb_' + uri.replace(/\/$/,'').split('/').pop() : '';
+      const k = `${title.toLowerCase()}|${year}`;
+      let f = (id && byId.get(id)) || byKey.get(k);
+      if(!f){
+        f = { id:id||newId(), created:Date.parse(r.Date)||Date.now(), title, director:'', year, genre:'', status, rating:0, date:'', notes:'', poster:'', lb:uri, logs:[], liked:false };
+        state.films.push(f); byId.set(f.id,f); byKey.set(k,f); added++;
+      } else if(!f.lb && uri) f.lb = uri;
+      if(!f.logs) f.logs = [];
+      return f;
+    };
+    const addLog = (f, d, rating, note) => { if(validD(d) && !f.logs.some(l=>l.date===d)) f.logs.push({date:d, rating, note:note||''}); };
+
+    rows('watched.csv').forEach(r=>{ const f=get(r,'seen'); if(f) f.status='seen'; });
+    rows('ratings.csv').forEach(r=>{ const f=get(r,'seen'); if(f){ f.status='seen'; if(r.Rating) f.rating=num(r.Rating); } });
+    rows('diary.csv').forEach(r=>{ const f=get(r,'seen'); if(f){ f.status='seen'; addLog(f, r['Watched Date']||r.Date, num(r.Rating), (r.Tags||'').trim()); if(r.Rating && !f.rating) f.rating=num(r.Rating); } });
+    rows('reviews.csv').forEach(r=>{ const f=get(r,'seen'); if(!f) return; f.status='seen';
+      addLog(f, r['Watched Date']||r.Date, num(r.Rating), (r.Tags||'').trim());
+      const t = (r.Review||'').replace(/<[^>]+>/g,'').trim();
+      if(t && !(f.notes||'').includes(t)) f.notes = f.notes ? f.notes + '\n\n— — —\n\n' + t : t;
+      if(r.Rating && !f.rating) f.rating=num(r.Rating); });
+    rows(csvs['likes/films.csv'] ? 'likes/films.csv' : 'films.csv').forEach(r=>{ const f=get(r,'want'); if(f) f.liked=true; });
+    rows('watchlist.csv').forEach(r=>{ get(r,'want'); });
+
+    state.films.forEach(f=>{
+      if(f.logs && f.logs.length){
+        f.logs.sort((a,b)=>b.date.localeCompare(a.date));
+        f.date = f.logs[0].date;
+        if(!f.rating) f.rating = (f.logs.find(l=>l.rating)||{}).rating || 0;
+      }
+    });
+    if(!touched){ toast('فایل Letterboxd شناخته نشد'); return; }
+    render(); await saveFilms();
+    toast(`${fa(added)} فیلم تازه اضافه شد`);
+  }catch(e){ console.error(e); toast('خواندن فایل Letterboxd انجام نشد'); }
+}
+
+/* ---------- اتصال رویدادها ---------- */
+function init(){
+  $('fGenre').innerHTML = '<option value="">—</option>' + GENRES.map(g=>`<option>${g}</option>`).join('');
+  $('genreFilter').innerHTML = '<option value="">همه ژانرها</option>' + GENRES.map(g=>`<option>${g}</option>`).join('');
+  buildRate();
+  $('lgRate').innerHTML = '<option value="">بدون امتیاز</option>' + Array.from({length:10},(_,i)=>(i+1)/2).map(n=>`<option value="${n}">${fa(n)} ★</option>`).join('');
+  $('lgAdd').addEventListener('click', ()=>{
+    const d = $('lgDate').value; if(!d){ toast('تاریخ را انتخاب کن'); return; }
+    const L = state.form.logs, old = state.films.find(x=>x.id===state.editId);
+    if(!L.length && old && old.status==='seen' && old.date) L.push({date:old.date, rating:old.rating||0, note:old.notes||''});
+    L.push({date:d, rating:Number($('lgRate').value)||0, note:$('lgNote').value.trim()});
+    L.sort((a,b)=>b.date.localeCompare(a.date));
+    $('lgNote').value=''; paintLogs();
+  });
+  $('lgList').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; state.form.logs.splice(Number(b.dataset.i),1); paintLogs(); });
+  ['dash','diary'].forEach(id=>$(id).addEventListener('click', e=>{ const c=e.target.closest('[data-id]'); if(c) openDetail(c.dataset.id); }));
+
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    state.tab = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected', x===t));
+    render();
+  }));
+  $('q').addEventListener('input', e=>{ state.q = e.target.value; render(); });
+  $('sort').addEventListener('change', e=>{ state.sort = e.target.value; render(); });
+  $('genreFilter').addEventListener('change', e=>{ state.genre = e.target.value; render(); });
+  $('grid').addEventListener('click', e=>{ const c = e.target.closest('.card'); if(c) openDetail(c.dataset.id); });
+
+  $('themeBtn').addEventListener('click', cycleTheme);
+  $('addBtn').addEventListener('click', ()=>openSheet(null));
+  $('cancelBtn').addEventListener('click', closeSheet);
+  $('overlay').addEventListener('click', e=>{ if(e.target===$('overlay')) closeSheet(); });
+  $('saveBtn').addEventListener('click', submitSheet);
+  $('delBtn').addEventListener('click', deleteFilm);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSheet(); });
+
+  $('stSeen').addEventListener('click', ()=>{ state.form.status='seen'; paintStatus(); });
+  $('stWant').addEventListener('click', ()=>{ state.form.status='want'; paintStatus(); });
+  $('rate').addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    const n = Number(b.dataset.n), cur = state.form.rating || 0;
+    state.form.rating = cur===n ? n-0.5 : (cur===n-0.5 ? 0 : n);
+    paintRate();
+  });
+
+  $('pickPoster').addEventListener('click', ()=>$('posterFile').click());
+  $('posterFile').addEventListener('change', async e=>{
+    const f = e.target.files[0]; if(!f) return;
+    try{ state.form.poster = await shrinkImage(f); paintPoster(); }
+    catch(err){ toast('این عکس خوانده نشد'); }
+    e.target.value = '';
+  });
+  $('clearPoster').addEventListener('click', ()=>{ state.form.poster=''; paintPoster(); });
+
+  $('exportBtn').addEventListener('click', exportData);
+  $('importBtn').addEventListener('click', ()=>$('importFile').click());
+  $('importFile').addEventListener('change', e=>{ if(e.target.files[0]) importBackup(e.target.files[0]); e.target.value=''; });
+  $('lbBtn').addEventListener('click', ()=>$('lbFile').click());
+  $('lbFile').addEventListener('change', e=>{ if(e.target.files.length) importLetterboxd([...e.target.files]); e.target.value=''; });
+
+  initRoom(); dust(); initPlus();
+  kvGet(THEME_KEY).then(t=>{ if(THEMES.includes(t)) theme = t; applyTheme(); });
+  loadFilms().then(async list=>{ state.films = list; await loadMeta(); render(); checkBackup(); startAccount(); });
+}
+/* ---------- اتاق تماشای دونفره (PeerJS؛ بارگذاری فقط هنگام نیاز) ---------- */
+const R = { peer:null, conn:null, host:false, mute:0, url:'', pl:null, timer:null };
+function loadPeer(){
+  if(window.Peer) return Promise.resolve();
+  if(R.pl) return R.pl;
+  R.pl = new Promise((ok,no)=>{
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
+    sc.onload = ok; sc.onerror = ()=>{ R.pl = null; no(new Error('load')); };
+    document.head.appendChild(sc);
+  });
+  return R.pl;
+}
+const rv = () => $('rv');
+const nm = () => ($('rName').value.trim() || 'من').slice(0,24);
+function rst(t,on){ $('rst').textContent = t; $('dot').className = on ? 'on' : ''; }
+function rsend(m){ if(R.conn && R.conn.open){ try{ R.conn.send(m); }catch(e){} } }
+function quiet(){ R.mute = Date.now() + 700; }
+function chat(text, cls, name){
+  const d = document.createElement('div'); if(cls) d.className = cls;
+  if(name){ const b = document.createElement('b'); b.textContent = name + ': '; d.appendChild(b); }
+  d.appendChild(document.createTextNode(text));
+  const l = $('chLog'); l.appendChild(d); l.scrollTop = l.scrollHeight;
+}
+function setSrc(url, fromPeer){
+  if(!/^https?:\/\/\S+$/i.test(url)){ toast('لینک باید با http یا https شروع شود'); return; }
+  R.url = url; $('rUrl').value = url; $('vph').hidden = true;
+  const el = rv(); el.src = url; el.load();
+  if(!fromPeer) rsend({t:'src', url});
+}
+function onMsg(m){
+  if(!m || typeof m !== 'object') return;
+  const el = rv();
+  if(m.t==='src' && typeof m.url==='string') setSrc(m.url, true);
+  else if(m.t==='chat') chat(String(m.text||'').slice(0,300), '', String(m.name||'؟').slice(0,24));
+  else if(m.t==='hello'){ chat(String(m.name||'؟').slice(0,24) + ' وارد اتاق شد', 'sys'); rst('متصل با ' + String(m.name||'؟').slice(0,24), true); }
+  else if(['play','pause','seek','tick'].includes(m.t) && typeof m.time==='number' && el.readyState>0){
+    quiet();
+    if(Math.abs(el.currentTime - m.time) > (m.t==='tick' ? 1.5 : 0.5)) el.currentTime = m.time;
+    if(m.t==='play' || (m.t==='tick' && m.playing && el.paused)) el.play().catch(()=>toast('برای شروع پخش، روی دکمهٔ پلی بزن'));
+    else if(m.t==='pause' || (m.t==='tick' && !m.playing && !el.paused)) el.pause();
+  }
+}
+function wire(c){
+  R.conn = c;
+  c.on('open', ()=>{
+    rst('متصل شد', true); rsend({t:'hello', name:nm()});
+    if(R.host && R.url){ rsend({t:'src', url:R.url}); setTimeout(()=>rsend({t:'tick', time:rv().currentTime, playing:!rv().paused}), 1500); }
+  });
+  c.on('data', onMsg);
+  c.on('close', ()=>{ R.conn = null; rst(R.host ? 'منتظر ورود نفر دوم' : 'اتصال قطع شد', false); chat('ارتباط قطع شد', 'sys'); });
+  c.on('error', ()=>toast('خطا در اتصال'));
+}
+function peerErr(e){
+  const t = e && e.type;
+  toast(t==='peer-unavailable' ? 'اتاقی با این کد پیدا نشد'
+    : ['network','server-error','socket-error','socket-closed'].includes(t) ? 'به سرور اتصال وصل نشد؛ اینترنت یا فیلترشکن را بررسی کن'
+    : 'اتصال برقرار نشد');
+  rst('آفلاین', false);
+}
+function leaveRoom(){
+  clearInterval(R.timer);
+  try{ R.conn && R.conn.close(); }catch(e){}
+  try{ R.peer && R.peer.destroy(); }catch(e){}
+  R.peer = R.conn = null; R.host = false;
+  $('rLeave').hidden = true; $('rInfo').hidden = true; rst('آفلاین', false);
+}
+async function startRoom(host){
+  const code = $('rCode').value.trim();
+  if(!host && !/^[\w-]{4,40}$/.test(code)){ toast('کد اتاق را وارد کن'); return; }
+  rst('در حال اتصال…', false);
+  try{ await loadPeer(); }catch(e){ rst('آفلاین', false); toast('کتابخانهٔ اتصال بارگذاری نشد؛ اینترنت را بررسی کن'); return; }
+  leaveRoom(); R.host = host; $('rLeave').hidden = false;
+  if(host){
+    const id = 'film-' + Math.random().toString(36).slice(2,8);
+    R.peer = new Peer(id);
+    R.peer.on('open', pid=>{
+      let info = 'کد اتاق: ' + pid + ' (برای دوستت بفرست)';
+      if(/^https?:$/.test(location.protocol)) info += '\nلینک: ' + location.origin + location.pathname + '#join=' + pid;
+      $('rInfo').textContent = info; $('rInfo').style.whiteSpace = 'pre-line'; $('rInfo').hidden = false;
+      rst('منتظر ورود نفر دوم', false);
+    });
+    R.peer.on('connection', c=>{ if(R.conn && R.conn.open){ c.on('open', ()=>c.close()); return; } wire(c); });
+    R.timer = setInterval(()=>{ if(R.conn && R.conn.open && R.url && rv().readyState>0) rsend({t:'tick', time:rv().currentTime, playing:!rv().paused}); }, 5000);
+  }else{
+    R.peer = new Peer();
+    R.peer.on('open', ()=>wire(R.peer.connect(code, {reliable:true})));
+    setTimeout(()=>{ if(R.peer && !R.conn){ toast('اتصال طول کشید؛ کد را دوباره بررسی کن'); } }, 15000);
+  }
+  R.peer.on('error', peerErr);
+  R.peer.on('disconnected', ()=>{ try{ R.peer.reconnect(); }catch(e){} });
+}
+function initRoom(){
+  const el = rv();
+  ['play','pause','seeked'].forEach(ev=>el.addEventListener(ev, ()=>{
+    if(Date.now() < R.mute) return;
+    rsend({t: ev==='seeked' ? 'seek' : ev, time: el.currentTime});
+  }));
+  el.addEventListener('error', ()=>{ if(el.getAttribute('src')) toast('ویدئو باز نشد: لینک مستقیم mp4/webm نیست، دسترسی ندارد، یا http روی صفحهٔ https است'); });
+  $('rLoad').addEventListener('click', ()=>setSrc($('rUrl').value.trim(), false));
+  $('rHost').addEventListener('click', ()=>startRoom(true));
+  $('rJoin').addEventListener('click', ()=>startRoom(false));
+  $('rLeave').addEventListener('click', ()=>{ leaveRoom(); chat('از اتاق خارج شدی', 'sys'); });
+  const send = ()=>{ const t = $('chIn').value.trim(); if(!t) return; if(!(R.conn && R.conn.open)){ toast('هنوز کسی متصل نیست'); return; } rsend({t:'chat', name:nm(), text:t}); chat(t, '', nm()); $('chIn').value = ''; };
+  $('chSend').addEventListener('click', send);
+  $('chIn').addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
+  const h = location.hash.match(/^#join=([\w-]{4,40})$/);
+  if(h){ state.tab = 'room'; document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab==='room')); $('rCode').value = h[1]; }
+}
+function dust(){
+  const f = document.querySelector('.fx');
+  for(let i=0;i<16;i++){ const d = document.createElement('i'); d.className = 'dust';
+    d.style.cssText = `--x:${Math.random()*100}%;--s:${2+Math.random()*3}px;--d:${14+Math.random()*16}s;--w:-${Math.random()*20}s`; f.appendChild(d); }
+}
+/* ---------- TMDB، فیلتر پیشرفته، صفحهٔ فیلم، پیشنهاد تصادفی ---------- */
+let tmKey = '';
+const TMG = {18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'جنایی و معمایی',53:'جنایی و معمایی',27:'ترسناک',878:'علمی‌تخیلی',28:'اکشن',12:'اکشن',10749:'عاشقانه',99:'مستند',16:'انیمیشن',36:'تاریخی و جنگی',10752:'تاریخی و جنگی'};
+async function tm(path, params){
+  const u = new URL('https://api.themoviedb.org/3' + path);
+  Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
+  const o = {};
+  if(tmKey.length > 40) o.headers = { Authorization:'Bearer ' + tmKey }; else u.searchParams.set('api_key', tmKey);
+  const r = await fetch(u, o);
+  if(r.status === 401) throw new Error('key');
+  if(!r.ok) throw new Error('http');
+  return r.json();
+}
+function passAdv(f){
+  const A = state.adv, lc = x => (x||'').toLowerCase();
+  if(A.dir && !lc(f.director).includes(A.dir)) return false;
+  if(A.cast && !lc(f.cast).includes(A.cast)) return false;
+  if(A.country && !(f.country||'').includes(A.country)) return false;
+  if(A.yf && !(f.year >= A.yf)) return false;
+  if(A.yt && !(f.year && f.year <= A.yt)) return false;
+  if(A.rmin && !(f.rating >= A.rmin)) return false;
+  if(A.rt && !(f.runtime && f.runtime <= A.rt)) return false;
+  if(A.liked && !f.liked) return false;
+  return true;
+}
+function randomPick(){
+  const g = state.genre;
+  const pool = state.films.filter(f=>f.status==='want' && (!g || f.genre===g) && passAdv(f));
+  if(!pool.length){ toast('فیلمی با این شرط‌ها در فهرست انتظار نیست'); return; }
+  openDetail(pool[Math.floor(Math.random()*pool.length)].id, true);
+}
+function openDetail(id, rnd){
+  const f = state.films.find(x=>x.id===id); if(!f) return;
+  const logs = entries(f).filter(e=>validD(e.date)).sort((a,b)=>b.date.localeCompare(a.date));
+  const row = (k,v) => v ? `<div class="drw"><span>${k}</span><b>${esc(v)}</b></div>` : '';
+  const meta = [f.year && fa(f.year), f.runtime && (fa(f.runtime) + ' دقیقه')].filter(Boolean).join(' • ');
+  $('dBody').innerHTML = `<div class="dtop"><div class="poster">${posterOf(f)}</div><div>
+    <h2>${esc(f.title)}</h2>${f.titleEn ? `<div class="meta" dir="ltr" style="text-align:right">${esc(f.titleEn)}</div>` : ''}
+    ${meta ? `<div class="meta">${meta}</div>` : ''}
+    ${f.status==='seen' && f.rating ? `<div class="stars" style="font-size:22px">${starsText(f.rating)}</div>` : ''}
+    ${f.liked ? '<div class="heart">♥ دوست داشتم</div>' : ''}
+    ${f.status==='want' ? '<span class="badge" style="position:static;display:inline-block;margin-top:6px">می‌خواهم ببینم</span>' : ''}</div></div>
+    ${row('کارگردان', f.director)}${row('بازیگران', f.cast)}${row('کشور', f.country)}${row('ژانر', f.genre)}
+    ${f.notes ? `<h3 class="sec">یادداشت و نقد</h3><p style="white-space:pre-wrap">${esc(f.notes)}</p>` : ''}
+    <h3 class="sec">تاریخچهٔ تماشا</h3>
+    ${logs.length ? logs.map(e=>`<div class="drw"><span>${fdate(e.date)}</span>${e.rating ? `<b class="stars">${starsText(e.rating)}</b>` : ''}${e.note ? `<i>${esc(e.note)}</i>` : ''}</div>`).join('') : '<div class="hint">هنوز تماشایی ثبت نشده.</div>'}
+    ${f.lb ? `<a class="lbLink" href="${esc(f.lb)}" target="_blank" rel="noopener">صفحهٔ فیلم در Letterboxd</a>` : ''}
+    <div class="actions"><button class="btn" id="dClose" type="button">بستن</button>${f.status==='want' ? '<button class="btn" id="dSeen" type="button">دیدمش ✓</button>' : ''}${rnd ? '<button class="btn" id="dAgain" type="button">یکی دیگر</button>' : ''}<button class="btn primary" id="dEdit" type="button">ویرایش</button></div>`;
+  $('dOv').classList.add('open');
+  $('dClose').onclick = () => $('dOv').classList.remove('open');
+  $('dEdit').onclick = () => { $('dOv').classList.remove('open'); openSheet(id); };
+  if(f.status==='want') $('dSeen').onclick = async () => { f.status='seen'; if(!f.date) f.date=todayISO(); $('dOv').classList.remove('open'); render(); await saveFilms(); openSheet(id); };
+  if(rnd) $('dAgain').onclick = randomPick;
+}
+async function checkBackup(){
+  if(state.films.length < 3) return;
+  const t = Number(await kvGet(BK_KEY)) || 0;
+  if(Date.now() - t > 30*864e5) $('bkBan').hidden = false;
+}
+function initPlus(){
+  state.adv = {dir:'',cast:'',country:'',yf:0,yt:0,rmin:0,rt:0,liked:false};
+  const up = () => {
+    state.adv = {dir:$('aDir').value.trim().toLowerCase(), cast:$('aCast').value.trim().toLowerCase(), country:$('aCountry').value,
+      yf:+$('aYf').value||0, yt:+$('aYt').value||0, rmin:+$('aRate').value||0, rt:+$('aRt').value||0, liked:$('aLiked').checked};
+    render();
+  };
+  ['aDir','aCast','aYf','aYt','aRt'].forEach(id=>$(id).addEventListener('input', up));
+  ['aCountry','aRate','aLiked'].forEach(id=>$(id).addEventListener('change', up));
+  $('aClr').addEventListener('click', ()=>{ ['aDir','aCast','aYf','aYt','aRt'].forEach(id=>$(id).value=''); $('aRate').value='0'; $('aCountry').value=''; $('aLiked').checked=false; up(); });
+  $('advBtn').addEventListener('click', ()=>{ $('adv').hidden = !$('adv').hidden; });
+  $('rndBtn').addEventListener('click', randomPick);
+  $('bkNow').addEventListener('click', exportData);
+  $('dOv').addEventListener('click', e=>{ if(e.target===$('dOv')) $('dOv').classList.remove('open'); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('dOv').classList.remove('open'); });
+
+  kvGet(TM_KEY).then(k=>{ tmKey = k || ''; $('tmState').textContent = tmKey ? 'کلید ذخیره شده است.' : 'کلیدی ذخیره نشده.'; });
+  $('tmKeySave').addEventListener('click', async ()=>{
+    const k = $('tmKeyIn').value.trim();
+    if(!/^[\w.\-]{20,}$/.test(k)){ toast('کلید معتبر به نظر نمی‌رسد'); return; }
+    tmKey = k; await kvSet(TM_KEY, k); $('tmKeyIn').value = ''; $('tmState').textContent = 'کلید ذخیره شد.';
+  });
+  $('tmKeyDel').addEventListener('click', async ()=>{ tmKey = ''; await kvSet(TM_KEY, ''); $('tmState').textContent = 'کلید حذف شد.'; });
+
+  $('tmSearch').addEventListener('click', async ()=>{
+    const q = $('fTitle').value.trim();
+    if(!q){ toast('نام فیلم را بنویس'); return; }
+    if(!tmKey){ toast('اول کلید TMDB را پایین صفحه ذخیره کن'); return; }
+    $('tmRes').innerHTML = '<div class="hint">در حال جستجو…</div>';
+    try{
+      const d = await tm('/search/movie', {query:q, language:'fa-IR'});
+      const L = (d.results||[]).slice(0,5);
+      $('tmRes').innerHTML = L.length ? L.map(m=>`<button type="button" class="tmr" data-id="${m.id}">${m.poster_path ? `<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" alt="">` : '<i></i>'}<span>${esc(m.title)} <small>${esc(m.original_title||'')} • ${esc((m.release_date||'').slice(0,4))}</small></span></button>`).join('') : '<div class="hint">نتیجه‌ای پیدا نشد</div>';
+    }catch(e){ $('tmRes').innerHTML = ''; toast(e.message==='key' ? 'کلید TMDB معتبر نیست' : 'ارتباط با TMDB برقرار نشد (اینترنت یا فیلترشکن)'); }
+  });
+  $('tmRes').addEventListener('click', async e=>{
+    const b = e.target.closest('.tmr'); if(!b) return;
+    try{
+      const d = await tm('/movie/' + b.dataset.id, {language:'fa-IR', append_to_response:'credits'});
+      const dn = new Intl.DisplayNames(['fa'], {type:'region'});
+      $('fTitle').value = d.title || d.original_title || '';
+      $('fTitleEn').value = d.original_title || '';
+      $('fYear').value = (d.release_date||'').slice(0,4);
+      $('fRuntime').value = d.runtime || '';
+      $('fDirector').value = ((d.credits||{}).crew||[]).filter(c=>c.job==='Director').map(c=>c.name).join('، ');
+      $('fCast').value = ((d.credits||{}).cast||[]).slice(0,6).map(c=>c.name).join('، ');
+      $('fCountry').value = (d.production_countries||[]).map(c=>{ try{ return dn.of(c.iso_3166_1); }catch(_){ return c.name; } }).join('، ');
+      const g = (d.genres||[]).map(x=>TMG[x.id]).find(Boolean); if(g) $('fGenre').value = g;
+      if(d.poster_path){ state.form.poster = 'https://image.tmdb.org/t/p/w342' + d.poster_path; paintPoster(); }
+      state.form.tmdb = d.id; $('tmRes').innerHTML = ''; toast('اطلاعات فیلم پر شد');
+    }catch(err){ toast('دریافت اطلاعات فیلم انجام نشد'); }
+  });
+}
+/* ---------- حساب کاربری و همگام‌سازی (Supabase، بدون کتابخانهٔ اضافه) ---------- */
+// بعد از ساخت پروژه، این دو مقدار پر می‌شود (کلید public است و جای نگرانی ندارد).
+const SB_URL = 'https://qphlhhuxtlchejbrkeec.supabase.co', SB_KEY = 'sb_publishable_YSSI40vFmggCWczZJs0NTQ_86q_Howl';
+const SB_CFG_KEY = 'film-archive-sbcfg', SES_KEY = 'film-archive-session', META_KEY = 'film-archive-meta';
+let sb = { url:SB_URL, key:SB_KEY }, ses = null;
+let acMeta = { snap:{}, deleted:{}, owner:'', synced:0 };
+let syncT = null, syncBusy = false, syncAgain = false, syncMsg = '', auView = 'login', acToken = '', acRec = null;
+
+async function loadMeta(){
+  try{ const v = await kvGet(META_KEY); if(v) acMeta = { ...acMeta, ...JSON.parse(v) }; }catch(e){}
+  try{ const c = await kvGet(SB_CFG_KEY); if(c){ const o = JSON.parse(c); if(!SB_URL) sb.url = o.url || ''; if(!SB_KEY) sb.key = o.key || ''; } }catch(e){}
+  try{ const x = await kvGet(SES_KEY); if(x) ses = JSON.parse(x); }catch(e){}
+}
+const saveMeta = () => kvSet(META_KEY, JSON.stringify(acMeta));
+
+/* تغییرها را شناسایی و مهر زمانی می‌زند (برای ادغام درست بین دستگاه‌ها) */
+function hashFilms(){
+  const o = {};
+  state.films.forEach(f=>{
+    const j = JSON.stringify({ ...f, u:0 }); let x = 5381;
+    for(let i=0;i<j.length;i++) x = ((x<<5) + x + j.charCodeAt(i)) | 0;
+    o[f.id] = x;
+  });
+  return o;
+}
+function stamp(){
+  const now = Date.now(), snap = hashFilms();
+  state.films.forEach(f=>{ if(acMeta.snap[f.id] !== snap[f.id]){ f.u = now; delete acMeta.deleted[f.id]; } });
+  Object.keys(acMeta.snap).forEach(id=>{ if(!(id in snap)) acMeta.deleted[id] = now; });
+  acMeta.snap = snap;
+}
+function mergeDocs(a, b){
+  const del = { ...(b.deleted||{}) };
+  Object.entries(a.deleted||{}).forEach(([id,t])=>{ del[id] = Math.max(del[id]||0, t); });
+  const map = new Map();
+  [...(b.films||[]), ...(a.films||[])].forEach(f=>{ const o = map.get(f.id); if(!o || (f.u||0) >= (o.u||0)) map.set(f.id, f); });
+  const films = [...map.values()].filter(f=>!(del[f.id] > (f.u||0)));
+  return { films, deleted: del };
+}
+const docSig = d => (d.films||[]).map(f=>f.id+':'+(f.u||0)).sort().join(',') + '|' + Object.keys(d.deleted||{}).sort().join(',');
+
+/* ---------- ارتباط با سرور ---------- */
+function faErr(m){
+  m = String(m||'');
+  if(/Invalid login/i.test(m)) return 'ایمیل یا رمز اشتباه است';
+  if(/already registered|already been registered/i.test(m)) return 'این ایمیل قبلاً ثبت شده؛ وارد شو';
+  if(/at least 6|weak/i.test(m)) return 'رمز باید حداقل ۶ نویسه باشد';
+  if(/not confirmed/i.test(m)) return 'ایمیل هنوز تأیید نشده؛ ایمیلت را چک کن';
+  if(/valid email|invalid.*email|email address.*invalid/i.test(m)) return 'ایمیل معتبر نیست';
+  if(/rate limit|too many|security purposes/i.test(m)) return 'تلاش زیاد بود؛ چند دقیقه بعد دوباره امتحان کن';
+  if(/PGRST205|does not exist|rest 404/i.test(m)) return 'جدول دیتابیس ساخته نشده؛ مرحلهٔ SQL را انجام بده';
+  if(/rest 401|rest 403|JWT/i.test(m)) return 'دسترسی رد شد؛ دوباره وارد شو یا کلید را بررسی کن';
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'ارتباط با سرور برقرار نشد (اینترنت یا فیلترشکن)';
+  return 'خطا: ' + m.slice(0,120);
+}
+async function authCall(path, body, method, token){
+  const h = { apikey: sb.key, 'Content-Type':'application/json' };
+  if(token) h.Authorization = 'Bearer ' + token;
+  const r = await fetch(sb.url.replace(/\/$/,'') + '/auth/v1' + path, { method: method||'POST', headers:h, body: JSON.stringify(body||{}) });
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error_description || j.msg || j.message || j.error || ('http ' + r.status));
+  return j;
+}
+async function restCall(path, opt){
+  const h = { apikey: sb.key, 'Content-Type':'application/json', Authorization:'Bearer ' + ses.access_token, ...((opt&&opt.headers)||{}) };
+  const r = await fetch(sb.url.replace(/\/$/,'') + '/rest/v1' + path, { ...(opt||{}), headers:h });
+  if(!r.ok) throw new Error('rest ' + r.status + ' ' + (await r.text()).slice(0,160));
+  return r;
+}
+async function setSession(j){
+  ses = { access_token:j.access_token, refresh_token:j.refresh_token, exp: Date.now() + (j.expires_in||3600)*1000 - 60000, id:j.user.id, email:j.user.email };
+  await kvSet(SES_KEY, JSON.stringify(ses));
+}
+async function freshToken(){
+  if(!ses) return false;
+  if(Date.now() < ses.exp) return true;
+  try{ await setSession(await authCall('/token?grant_type=refresh_token', { refresh_token: ses.refresh_token })); return true; }
+  catch(e){
+    if(/Failed to fetch|NetworkError|Load failed/i.test(e.message)) return false;
+    ses = null; await kvSet(SES_KEY, ''); updateAcct(); toast('نشست تمام شد؛ دوباره وارد شو'); return false;
+  }
+}
+
+/* ---------- همگام‌سازی ---------- */
+function scheduleSync(){ if(!ses || !sb.url) return; clearTimeout(syncT); syncT = setTimeout(()=>syncNow(false), 1500); }
+async function syncNow(manual){
+  if(!ses || !sb.url) return;
+  if(syncBusy){ syncAgain = true; return; }
+  syncBusy = true; setSync('در حال همگام‌سازی…');
+  try{
+    if(!(await freshToken())) throw new Error('Failed to fetch');
+    const rows = await (await restCall('/archives?select=data&limit=1')).json();
+    const remote = rows[0] ? rows[0].data : null;
+    const local = { films: state.films, deleted: acMeta.deleted };
+    const merged = remote && remote.films ? mergeDocs(local, remote) : { films:[...state.films], deleted:{ ...acMeta.deleted } };
+    if(docSig(merged) !== docSig(local)){
+      state.films = merged.films; acMeta.deleted = merged.deleted; acMeta.snap = hashFilms();
+      await kvSet(KEY, JSON.stringify(state.films)); render();
+    }
+    if(!remote || docSig(merged) !== docSig(remote)){
+      await restCall('/archives?on_conflict=user_id', { method:'POST', headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ user_id: ses.id, data: merged, updated_at: new Date().toISOString() }) });
+    }
+    acMeta.synced = Date.now(); await saveMeta();
+    setSync('همگام شد ✓');
+  }catch(e){ console.error(e); setSync('همگام نشد'); if(manual) toast(faErr(e.message)); }
+  finally{ syncBusy = false; if(syncAgain){ syncAgain = false; scheduleSync(); } }
+}
+
+/* ---------- نمایش ---------- */
+function updateAcct(){
+  $('acctBtn').textContent = ses ? ses.email.split('@')[0].slice(0,14) : 'ورود / ثبت‌نام';
+  $('syncLine').textContent = ses ? ('حساب: ' + ses.email + (syncMsg ? ' • ' + syncMsg : '')) : 'ذخیره فقط روی همین دستگاه است؛ برای همگام‌سازی وارد شو';
+}
+function setSync(m){ syncMsg = m; updateAcct(); if($('auOv').classList.contains('open') && auView==='me') paintAuth(); }
+function closeAuth(){ $('auOv').classList.remove('open'); }
+function auMsg(t, ok){ const e = $('auMsg'); if(e){ e.textContent = t; e.className = 'msg' + (ok ? ' ok' : ''); } }
+function openAuth(view, token){
+  if(!sb.url || !sb.key) view = 'config';
+  else if(!view) view = ses ? 'me' : 'login';
+  else if(ses && (view==='login' || view==='signup')) view = 'me';
+  auView = view; acToken = token || '';
+  paintAuth(); $('auOv').classList.add('open');
+}
+function paintAuth(){
+  const v = auView, B = $('auBody'), msg = '<div class="msg" id="auMsg" role="alert"></div>';
+  const on = (id, fn) => { const e = $(id); if(e) e.onclick = fn; };
+  if(v==='config'){
+    B.innerHTML = `<h2>اتصال به دیتابیس حساب‌ها</h2>
+      <p>برای ساخت حساب باید یک‌بار اتصال به دیتابیس را تنظیم کنی (مراحلش در راهنمای راه‌اندازی است). آدرس پروژه و کلید public را اینجا بگذار.</p>
+      <div class="field"><label for="auUrl">Project URL</label><input id="auUrl" dir="ltr" value="${esc(sb.url)}" placeholder="https://xxxx.supabase.co" autocomplete="off"></div>
+      <div class="field"><label for="auKey">Publishable key (یا anon key)</label><input id="auKey" dir="ltr" value="${esc(sb.key)}" autocomplete="off"></div>${msg}
+      <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn primary" id="auSaveCfg" type="button">ذخیره</button></div>`;
+    on('auSaveCfg', async ()=>{
+      const url = $('auUrl').value.trim().replace(/\/$/,''), key = $('auKey').value.trim();
+      if(!/^https:\/\/[\w-]+\.supabase\.co$/i.test(url)){ auMsg('آدرس باید مثل https://xxxx.supabase.co باشد'); return; }
+      if(key.length < 20){ auMsg('کلید معتبر به نظر نمی‌رسد'); return; }
+      sb = { url, key }; await kvSet(SB_CFG_KEY, JSON.stringify(sb)); openAuth('login');
+    });
+  } else if(v==='me'){
+    B.innerHTML = `<h2>حساب من</h2><p><b>${esc(ses.email)}</b></p>
+      <p>${esc(syncMsg || '—')}${acMeta.synced ? ' • آخرین همگام‌سازی: ' + new Date(acMeta.synced).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}) : ''}</p>
+      <p>هر تغییری که بدهی خودکار روی حساب ذخیره می‌شود و روی هر دستگاهی با همین حساب وارد شوی همان آرشیو را می‌بینی.</p>${msg}
+      <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn" id="auSync" type="button">همگام‌سازی حالا</button><button class="btn danger" id="auOut" type="button">خروج</button></div>`;
+    on('auSync', ()=>syncNow(true));
+    on('auOut', async ()=>{
+      await syncNow(false);
+      try{ fetch(sb.url.replace(/\/$/,'') + '/auth/v1/logout', { method:'POST', headers:{ apikey:sb.key, Authorization:'Bearer ' + ses.access_token } }).catch(()=>{}); }catch(e){}
+      ses = null; await kvSet(SES_KEY, ''); syncMsg = ''; updateAcct(); closeAuth(); toast('خارج شدی');
+    });
+  } else if(v==='recover'){
+    B.innerHTML = `<h2>رمز جدید</h2><div class="field"><label for="auPass">رمز جدید (حداقل ۶ نویسه)</label><input id="auPass" type="password" dir="ltr" autocomplete="new-password"></div>${msg}
+      <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn primary" id="auGo" type="button">ذخیره رمز</button></div>`;
+    on('auGo', async ()=>{
+      const p = $('auPass').value; if(p.length < 6){ auMsg('رمز باید حداقل ۶ نویسه باشد'); return; }
+      try{
+        const u = await authCall('/user', { password:p }, 'PUT', acToken);
+        await setSession({ ...acRec, user:u }); await afterLogin();
+      }catch(e){ auMsg(faErr(e.message)); }
+    });
+  } else {
+    const su = v==='signup', em = ($('auEmail') && $('auEmail').value) || '';
+    B.innerHTML = `<h2>${su ? 'ساخت حساب' : 'ورود'}</h2>
+      <div class="field"><div class="seg"><button id="auTl" type="button" aria-pressed="${!su}">ورود</button><button id="auTs" type="button" aria-pressed="${su}">ثبت‌نام</button></div></div>
+      <div class="field"><label for="auEmail">ایمیل</label><input id="auEmail" type="email" dir="ltr" inputmode="email" autocomplete="username" value="${esc(em)}"></div>
+      <div class="field"><label for="auPass">رمز عبور (حداقل ۶ نویسه)</label><input id="auPass" type="password" dir="ltr" autocomplete="${su ? 'new-password' : 'current-password'}"></div>${msg}
+      <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn primary" id="auGo" type="button">${su ? 'ساخت حساب' : 'ورود'}</button></div>
+      <p style="margin-top:14px"><button class="linkbtn" id="auForgot" type="button">رمزم را فراموش کرده‌ام</button> · <button class="linkbtn" id="auCfg" type="button">تنظیم اتصال</button></p>`;
+    on('auTl', ()=>{ auView = 'login'; paintAuth(); });
+    on('auTs', ()=>{ auView = 'signup'; paintAuth(); });
+    on('auCfg', ()=>{ auView = 'config'; paintAuth(); });
+    on('auForgot', async ()=>{
+      const email = $('auEmail').value.trim(); if(!email){ auMsg('اول ایمیلت را بنویس'); return; }
+      try{ await authCall('/recover?redirect_to=' + encodeURIComponent(location.href.split('#')[0]), { email }); auMsg('اگر این ایمیل ثبت شده باشد، لینک بازنشانی رمز برایش فرستاده شد.', true); }
+      catch(e){ auMsg(faErr(e.message)); }
+    });
+    on('auGo', async ()=>{
+      const email = $('auEmail').value.trim(), pass = $('auPass').value;
+      if(!email || !pass){ auMsg('ایمیل و رمز را وارد کن'); return; }
+      $('auGo').disabled = true; auMsg('');
+      try{
+        if(auView==='signup'){
+          const j = await authCall('/signup', { email, password:pass });
+          if(j.access_token){ await setSession(j); await afterLogin(); }
+          else auMsg('ایمیل تأیید برایت فرستاده شد؛ بعد از تأیید، وارد شو.', true);
+        }else{
+          await setSession(await authCall('/token?grant_type=password', { email, password:pass })); await afterLogin();
+        }
+      }catch(e){ auMsg(faErr(e.message)); }
+      finally{ const g = $('auGo'); if(g) g.disabled = false; }
+    });
+  }
+  on('auClose', closeAuth);
+}
+async function afterLogin(){
+  if(acMeta.owner && acMeta.owner !== ses.id && state.films.length){
+    state.films = []; acMeta = { snap:{}, deleted:{}, owner:'', synced:0 }; await kvSet(KEY, '[]');
+    toast('آرشیو حساب قبلی از این دستگاه پاک شد');
+  }
+  acMeta.owner = ses.id; await saveMeta(); updateAcct(); closeAuth(); render(); await syncNow(true);
+}
+function startAccount(){
+  updateAcct();
+  $('acctBtn').addEventListener('click', ()=>openAuth());
+  $('auOv').addEventListener('click', e=>{ if(e.target===$('auOv')) closeAuth(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAuth(); });
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && ses && Date.now() - (acMeta.synced||0) > 30000) syncNow(false); });
+  const hp = new URLSearchParams(location.hash.slice(1));
+  if(hp.get('type')==='recovery' && hp.get('access_token') && sb.url){
+    acRec = { access_token:hp.get('access_token'), refresh_token:hp.get('refresh_token')||'', expires_in:+hp.get('expires_in')||3600 };
+    history.replaceState(null, '', location.pathname + location.search);
+    openAuth('recover', acRec.access_token);
+  }else if(ses) syncNow(false);
+}
+
+init();
+</script>
+</body>
+</html>
