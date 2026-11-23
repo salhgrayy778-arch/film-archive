@@ -20,7 +20,7 @@ class FakeElement{
  constructor(tagName='div'){
   this.tagName=tagName.toUpperCase();this.children=[];this.listeners={};
   this.attributes={};this.dataset={};this.value='';this.hidden=false;
-  this.textContent='';this.classList={toggle(){}};this.disabled=false;
+  this.textContent='';this.classList={toggle(){},add(){},remove(){}};this.disabled=false;
  }
  set id(value){this._id=value;this.elements[value]=this;}
  get id(){return this._id;}
