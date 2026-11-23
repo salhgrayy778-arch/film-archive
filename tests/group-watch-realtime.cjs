@@ -41,7 +41,7 @@ function makeBrowser(){
   location:{hash:'',origin:'https://example.test',pathname:'/'},
   navigator:{onLine:true},crypto:webcrypto,URL,Map,Set,Promise,Date,console,
   setTimeout,clearTimeout,setInterval,clearInterval,
-  nm:()=>get('rName').value||'Guest',
+  nm:()=>get('rName').value||'Guest',rv:()=>({readyState:0,currentTime:0,paused:true}),
   localLabel:(a)=>a,toast(){},rst(){},status(){},displayMembers(){},
   broadcastRoster(){R.roster=(R.roster||0)+1;ctx.rsend({t:'members',list:[{id:R.peer.id,name:ctx.nm()},...Array.from(R.members,([id,name])=>({id,name}))]});},
   onMsg(message,conn){
@@ -54,7 +54,7 @@ function makeBrowser(){
     R.receivedChat=message.text;
    }
   },
-  startRoom(){},rsend(){},oldLeaveCalls:0,leaveRoom(){R.oldLeaveCalls=(R.oldLeaveCalls||0)+1;},
+  startRoom(){},rsend(){},oldLeaveCalls:0,leaveRoom(){R.oldLeaveCalls=(R.oldLeaveCalls||0)+1;clearInterval(R.timer);R.peer=null;},
  };
  ctx.globalThis=ctx;vm.createContext(ctx);
  new vm.Script(source,{filename:'group-watch-realtime.js'}).runInContext(ctx);
