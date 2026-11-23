@@ -111,10 +111,15 @@ startRoom=async function(host){
    config:{broadcast:{self:false,ack:true},presence:{key:clientId},private:false}
   });
   channel.on('broadcast',{event:'film-room'},({payload})=>handle(payload));
+  channel.on('presence',{event:'leave'},({key,leftPresences})=>{
+   if(role==='guest'&&key===roomId){R.conn=null;R.roomError='host-left';status();}
+   if(role==='host'&&key!==clientId){const c=R.conns.get(key);if(c){c.close();R.conns.delete(key);R.members.delete(key);broadcastRoster();status();}}
+  });
   channel.subscribe(async state=>{
    if(state==='SUBSCRIBED'){
     clearTimeout(subscriptionTimer);
     R.peer.open=true;
+    channel.track({id:clientId,host:!!host,name:nm()}).catch(error=>console.warn('Room presence tracking failed',error));
     if(host){
      $('rCodeShow').textContent=roomId;
      R.link=location.origin+location.pathname+'#join='+roomId;
@@ -140,6 +145,15 @@ startRoom=async function(host){
   fail(label('راه‌اندازی اتاق ناموفق بود','Could not start the room'));
  }
 };
+function joinFromInvite(){
+ const match=location.hash.match(/^#join=(film-[a-f0-9]{24})$/);
+ if(!match||R.peer)return;
+ $('rCode').value=match[1];
+ $('tab-room')?.click();
+ setTimeout(()=>{if(!R.peer&&$('rCode').value===match[1])startRoom(false);},350);
+}
+window.addEventListener('hashchange',joinFromInvite);
+setTimeout(joinFromInvite,0);
 window.addEventListener('online',()=>{if(R.peer&&!R.peer.open)status();});
 window.addEventListener('offline',()=>{if(R.peer){R.roomError='offline';status();}});
 })();
