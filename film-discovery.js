@@ -142,7 +142,12 @@ function titleOf(m){
 }
 function posterOf(m){
  const v=String(m.poster_url||'');
- return /^assets\/(?:catalog|posters)\/\d+-[a-f0-9]{12}\.webp$/i.test(v)?new URL(v,BASE).href:'';
+ if(/^assets\/(?:catalog|posters)\/\d+-[a-f0-9]{12}\.webp$/i.test(v))return new URL(v,BASE).href;
+ // Use only TMDB's own verified poster path. Never invent artwork from a title.
+ const path=String(m.poster_path||'');
+ if(/^\/[a-zA-Z0-9_-]{8,90}\.(?:jpg|png|webp)$/i.test(path))
+  return 'https://image.tmdb.org/t/p/w342'+path;
+ return '';
 }
 function createPoster(m,cls){
  const element=node('div',cls),url=posterOf(m);
@@ -462,10 +467,18 @@ async function fetchLiveDetail(id){
   if(idNumber(d?.id)!==id)return null;
   const m={id,title:d.title||d.original_title,original_title:d.original_title||d.title,
    release_date:d.release_date||'',vote_average:d.vote_average||0,overview:d.overview||'',
-   genre_ids:(d.genres||[]).map(g=>g.id),runtime:d.runtime||0,poster_url:'',
+   genre_ids:(d.genres||[]).map(g=>g.id),runtime:d.runtime||0,poster_url:'',poster_path:d.poster_path||'',
    director:(d.credits?.crew||[]).filter(c=>c.job==='Director').map(c=>c.name).join(', '),
    cast:(d.credits?.cast||[]).slice(0,6).map(c=>c.name).join(', '),
    country:(d.production_countries||[]).map(c=>c.name).join(', ')};
+  // A localized TMDB title/overview is available only when actually translated.
+  try{
+   const fa=await tm('/movie/'+id,{language:'fa-IR'});
+   if(fa?.id===id){
+    if(faValue(fa.title))m.fa_title=fa.title;
+    if(faValue(fa.overview)){m.overview_fa=fa.overview;m.overview_source_for_fa=m.overview;m.overview_translation_source='tmdb';}
+   }
+  }catch(error){ /* Preserve the English original when Persian data is absent. */ }
   extra.set(id,m);return m;
  }catch(error){console.warn('Movie not locally cached and direct TMDB unavailable',error);return null;}
 }
@@ -479,14 +492,17 @@ async function showDetail(id){
   $('filmDetailTitle').textContent=L('این فیلم در فهرست ذخیره‌شده نیست.','Film unavailable in the local index.');
   $('filmDetailSynopsis').textContent=L('برای مشاهده این فیلم ممکن است دسترسی مستقیم TMDB لازم باشد.','Direct TMDB access may be needed.');
   movie=await lookupUniverseMovie(id);
-  if(!movie)movie=await fetchLiveDetail(id);
+  // The one-million-title index does not include poster paths. Request verified
+  // full metadata for the movie being viewed, and keep the title-only fallback.
+  const live=await fetchLiveDetail(id);
+  if(live)movie=live;
  }
  if(seq===loadSerial&&state.tab==='film'&&movie)showFilm(movie);
 }
 function openFilm(id,push=true){
  const ident=idNumber(id);if(!ident){openSearch(query,push);return;}
  if(state.tab!=='film')returnTab=state.tab;
- current=null;showFa=false;watchOpen=false;
+ current=null;showFa=!EN;watchOpen=false;
  if(push)history.pushState({film:ident},'',permalink(ident));
  state.tab='film';render();window.scrollTo({top:0,behavior:'instant'});
 }
