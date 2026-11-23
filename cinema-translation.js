@@ -14,7 +14,7 @@ const sections=[
  {key:'soon',heading:'cnUpcomingHeading',feed:'cnUpcoming'},
  {key:'trends',heading:'cnTrendHeading',feed:'cnTrending'}
 ];
-const state=Object.fromEntries(sections.map(x=>[x.key,false]));
+const state=Object.fromEntries(sections.map(x=>[x.key,x.key!=='news' && typeof EN!=='undefined' && !EN]));
 let snapshot=null,catalog=null,loading=null,updatedAt=0;
 const safeText=x=>String(x??'').slice(0,1200);
 const persian=s=>/[\u0600-\u06ff]/.test(String(s||''));
@@ -107,8 +107,10 @@ function applyNews(){
   const translated=wants && persian(article.title_fa) && article.title_source_for_fa===article.title;
   const title=card.querySelector('h4');
   if(!title)continue;
-  title.textContent=translated?article.title_fa:article.title;
-  title.dir=translated?'rtl':'auto';
+  const nextTitle=translated?article.title_fa:article.title;
+  if(title.textContent!==nextTitle)title.textContent=nextTitle;
+  const nextDir=translated?'rtl':'auto';
+  if(title.dir!==nextDir)title.dir=nextDir;
   const info=card.querySelector('.cn-news-info');
   if(info)resetOrAddSummary(info,article.summary,article.summary_fa,translated);
   let badge=info?.querySelector('.cnTranslationBadge');
@@ -136,7 +138,7 @@ function applyMovies(section){
   const fa=movie.fa_title||fallback?.fa_title||'';
   const displayed=state[name]&&persian(fa)?fa:(movie.title||movie.original_title);
   const title=card.querySelector('h4');
-  if(title){title.textContent=safeText(displayed);title.dir=state[name]&&persian(fa)?'rtl':'auto';}
+  if(title){const next=safeText(displayed);const direction=state[name]&&persian(fa)?'rtl':'auto';if(title.textContent!==next)title.textContent=next;if(title.dir!==direction)title.dir=direction;}
  }
 }
 function apply(key){
