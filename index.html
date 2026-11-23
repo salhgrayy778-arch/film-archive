@@ -1659,6 +1659,7 @@ async function readZip(buf){
 
 async function importLetterboxd(fileList){
   if(!requireCloud())return;
+  const oldState=state.films.map(f=>({...f,logs:(f.logs||[]).map(l=>({...l}))}));
   try{
     const csvs = {};
     for(const f of fileList){
@@ -1708,8 +1709,8 @@ async function importLetterboxd(fileList){
       }
     });
     if(!touched){ toast('فایل Letterboxd شناخته نشد'); return; }
-    render(); await saveFilms();
-    toast(`${fa(added)} فیلم تازه اضافه شد`);
+    if(!await saveFilms()){state.films=oldState;render();return;}
+    render();toast(`${fa(added)} فیلم تازه اضافه شد`);
   }catch(e){ console.error(e); toast('خواندن فایل Letterboxd انجام نشد'); }
 }
 
@@ -2726,6 +2727,52 @@ function syncNow(manual=false,persist=false){
   return p;
 }
 
+/* Existing browser-only archives are never merged automatically.
+   A signed-in user can explicitly import their old data once. */
+async function importLegacyBrowserArchive(){
+  if(!requireCloud())return;
+  let data,legacyOwner='';
+  try{
+    const raw=await kvGet(KEY);
+    data=raw?JSON.parse(raw):[];
+    const legacy=await kvGet(META_KEY);
+    legacyOwner=legacy?String(JSON.parse(legacy).owner||''):'';
+  }catch(error){toast(LX('داده‌های قدیمی مرورگر قابل خواندن نیستند','Could not read old browser archive'));return;}
+  if(!Array.isArray(data)||!data.length){
+    toast(LX('آرشیو قدیمی در این مرورگر پیدا نشد','No old archive found on this device'));return;
+  }
+  if(legacyOwner&&legacyOwner!==ses.id){
+    toast(LX('این آرشیو قدیمی به حساب دیگری تعلق دارد و منتقل نمی‌شود','This old archive belongs to another account'));
+    return;
+  }
+  const ids=new Set(state.films.map(f=>String(f.id)));
+  const incoming=[];
+  for(const item of data.slice(0,10000)){
+    if(!item||typeof item!=='object'||typeof item.id!=='string'||typeof item.title!=='string')continue;
+    const id=item.id,title=item.title.trim();
+    if(!/^[\w-]{1,80}$/.test(id)||!title||title.length>250||ids.has(id))continue;
+    incoming.push({...item,id,title,
+      poster:safePosterSrc(item.poster),
+      logs:Array.isArray(item.logs)?item.logs.slice(0,500):[]});
+    ids.add(id);
+  }
+  if(!incoming.length){
+    toast(LX('فیلم جدیدی برای انتقال پیدا نشد','No additional movies to import'));return;
+  }
+  if(!confirm(LX('آیا '+incoming.length+' فیلم قدیمی این مرورگر به حساب '+ses.email+' منتقل شوند؟ اطلاعات حساب فعلی پاک نمی‌شوند.','Import '+incoming.length+' legacy movies into '+ses.email+'? Existing account movies will be preserved.')))return;
+  const previous=state.films.map(f=>({...f,logs:(f.logs||[]).map(l=>({...l}))}));
+  state.films=state.films.concat(incoming);
+  if(!await saveFilms()){
+    state.films=previous;render();return;
+  }
+  render();
+  toast(LX(incoming.length+' فیلم به حساب منتقل شد','Imported '+incoming.length+' movies to your account'));
+  // Deleting the old browser copy is a separate informed decision.
+  if(confirm(LX('انتقال با موفقیت انجام شد. آیا نسخه قدیمی مرورگر حذف شود؟ برای اطمینان می‌توانی قبل از حذف، از حساب پشتیبان بگیری.','Cloud import succeeded. Delete the old browser copy? You can export an account backup before deleting.'))){
+    try{localStorage.removeItem(KEY);localStorage.removeItem(META_KEY);}catch(error){}
+  }
+}
+
 /* ---------- نمایش ---------- */
 function updateAcct(){
   $('acctBtn').textContent = ses ? ses.email.split('@')[0].slice(0,14) : 'ورود / ثبت‌نام';
@@ -2760,9 +2807,11 @@ function paintAuth(){
   } else if(v==='me'){
     B.innerHTML = `<h2>حساب من</h2><p><b>${esc(ses.email)}</b></p>
       <p>${esc(syncMsg || '—')}${acMeta.synced ? ' • آخرین همگام‌سازی: ' + new Date(acMeta.synced).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'}) : ''}</p>
-      <p>هر تغییری که بدهی خودکار روی حساب ذخیره می‌شود و روی هر دستگاهی با همین حساب وارد شوی همان آرشیو را می‌بینی.</p>${msg}
-      <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn" id="auSync" type="button">همگام‌سازی حالا</button><button class="btn danger" id="auOut" type="button">خروج</button></div>`;
-    on('auSync', ()=>syncNow(true));
+      <p>فیلم‌ها و یادداشت‌های تو در حساب ابری نگهداری می‌شوند؛ برای دیدنشان در دستگاه دیگر فقط با همین حساب وارد شو.</p>${msg}
+      <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn" id="auSync" type="button">به‌روزرسانی حساب</button><button class="btn danger" id="auOut" type="button">خروج</button></div>
+      <div class="actions"><button class="btn" id="auLegacyImport" type="button">انتقال آرشیو قدیمی این مرورگر به حساب</button></div>`;
+    on('auSync',()=>cloudReady?syncNow(true,false):loadAccountArchive());
+    on('auLegacyImport',importLegacyBrowserArchive);
     on('auOut', async ()=>{
       await cloudQueue.catch(()=>{});
       const token=ses?.access_token;
