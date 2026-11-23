@@ -40,7 +40,7 @@ function makeBrowser(){
   document:{getElementById:get,querySelector(){return {click(){}};}},
   location:{hash:'',origin:'https://example.test',pathname:'/'},
   navigator:{onLine:true},crypto:webcrypto,URL,Map,Set,Promise,Date,console,
-  setTimeout,clearTimeout,setInterval,clearInterval,
+  setTimeout,clearTimeout,setInterval(){return 0;},clearInterval(){},
   nm:()=>get('rName').value||'Guest',rv:()=>({readyState:0,currentTime:0,paused:true}),
   localLabel:(a)=>a,toast(){},rst(){},status(){},displayMembers(){},
   broadcastRoster(){R.roster=(R.roster||0)+1;ctx.rsend({t:'members',list:[{id:R.peer.id,name:ctx.nm()},...Array.from(R.members,([id,name])=>({id,name}))]});},
