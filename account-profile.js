@@ -56,7 +56,19 @@ function posterUrl(source){
  catch(error){return '';}
 }
 function filmCard(movie,index,editing){
- const card=document.createElement('article');card.className='profileFavoriteTile';
+ const source=String(movie.id||'');
+ let movieId=/^tmdb:([1-9][0-9]*)$/.exec(source)?.[1]||'';
+ if(!movieId&&source.startsWith('archive:')){
+  const archived=state.films.find(f=>'archive:'+f.id===source);
+  if(Number.isSafeInteger(Number(archived?.tmdb))&&Number(archived?.tmdb)>0)movieId=String(archived.tmdb);
+ }
+ const clickable=!editing&&Boolean(movieId);
+ const card=document.createElement(clickable?'a':'article');card.className='profileFavoriteTile';
+ if(clickable){
+  const link=new URL(location.href);link.searchParams.delete('user');link.searchParams.delete('q');link.searchParams.set('film',movieId);link.hash='';
+  card.href=link.pathname+link.search;card.style.textDecoration='none';card.style.color='inherit';
+  card.setAttribute('aria-label',T('بازکردن صفحه فیلم ','Open film page: ')+movie.title);
+ }
  const cover=document.createElement('div');cover.className='profileFavoritePoster';
  const url=posterUrl(movie.poster);
  if(url){
