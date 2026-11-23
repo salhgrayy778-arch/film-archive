@@ -7,6 +7,7 @@ const BASE=new URL('.',document.currentScript?.src||document.baseURI);
 const GENRES={18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'جنایی و معمایی',53:'جنایی و معمایی',27:'ترسناک',878:'علمی‌تخیلی',14:'علمی‌تخیلی',28:'اکشن',12:'اکشن',10749:'عاشقانه',99:'مستند',16:'انیمیشن',36:'تاریخی و جنگی',10752:'تاریخی و جنگی'};
 let catalog=[],catalogPromise=null,catalogFailed=false,featuredPromise=null,featured=new Map(),extra=new Map();
 let query='',limit=30,current=null,showFa=false,watchOpen=false,loadSerial=0,remoteBusy=false,searchTimer=0,quickTimer=0;
+let returnTab='search';
 const idNumber=value=>/^[1-9]\d{0,11}$/.test(String(value||''))?Number(value):null;
 const faValue=value=>/[\u0600-\u06ff]/.test(String(value||''));
 const normalize=value=>String(value||'').normalize('NFKD').toLocaleLowerCase()
@@ -313,6 +314,7 @@ async function showDetail(id){
 }
 function openFilm(id,push=true){
  const ident=idNumber(id);if(!ident){openSearch(query,push);return;}
+ if(state.tab!=='film')returnTab=state.tab;
  current=null;showFa=false;watchOpen=false;
  if(push)history.pushState({film:ident},'',permalink(ident));
  state.tab='film';render();window.scrollTo({top:0,behavior:'instant'});
@@ -354,7 +356,24 @@ function navigateLink(event){
  const id=idNumber(a.dataset.filmId);if(!id)return;
  event.preventDefault();clearSuggestions();openFilm(id);
 }
+function translateStatic(){
+ if(!EN)return;
+ document.querySelector('#filmQuickForm label').textContent='Search the movie catalog';
+ $('filmQuickInput').placeholder='Search for a movie…';
+ $('filmQuickSubmit').textContent='Search';
+ $('tab-search').textContent='Movie search';
+ const hero=$('filmSearchView');
+ hero.querySelector('.filmSearchHero h2').textContent='Explore movies';
+ hero.querySelector('.filmSearchHero p').textContent='Search the locally cached TMDB movie index, then open a dedicated page for any film.';
+ hero.querySelector('.filmSearchHero label').textContent='Movie title';
+ $('filmSearchInput').placeholder='English or Persian…';
+ hero.querySelector('.filmSearchResultsHead h3').textContent='Movies';
+ $('filmSearchMore').textContent='Show more films';
+ $('filmSearchRemote').textContent='Search live TMDB';
+ hero.querySelector('.filmSearchDisclaimer').textContent='The local movie index is periodically updated. Direct TMDB search may require a VPN.';
+}
 function init(){
+ translateStatic();
  $('filmQuickForm').addEventListener('submit',event=>{event.preventDefault();openSearch($('filmQuickInput').value);});
  $('filmQuickInput').addEventListener('input',()=>{
   clearTimeout(quickTimer);quickTimer=setTimeout(quickSuggestions,140);
@@ -370,10 +389,14 @@ function init(){
  });
  $('filmSearchMore').addEventListener('click',()=>{limit+=30;renderSearch();});
  $('filmSearchRemote').addEventListener('click',liveSearch);
- window.addEventListener('popstate',()=>{
+ window.addEventListener('popstate',event=>{
   const id=idNumber(new URL(location.href).searchParams.get('film'));
-  if(id)openFilm(id,false);
-  else if(state.tab==='film')openSearch(query,false);
+  if(id){openFilm(id,false);return;}
+  if(state.tab!=='film')return;
+  const tab=event.state?.tab||returnTab;
+  if(tab==='news'||tab==='room'||tab==='dash'||tab==='diary'){
+    document.title='My Film Archive';state.tab=tab;render();
+  }else openSearch(query,false);
  });
  window.addEventListener('film-account-profile-updated',updateAccountButtons);
  loadCatalog();
