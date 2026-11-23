@@ -36,7 +36,7 @@ alter table public.film_public_profiles enable row level security;
 alter table public.film_follows enable row level security;
 alter table public.film_public_reviews enable row level security;
 drop policy if exists "film profiles readable" on public.film_public_profiles;
-create policy "film profiles readable" on public.film_public_profiles for select to authenticated using(true);
+create policy "film profiles readable" on public.film_public_profiles for select to anon, authenticated using(true);
 drop policy if exists "film profiles insert own" on public.film_public_profiles;
 create policy "film profiles insert own" on public.film_public_profiles for insert to authenticated with check(user_id=(select auth.uid()));
 drop policy if exists "film profiles update own" on public.film_public_profiles;
@@ -56,6 +56,7 @@ create policy "film reviews edit own" on public.film_public_reviews for update t
 drop policy if exists "film reviews delete own" on public.film_public_reviews;
 create policy "film reviews delete own" on public.film_public_reviews for delete to authenticated using(user_id=(select auth.uid()));
 grant select,insert,update on public.film_public_profiles to authenticated;
+grant select on public.film_public_profiles to anon;
 grant select,insert,delete on public.film_follows to authenticated;
 grant select,insert,update,delete on public.film_public_reviews to authenticated;
 grant usage,select on sequence public.film_public_reviews_id_seq to authenticated;
