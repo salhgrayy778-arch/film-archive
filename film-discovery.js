@@ -161,7 +161,21 @@ async function loadCatalog(){
   const r=await fetch(new URL('data/tmdb-catalog.json',BASE),{cache:'default'});
   if(!r.ok)throw Error('Catalog HTTP '+r.status);
   const d=await r.json();if(!Array.isArray(d.movies))throw Error('Invalid catalog');
-  catalog=d.movies.filter(m=>idNumber(m?.id)).map(m=>({...m,_source:'catalog'}));
+  const verified=d.movies.filter(m=>idNumber(m?.id)).map(m=>({...m,_source:'catalog'}));
+  // A separate bounded GitHub Action gradually caches original posters and
+  // metadata for popular movies outside the initial 1,100.
+  let extras=[];
+  try{
+    const response=await fetch(new URL('data/tmdb-extra.json',BASE),{cache:'default'});
+    if(response.ok){
+      const supplement=await response.json();
+      if(Array.isArray(supplement.movies))
+        extras=supplement.movies.filter(m=>idNumber(m?.id)&&m.details_ok&&posterOf(m))
+          .map(m=>({...m,_source:'extra'}));
+    }
+  }catch(error){console.warn('Extended TMDB poster metadata not yet available',error);}
+  const known=new Set(verified.map(m=>m.id));
+  catalog=verified.concat(extras.filter(m=>!known.has(m.id)));
   catalogLoaded=true;return catalog;
  })().catch(error=>{catalogLoaded=true;catalogFailed=true;console.warn('Film index unavailable',error);return [];});
  return catalogPromise;
