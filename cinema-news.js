@@ -37,7 +37,7 @@ function renderFilm(items,id){
   const rating=Number(m.vote_average)||0,release=formattedDay(m.release_date);
   return '<article class="cn-film-card"><a href="'+href+'" target="_blank" rel="noopener noreferrer" aria-label="'+escHtml(title)+'"><div class="cn-film-poster">'
    +(cover?'<img src="'+cover+'" loading="lazy" alt="'+escHtml(L('پوستر ','Poster ')+title)+'">':escHtml(L('بدون پوستر','No poster')))
-   +'</div><div class="cn-film-details"><h4>'+escHtml(title)+'</h4><p>'+escHtml(release||L('تاریخ نامشخص','Release date unavailable'))+'</p>'
+   +'</div><div class="cn-film-details"><h4 dir="auto">'+escHtml(title)+'</h4><p>'+escHtml(release||L('تاریخ نامشخص','Release date unavailable'))+'</p>'
    +(rating>0?'<p class="cn-rating">★ '+escHtml(rating.toFixed(1))+' / 10</p>':'')+'</div></a></article>';
  }).join('');
 }
@@ -49,7 +49,7 @@ function renderNews(items){
   const source=String(a.domain||'').replace(/^www\./,'').slice(0,65),time=seenTime(a.seendate);
   return '<article class="cn-news-card"><a target="_blank" rel="noopener noreferrer" href="'+escHtml(url)+'" aria-label="'+escHtml(title)+'">'
    +'<div class="cn-news-thumb">WORLD CINEMA'+(image?'<img src="'+escHtml(image)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'')+'</div>'
-   +'<div class="cn-news-info"><h4>'+escHtml(title)+'</h4><div class="cn-news-meta"><span class="cn-source">'+escHtml(source||L('رسانه اصلی','Original publisher'))+'</span>'
+   +'<div class="cn-news-info"><h4 dir="auto">'+escHtml(title)+'</h4><div class="cn-news-meta"><span class="cn-source">'+escHtml(source||L('رسانه اصلی','Original publisher'))+'</span>'
    +(time?'<time>'+escHtml(L('رصد: ','Seen: ')+time)+'</time>':'')+'</div></div></a></article>';
  }).join('');
 }
