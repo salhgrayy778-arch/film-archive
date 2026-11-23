@@ -145,14 +145,23 @@ function posterOf(m){
  return /^assets\/(?:catalog|posters)\/\d+-[a-f0-9]{12}\.webp$/i.test(v)?new URL(v,BASE).href:'';
 }
 function createPoster(m,cls){
- const element=node('div',cls,'🎞'),url=posterOf(m);
+ const element=node('div',cls),url=posterOf(m);
+ const placeholder=()=>{
+  // This is a labeled typographic fallback, NEVER a fabricated TMDB poster.
+  element.replaceChildren();
+  element.classList.add('filmPosterFallback');
+  element.appendChild(node('span','filmPosterFallbackIcon','▣'));
+  const heading=node('strong','filmPosterFallbackTitle',titleOf(m)||m.original_title||'');
+  heading.dir='auto';element.appendChild(heading);
+  element.appendChild(node('span','filmPosterFallbackLabel',
+    L('پوستر اصلی موجود نیست','Original poster unavailable')));
+ };
  if(url){
-  element.textContent='';
   const img=node('img');img.src=url;img.loading='lazy';
   img.alt=L('پوستر رسمی ','Official movie poster: ')+titleOf(m);
-  img.onerror=()=>{img.remove();element.textContent='🎞';};
+  img.onerror=()=>{img.remove();placeholder();};
   element.appendChild(img);
- }
+ }else placeholder();
  return element;
 }
 async function loadCatalog(){
