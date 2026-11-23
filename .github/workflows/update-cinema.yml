@@ -9,6 +9,7 @@ on:
     paths:
       - 'scripts/update_cinema.py'
       - 'scripts/build_catalog.py'
+      - 'scripts/translate_news.py'
       - '.github/workflows/update-cinema.yml'
 
 permissions:
@@ -39,6 +40,17 @@ jobs:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: python scripts/update_cinema.py
+      - name: Install offline English-to-Persian translator
+        run: python -m pip install --disable-pip-version-check --quiet argostranslate==1.11.1
+      - name: Cache offline Persian language model
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/argos-translate/packages
+          key: argos-en-fa-v1
+      - name: Pretranslate news for VPN-free Persian reading
+        env:
+          ARGOS_DEVICE_TYPE: cpu
+        run: python scripts/translate_news.py
       - name: Build searchable TMDB film index with local poster art
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
