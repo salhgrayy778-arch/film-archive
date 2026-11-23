@@ -381,6 +381,10 @@ function readInvite(){
     $room('tab-room')?.click();
   }
 }
+R.watchRoomStatus=status;
+R.watchRoomMembers=displayMembers;
+R.watchRoomBroadcastRoster=broadcastRoster;
+R.watchRoomSnapshot=sendSnapshot;
 function customizeRoomUI() {
   const tab=$room('tab-room');tab.textContent=localLabel('تماشای گروهی','Group watch');
   const heading=document.querySelector('#room .sec');
