@@ -13,6 +13,30 @@ const $room = id => document.getElementById(id);
 const sendOne = (c,m) => { if (c && c.open) { try { c.send(m); return true; } catch(e) {} } return false; };
 const activeConnections = () => R.host ? Array.from(R.conns.values()).filter(c => c.open) : (R.conn && R.conn.open ? [R.conn] : []);
 const isConnected = () => activeConnections().length > 0;
+const roomReady = () => {
+  if (navigator.onLine === false || R.roomError || !R.peer || !R.peer.open) return false;
+  return R.host ? !!(R.peer.id && $room('rCodeShow').textContent.trim()===R.peer.id)
+    : !!(R.conn && R.conn.open);
+};
+R.watchRoomReady = roomReady;
+R.roomError = null;
+function updateWatchAccess() {
+  const notice=$room('rWatchNotice'),main=document.querySelector('#room .rmain');
+  if(!notice || !main) return;
+  const ready=roomReady();
+  main.inert=!ready;main.setAttribute('aria-disabled',String(!ready));
+  main.classList.toggle('watchLocked',!ready);
+  notice.hidden=ready;
+  const opening=R.peer && !ready && !R.roomError && navigator.onLine!==false;
+  notice.textContent=opening
+    ? localLabel('در حال اتصال به اتاق… پس از برقراری ارتباط، امکان واردکردن لینک و تماشای فیلم فعال می‌شود.','Connecting to room… Movie links and playback will unlock once connected.')
+    : localLabel('برای واردکردن لینک، انتخاب فیلم و شروع تماشا، ابتدا اتاق بساز یا با کد به یک اتاق بپیوند.','Create a room or join one using a code to unlock movie links, file selection and playback.');
+  const controls=['rUrl','rLoad','rFileBtn','rFile','rSub','rCount','rSync','rCinema','cPlay','bigPlay','cBack','cFwd','cMute','cVol','cSpd','cCc','cFull','seek','chIn','chSend'];
+  for(const id of controls){const el=$room(id);if(el){if(!ready){if(!el.hasAttribute('data-watch-was-disabled'))el.setAttribute('data-watch-was-disabled',String(!!el.disabled));el.disabled=true;}
+    else if(el.hasAttribute('data-watch-was-disabled')){el.disabled=el.getAttribute('data-watch-was-disabled')==='true';el.removeAttribute('data-watch-was-disabled');}}}
+  const convert=$room('rConvertMKV');if(convert)convert.disabled=!ready;
+}
+
 const memberLabel = () => EN ? ' participants' : ' نفر';
 const localLabel = (fa,en) => EN ? en : fa;
 const toFaNumber = n => EN ? String(n) : String(n).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -32,9 +56,21 @@ const displayMembers = () => {
   }
 };
 const status = () => {
-  const n=activeConnections().length;
-  rst(R.host ? n ? localLabel('اتاق فعال · ','Room active · ')+toFaNumber(n+1)+memberLabel() : localLabel('منتظر ورود مهمان‌ها','Waiting for guests')
-    : n ? localLabel('به اتاق متصل شدی','Connected to room') : localLabel('آفلاین','Offline'),n>0);
+  const ready=roomReady(), n=activeConnections().length;
+  let text;
+  if(navigator.onLine===false) text=localLabel('اینترنت قطع است','No internet connection');
+  else if(R.roomError) text=localLabel('خطا در اتصال اتاق','Room connection failed');
+  else if(!R.peer) text=localLabel('اتاقی فعال نیست','No active room');
+  else if(!ready) text=localLabel('در حال اتصال به اتاق…','Connecting to room…');
+  else if(R.host) text=n ? localLabel('اتاق آنلاین · ','Room online · ')+toFaNumber(n+1)+memberLabel()
+    : localLabel('اتاق ساخته شد · منتظر مهمان','Room created · Waiting for guests');
+  else text=localLabel('به اتاق متصل هستی','Connected to room');
+  rst(text,ready);
+  const indicator=$room('dot');
+  indicator.hidden=!R.peer;
+  if(!ready && R.peer && !R.roomError && navigator.onLine!==false)indicator.className='pending';
+  if(!ready || !n)$room('ping').hidden=true;
+  updateWatchAccess();
 };
 const broadcastRoster = () => {
   if (!R.host || !R.peer || !R.peer.id) return;
@@ -207,7 +243,14 @@ wire = function(c) {
 };
 leaveRoom = function () {
   const peer=R.peer;
-  R.peer=null;R.roomGeneration++;
+  R.peer=null;R.roomGeneration++;R.roomError=null;
+  const video=rv();
+  video.pause();video.removeAttribute('src');video.load();
+  freeBlob();R.url='';R.local='';R.localSize=0;R.source=null;
+  $room('rUrl').value='';$room('rFile').value='';
+  $room('rFileName').hidden=true;
+  $room('stage').classList.add('noSrc');$room('vph').hidden=false;
+  window.dispatchEvent(new Event('film-room-ended'));
   clearInterval(R.timer);R.timer=null;stopPing();
   clearInterval(R.cdT);$room('cdown').hidden=true;
   for(const c of R.conns.values())try{c.close();}catch(e){}
@@ -221,6 +264,7 @@ leaveRoom = function () {
 startRoom = async function (host) {
   const code=$room('rCode').value.trim();
   if(!host&&!/^[\w-]{4,40}$/.test(code)) {toast(localLabel('کد اتاق را وارد کن','Enter a room code'));return;}
+  R.roomError=null;
   rst(localLabel('در حال اتصال…','Connecting…'),false);
   try{await loadPeer();}catch(e){status();toast(localLabel('کتابخانهٔ اتصال بارگذاری نشد','Connection library failed to load'));return;}
   leaveRoom();R.host=host;$room('rLeave').hidden=false;displayMembers();
@@ -228,6 +272,7 @@ startRoom = async function (host) {
     const id='film-'+Math.random().toString(36).slice(2,10);
     R.peer=new Peer(id);
     R.peer.on('open',pid=>{
+      R.roomError=null;
       $room('rCodeShow').textContent=pid;
       R.link=/^https?:$/.test(location.protocol)?location.origin+location.pathname+'#join='+pid:'';
       $room('rCopyLink').hidden=!R.link;
@@ -245,8 +290,9 @@ startRoom = async function (host) {
     if(R.peer===owner && R.host && isConnected() && R.source && rv().readyState>0)
       rsend({t:'tick',time:rv().currentTime,playing:!rv().paused});
   },4000);
-  R.peer.on('error',peerErr);
-  R.peer.on('disconnected',()=>{try{if(R.peer===owner)R.peer.reconnect();}catch(e){}});
+  R.peer.on('error',e=>{if(R.peer!==owner)return;R.roomError=e?.type||'error';peerErr(e);status();});
+  R.peer.on('disconnected',()=>{if(R.peer!==owner)return;status();try{R.peer.reconnect();}catch(e){}});
+  status();
 };
 function customizeRoomUI() {
   const tab=$room('tab-room');tab.textContent=localLabel('تماشای گروهی','Group watch');
@@ -278,8 +324,13 @@ function customizeRoomUI() {
     'با فایل دستگاه، <b>همهٔ اعضا باید همان فایل</b> را در دستگاه خود انتخاب کنند. فقط زمان پخش همگام می‌شود. میان‌برها: فاصله = پخش/توقف، ← → = ۱۰ ثانیه، F = تمام‌صفحه.',
     'With a local video, <b>all participants need the same file</b> on their own device. Only playback time is synced. Shortcuts: Space = play/pause, ← → = 10 seconds, F = fullscreen.'
   );
+  const notice=document.createElement('p');
+  notice.id='rWatchNotice';notice.className='rWatchNotice';notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
+  const grid=document.querySelector('#room .rgrid');grid.parentNode.insertBefore(notice,grid);
+  const rstat=$room('rst').closest('.rstat');
+  if(rstat){rstat.setAttribute('role','status');rstat.setAttribute('aria-live','polite');rstat.setAttribute('aria-label',localLabel('وضعیت اتصال اتاق','Room connection status'));rstat.title=localLabel('این یک نشانگر وضعیت است، نه دکمه','This is a status indicator, not a button');}
   const style=document.createElement('style');
-  style.textContent='.multiPres{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:12px;max-height:228px;overflow-y:auto;padding:12px 5px;margin-bottom:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}.multiPres .pe{width:calc(25% - 9px);min-width:62px;max-width:90px;gap:4px;text-align:center}.multiPres .pe i{width:42px;height:42px;font-size:18px;box-shadow:none}.multiPres .pe span{font-size:12px;max-width:100%}.multiPres .pe.host i{border-color:var(--gold)}.multiPres .pe.you i{background:var(--strip);color:var(--hero-ink);border-color:var(--accent2);box-shadow:none}.memberHeading{justify-content:space-between}@media(max-width:440px){.multiPres .pe{width:calc(33.3% - 9px)}}';
+  style.textContent='.multiPres{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:12px;max-height:228px;overflow-y:auto;padding:12px 5px;margin-bottom:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}.multiPres .pe{width:calc(25% - 9px);min-width:62px;max-width:90px;gap:4px;text-align:center}.multiPres .pe i{width:42px;height:42px;font-size:18px;box-shadow:none}.multiPres .pe span{font-size:12px;max-width:100%}.multiPres .pe.host i{border-color:var(--gold)}.multiPres .pe.you i{background:var(--strip);color:var(--hero-ink);border-color:var(--accent2);box-shadow:none}.memberHeading{justify-content:space-between}.rWatchNotice{background:var(--panel);color:var(--ink);border:1px solid var(--gold);border-radius:10px;padding:14px 16px;margin:10px 0 16px;font-size:14px}.rWatchNotice[hidden]{display:none!important}#room .rmain.watchLocked{opacity:.45;filter:grayscale(.5);pointer-events:none;user-select:none}#room .rstat{cursor:default}#room .rstat #dot.pending{background:#E7C47E;box-shadow:none}@media(max-width:440px){.multiPres .pe{width:calc(33.3% - 9px)}}';
   document.head.appendChild(style);
   displayMembers();status();
   let renameTimer=0;
@@ -289,6 +340,19 @@ function customizeRoomUI() {
   });
   const share=$room('rShare');
   share.addEventListener('click',()=>{}, {passive:true});
+  window.addEventListener('online',status);
+  window.addEventListener('offline',()=>{
+    // A disconnected browser must not keep a previously loaded film playing.
+    if(!rv().paused)rv().pause();
+    status();
+  });
+  // Any attempted playback outside an active room is blocked, including keyboard shortcuts.
+  document.querySelector('#room').addEventListener('keydown',e=>{
+    if(!roomReady() && [' ','k','K','ArrowLeft','ArrowRight','f','F'].includes(e.key) && !['INPUT','TEXTAREA'].includes(e.target?.tagName)){
+      e.preventDefault();e.stopImmediatePropagation();
+    }
+  },true);
+  rv().addEventListener('play',()=>{if(!roomReady())rv().pause();});
 }
 customizeRoomUI();
 })();
