@@ -431,10 +431,13 @@ def build_films(existing):
         print("TMDB not configured; preserving existing film lists.")
         return existing.get("movies", {}), existing.get("movies_updated_at")
     old_by_id = {}
+    old_fa_by_id = {}
     for group in (existing.get("movies") or {}).values():
         for item in group if isinstance(group, list) else []:
             if isinstance(item, dict) and isinstance(item.get("id"), int):
                 old_by_id[item["id"]] = item.get("poster_url", "")
+                if item.get("overview_fa") or item.get("fa_title"):
+                    old_fa_by_id[item["id"]] = item
     groups = {}
     errors = 0
     for key, endpoint in (
@@ -455,7 +458,7 @@ def build_films(existing):
                 title = str(movie.get("title") or movie.get("original_title") or "").strip()
                 if not title or movie.get("adult") is True:
                     continue
-                filtered.append({
+                entry = {
                     "id": movie_id,
                     "title": title[:180],
                     "original_title": str(movie.get("original_title") or title)[:180],
@@ -463,7 +466,16 @@ def build_films(existing):
                     "vote_average": round(float(movie.get("vote_average") or 0), 1),
                     "poster_path": movie.get("poster_path") or "",
                     "overview": str(movie.get("overview") or "")[:800],
-                })
+                }
+                previous = old_fa_by_id.get(movie_id, {})
+                # Keep verified Persian text only when its English source is identical.
+                if previous.get("overview_source_for_fa") == entry["overview"] and previous.get("overview_fa"):
+                    entry["overview_fa"] = previous["overview_fa"]
+                    entry["overview_source_for_fa"] = entry["overview"]
+                    entry["overview_translation_source"] = previous.get("overview_translation_source", "machine")
+                if previous.get("fa_title") and previous.get("title") == entry["title"]:
+                    entry["fa_title"] = previous["fa_title"]
+                filtered.append(entry)
                 if len(filtered) >= MOVIE_LIMIT:
                     break
             groups[key] = filtered
