@@ -577,6 +577,7 @@ body{overflow-x:clip;padding-bottom:145px}
 <link rel="stylesheet" href="add-film.css">
 <link rel="stylesheet" href="cinematic-shell.css">
 <link rel="stylesheet" href="account-profile.css">
+<link rel="stylesheet" href="film-discovery.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -679,14 +680,41 @@ body{overflow-x:clip;padding-bottom:145px}
 
 <main>
   <div class="ban" id="bkBan" hidden><span>مدتی است پشتیبان نگرفته‌ای؛ اطلاعات فقط روی همین مرورگر ذخیره می‌شود.</span><button class="btn primary" id="bkNow" type="button">ذخیره پشتیبان</button></div>
-  <div class="tabsWrap"><div class="tabs" role="tablist" aria-label="بخش‌های سایت">
+  <form id="filmQuickForm" class="filmQuickSearch" role="search">
+  <label for="filmQuickInput">جستجوی سراسری فیلم</label>
+  <div class="filmQuickBar">
+    <svg class="filmQuickIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5" stroke-linecap="round"/></svg>
+    <input id="filmQuickInput" type="search" autocomplete="off" enterkeyhint="search" placeholder="نام فیلم را جستجو کن…">
+    <button type="submit" id="filmQuickSubmit">جستجو</button>
+  </div>
+  <div id="filmQuickSuggestions" role="listbox" aria-label="پیشنهاد فیلم‌ها" hidden></div>
+</form>
+<div class="tabsWrap"><div class="tabs" role="tablist" aria-label="بخش‌های سایت">
     <button class="tab" id="tab-news" type="button" role="tab" data-tab="news" aria-controls="cinemaNews" aria-selected="true" tabindex="0">اخبار سینمای جهان</button>
     <button class="tab" id="tab-dash" type="button" role="tab" data-tab="dash" aria-controls="dashboard" aria-selected="false" tabindex="-1">داشبورد</button>
     <button class="tab" id="tab-diary" type="button" role="tab" data-tab="diary" aria-controls="diary" aria-selected="false" tabindex="-1">دفترچه تماشا</button>
     <button class="tab" id="tab-room" type="button" role="tab" data-tab="room" aria-controls="room" aria-selected="false" tabindex="-1">تماشای گروهی</button>
+    <button class="tab" id="tab-search" type="button" role="tab" data-tab="search" aria-controls="filmSearchView" aria-selected="false" tabindex="-1">جستجوی فیلم</button>
   </div><p class="tabsHint" id="tabsHint" hidden>برای دیدن بخش‌های بیشتر، نوار بالا را افقی بکشید.</p></div>
 
   <section id="cinemaNews" class="view" role="tabpanel" aria-labelledby="tab-news"></section>
+  <section id="filmSearchView" class="view filmSearchView" role="tabpanel" aria-labelledby="tab-search" hidden>
+    <div class="filmSearchHero">
+      <span class="filmSearchEyebrow">EXPLORE THE CINEMA</span>
+      <h2>جستجو در دنیای فیلم‌ها</h2>
+      <p>از بین فیلم‌های فهرست TMDB جستجو کن و وارد صفحه اختصاصی هر فیلم شو.</p>
+      <label for="filmSearchInput">نام فیلم</label>
+      <input id="filmSearchInput" type="search" autocomplete="off" placeholder="فارسی یا انگلیسی…">
+    </div>
+    <div class="filmSearchResultsHead"><h3>فیلم‌ها</h3><span id="filmSearchCount" role="status" aria-live="polite"></span></div>
+    <div id="filmSearchResults" class="filmSearchResults" aria-live="polite"></div>
+    <div class="filmSearchActions"><button id="filmSearchMore" type="button" hidden>نمایش فیلم‌های بیشتر</button>
+      <button id="filmSearchRemote" type="button" hidden>جستجوی مستقیم در TMDB</button></div>
+    <p class="filmSearchDisclaimer">فهرست سایت به‌صورت دوره‌ای با TMDB به‌روزرسانی می‌شود؛ جستجوی مستقیم ممکن است به VPN نیاز داشته باشد.</p>
+  </section>
+  <section id="filmDetailView" class="view filmDetailView" role="region" aria-label="صفحه اختصاصی فیلم" hidden>
+    <div id="filmDetailRoot" aria-live="polite"></div>
+  </section>
   <section id="dashboard" class="view" role="tabpanel" aria-labelledby="tab-dash" hidden>
     <nav class="dashNav" id="dashNav" aria-label="بخش‌های داشبورد">
       <button class="dashNavBtn" id="dashView-overview" type="button" data-dash-view="overview" aria-pressed="true">نمای کلی</button>
@@ -726,6 +754,12 @@ body{overflow-x:clip;padding-bottom:145px}
   <section id="diary" class="view" role="tabpanel" aria-labelledby="tab-diary" hidden></section>
   <section id="room" class="view" role="tabpanel" aria-labelledby="tab-room" hidden>
     <h2 class="sec"><svg class="ic"><use href="#i-users"/></svg> اتاق تماشای دونفره</h2>
+    <div id="roomAccountGate" class="roomAccountGate" role="status" aria-live="polite" hidden>
+      <div class="roomGateSymbol" aria-hidden="true">🎟</div>
+      <h3 id="roomGateTitle">ورود به حساب برای تماشای گروهی ضروری است</h3>
+      <p id="roomGateMessage">برای ساخت یا ورود به اتاق تماشا ابتدا وارد حساب خودت شو.</p>
+      <button id="roomGateSignIn" type="button">ورود / ثبت‌نام</button>
+    </div>
     <div class="rgrid">
       <div class="rmain">
         <div class="stage noSrc" id="stage">
@@ -1285,6 +1319,18 @@ function starsText(n){
   return '★'.repeat(full) + (n - full ? '½' : '');
 }
 
+function paintRoomAccountGate(){
+ const ready=Boolean(ses&&cloudReady&&!cloudLoading);
+ const gate=$('roomAccountGate'),grid=document.querySelector('#room .rgrid');
+ gate.hidden=ready;
+ grid.hidden=!ready;
+ if(ready)return;
+ $('roomGateTitle').textContent=LX('ورود به حساب برای تماشای گروهی ضروری است','Sign in to use group watch');
+ $('roomGateMessage').textContent=ses
+  ?LX('در حال دریافت آرشیو حساب هستیم؛ پس از بارگذاری می‌توانی وارد اتاق شوی.','Your account is loading. Group watch unlocks once it is ready.')
+  :LX('برای ساخت اتاق یا پیوستن به دوستانت ابتدا وارد حساب شو.','Sign in before creating a room or joining friends.');
+ $('roomGateSignIn').textContent=ses?LX('دریافت دوباره حساب','Retry account loading'):LX('ورود / ثبت‌نام','Sign in / Sign up');
+}
 function render(){
   const cs = [...new Set(state.films.flatMap(f=>(f.country||'').split('،').map(x=>x.trim())).filter(Boolean))].sort((a,b)=>a.localeCompare(b,LOC.slice(0,2)));
   $('aCountry').innerHTML = '<option value="">همه کشورها</option>' + cs.map(c=>`<option value="${esc(c)}"${c===state.adv.country?' selected':''}>${esc(c)}</option>`).join('');
@@ -1298,8 +1344,10 @@ function render(){
     : state.films.length
       ? `${fa(seen)} فیلم دیده‌ام  •  ${fa(want)} در فهرست انتظار`
       : LX('هنوز فیلمی ثبت نشده','No films logged yet');
-  document.querySelectorAll('.tab').forEach(t=>{const selected=t.dataset.tab===v;t.setAttribute('aria-selected',String(selected));t.tabIndex=selected?0:-1;});
+  document.querySelectorAll('.tab').forEach(t=>{const selected=t.dataset.tab===(v==='film'?'search':v);t.setAttribute('aria-selected',String(selected));t.tabIndex=selected?0:-1;});
   $('cinemaNews').hidden = v!=='news';
+  $('filmSearchView').hidden = v!=='search';
+  $('filmDetailView').hidden = v!=='film';
   $('dashboard').hidden = v!=='dash';
   $('diary').hidden = v!=='diary';
   $('room').hidden = v!=='room';
@@ -1316,7 +1364,8 @@ function render(){
   document.querySelector('.tools').hidden = !showingLibrary;
   $('grid').hidden = !showingLibrary;
   updateFilterIndicator();
-  if(v==='news' || v==='room') return;
+  if(v==='room'){paintRoomAccountGate();return;}
+  if(v==='news'||v==='search'||v==='film')return;
   if(v==='diary') return renderDiary();
   if(showingSummary) return renderDash();
   if(!showingLibrary) return;
@@ -1791,7 +1840,14 @@ function init(){
     render();
   });
   const tabs=[...document.querySelectorAll('.tab')];
-  const activateTab=t=>{state.tab=t.dataset.tab;render();t.scrollIntoView({block:'nearest',inline:'nearest'});};
+  const activateTab=t=>{
+    const url=new URL(location.href);
+    if(url.searchParams.has('film')){
+      url.searchParams.delete('film');
+      history.pushState({tab:t.dataset.tab},'',url.pathname+url.search+url.hash);
+    }
+    state.tab=t.dataset.tab;render();t.scrollIntoView({block:'nearest',inline:'nearest'});
+  };
   tabs.forEach(t=>t.addEventListener('click',()=>activateTab(t)));
   document.querySelector('.tabs').addEventListener('keydown',e=>{
     const current=tabs.indexOf(document.activeElement); if(current<0)return;
@@ -2119,6 +2175,7 @@ function leaveRoom(){
   $('rLeave').hidden = true; $('rInfo').hidden = true; rst('آفلاین', false);
 }
 async function startRoom(host){
+  if(!requireCloud())return;
   const code = $('rCode').value.trim();
   if(!host && !/^[\w-]{4,40}$/.test(code)){ toast('کد اتاق را وارد کن'); return; }
   rst('در حال اتصال…', false);
@@ -2153,6 +2210,10 @@ async function copyText(t, okMsg){
 }
 
 function initRoom(){
+  $('roomGateSignIn').addEventListener('click',()=>{
+    if(!ses)openAuth('login');
+    else if(!cloudReady)loadAccountArchive();
+  });
   const el = rv(), st = $('stage');
   /* آیکون‌های واکنش */
   $('reacts').innerHTML = RX.map(k=>`<button class="rx" type="button" data-k="${k}" aria-label="واکنش ${k}"><svg class="ic"><use href="#r-${k}"/></svg></button>`).join('');
@@ -2682,6 +2743,8 @@ async function freshToken(){
 
 /* ---------- حساب کاربری: Supabase تنها منبع آرشیو ---------- */
 function clearPersonalView(){
+  // End any live peer session immediately when its owner signs out.
+  try{if(typeof R!=='undefined'){if(typeof rv==='function'&&!rv().paused)rv().pause();leaveRoom();}}catch(error){}
   cloudEpoch++;cloudReady=false;cloudLoading=false;cloudError='';
   state.films=[];acMeta={snap:{},deleted:{},owner:'',synced:0};syncMsg='';
   accountProfile=blankAccountProfile();profileDirty=false;
@@ -2979,5 +3042,6 @@ init();
 <script src="sidebar-ui.js"></script>
 <script src="add-film-ui.js"></script>
 <script src="account-profile.js"></script>
+<script src="film-discovery.js"></script>
 </body>
 </html>
