@@ -53,6 +53,7 @@ function fakeBrowser(startUrl){
   addEventListener(){}
  };
  const window={listeners:{},addEventListener(type,cb){this.listeners[type]=cb;},
+  dispatchEvent(event){this.listeners[event.type]?.(event);},
   scrollTo(){},prompt(){}};
  const location={href:startUrl||'https://archive.example/film-archive/index.html'};
  const history={pushState(info,title,path){location.href=new URL(path,location.href).href;}};
@@ -63,7 +64,7 @@ function fakeBrowser(startUrl){
    director:'Christopher Nolan',cast:'Matthew McConaughey',country:'United States',runtime:169},
   {id:20,title:'Inception',original_title:'Inception',fa_title:'تلقین',
    release_date:'2010-07-16',poster_url:'assets/catalog/20-abcdefabcdef.webp',
-   overview:'A world of dreams.',vote_average:8.3,popularity:90,genre_ids:[28]}
+   overview:'A world of dreams.',vote_average:8.3,popularity:90,genre_ids:[28],director:'Christopher Nolan'}
  ];
  const manifest={schema_version:1,movie_count:1278230,id_shards:64,unicode_shards:24,search_buckets:{g:1}};
  const fetch=async url=>{
@@ -84,6 +85,7 @@ function fakeBrowser(startUrl){
  const state={tab:'news',films:[]};
  const context={
   document,window,location,history,URL,fetch,
+  CustomEvent:class{constructor(type,params={}){this.type=type;this.detail=params.detail;}},
   Response:FakeDecodedResponse,DecompressionStream:FakeDecompressionStream,state,
   ses:{id:'owner-account'},cloudReady:true,cloudLoading:false,EN:false,
   LX:(fa,en)=>fa,
@@ -114,8 +116,9 @@ async function main(){
 
  const source=readFileSync('film-discovery.js','utf8');
  const compiled=new vm.Script(source,{filename:'film-discovery.js'});
+ const related=new vm.Script(readFileSync('film-similar.js','utf8'),{filename:'film-similar.js'});
  const {context,registry,state,location,window}=fakeBrowser();
- vm.createContext(context);compiled.runInContext(context);
+ vm.createContext(context);compiled.runInContext(context);related.runInContext(context);
  await settle();
 
  window.filmDiscovery.openSearch('Interstellar');
@@ -131,6 +134,11 @@ async function main(){
  assert.equal(new URL(location.href).searchParams.get('film'),'10');
  assert.equal(registry.filmDetailTitle.textContent,'میان‌ستاره‌ای');
  assert.equal(registry.filmDetailSynopsis.textContent,'Space exploration.');
+ const also=await window.filmDiscovery.searchAllMovies('Great',10);
+ assert.equal(also[0].id,999,'Add-film full-title search reaches out-of-curated titles');
+ await settle();
+ const recommendations=registry.filmSimilarGrid.children.filter(x=>x.tagName==='A');
+ assert.ok(recommendations.some(x=>x.dataset.filmId==='20'),'Film page suggests same-director movie');
  registry.filmDetailTranslate.onclick();
  assert.equal(registry.filmDetailSynopsis.textContent,'کاوش در فضا.');
 
@@ -190,6 +198,6 @@ async function main(){
  assert.equal(direct.state.tab,'film','Direct links must open the film page');
  assert.equal(direct.registry.filmDetailTitle.textContent,'تلقین');
 
- process.stdout.write('PASS: comprehensive gzip title shards, long-tail deep links, Persian plot, guest watch gating, account lists\n');
+ process.stdout.write('PASS: full TMDB title index, Add Film search API, film similarities, movie deep links, guest watch gate, account lists\n');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
