@@ -1,0 +1,119 @@
+/* Simple, complete movie entry flow. Every legacy field remains in its original form. */
+#overlay .filmSheet{
+  width:min(650px,calc(100vw - 22px));
+  border-radius:19px;
+  border:1px solid var(--line);
+  background:var(--bg);
+}
+#overlay .filmSheet .sheetHeading{
+  padding:19px 22px 12px;font-size:20px;line-height:1.55;
+  border-bottom:1px solid var(--line);font-weight:900;
+}
+#overlay .filmSheet .sheetScroll{padding:20px 22px 26px;scrollbar-gutter:stable}
+#overlay .filmSheet .sheetActions{padding:13px 22px max(16px,env(safe-area-inset-bottom));gap:9px}
+#overlay .filmSheet .sheetActions .btn{min-height:46px}
+#overlay .filmSheet .sheetActions #saveBtn{min-width:145px}
+#overlay .filmSheet .filmTitleField{
+  padding:15px 16px 14px;margin:0 0 18px;
+  border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));
+  border-radius:14px;background:var(--panel);
+}
+#overlay .filmSheet .filmTitleField label{font-size:14px;font-weight:850;display:block;margin:0 0 10px}
+#overlay .filmSheet .filmTitleField #fTitle{
+  width:100%;min-height:50px;
+  font-size:15px;font-weight:700;
+  background:var(--bg);color:var(--ink);
+  border:1.5px solid var(--line);border-radius:11px;
+  padding:10px 14px;
+}
+#overlay .filmSheet .filmTitleField #fTitle:focus{
+  outline:2px solid var(--gold);outline-offset:2px;border-color:var(--gold);
+}
+#overlay .filmSheet .tmSuggestHelp{font-size:11.5px;line-height:1.8;color:var(--mute);margin:9px 0 0}
+#overlay .filmSheet .tmCatalogStatus{display:block;color:var(--mute);font-size:11px;line-height:1.7;margin-top:5px;min-height:18px}
+#overlay .filmSheet .tmSuggestList{
+  display:flex;flex-direction:column;gap:4px;
+  padding:6px;margin-top:9px;
+  border:1px solid var(--line);border-radius:12px;
+  background:var(--bg);max-height:338px;overflow-y:auto;overscroll-behavior:contain;
+}
+#overlay .filmSheet .tmSuggestList[hidden]{display:none!important}
+#overlay .filmSheet .tmSuggestItem{
+  display:flex;align-items:center;gap:11px;min-height:68px;width:100%;
+  background:transparent;color:var(--ink);
+  border:1px solid transparent;border-radius:9px;
+  padding:6px 8px;text-align:start;cursor:pointer;
+}
+#overlay .filmSheet .tmSuggestItem:hover,
+#overlay .filmSheet .tmSuggestItem.active,
+#overlay .filmSheet .tmSuggestItem:focus-visible{
+  background:color-mix(in srgb,var(--gold) 13%,var(--panel));
+  border-color:var(--gold);
+}
+#overlay .filmSheet .tmSuggestCover{
+  flex:0 0 42px;width:42px;height:60px;overflow:hidden;
+  border-radius:6px;border:1px solid var(--line);
+  display:grid;place-items:center;background:var(--strip);color:var(--hero-ink);font-size:22px;
+}
+#overlay .filmSheet .tmSuggestCover img{width:100%;height:100%;object-fit:cover;display:block}
+#overlay .filmSheet .tmSuggestCopy{display:flex;flex:1;flex-direction:column;min-width:0;gap:2px}
+#overlay .filmSheet .tmSuggestCopy strong{
+  font-size:13px;line-height:1.55;overflow-wrap:anywhere;
+}
+#overlay .filmSheet .tmSuggestCopy small{
+  font-size:11px;color:var(--mute);line-height:1.4;overflow-wrap:anywhere;
+}
+#overlay .filmSheet .tmSuggestPick{
+  font-size:11px;color:var(--gold);font-weight:800;white-space:nowrap;
+}
+#overlay .filmSheet .tmSuggestMessage{
+  color:var(--mute);font-size:12px;padding:14px 10px;line-height:1.75;
+}
+#overlay .filmSheet .tmSelectedInfo{
+  border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));
+  border-radius:9px;background:color-mix(in srgb,var(--gold) 9%,var(--bg));
+  color:var(--ink);font-size:11.5px;font-weight:700;line-height:1.8;padding:10px 12px;margin-top:12px;
+}
+#overlay .filmSheet .tmSelectedInfo[hidden]{display:none!important}
+#overlay .filmSheet .seg{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:7px}
+#overlay .filmSheet .seg button{min-height:44px}
+#overlay .filmSheet #seenOnly{
+  border:1px solid var(--line);border-radius:12px;
+  background:color-mix(in srgb,var(--panel) 65%,var(--bg));
+  padding:13px 16px 4px;margin:0 0 15px;
+}
+#overlay .filmSheet .rate{margin-top:6px}
+#overlay .filmSheet #ratingHelp{font-size:11px;line-height:1.7}
+#overlay .filmSheet .moreSection{
+  border-radius:12px;margin:8px 0;background:var(--panel);
+}
+#overlay .filmSheet .moreSection summary{
+  list-style:none;min-height:51px;
+  padding:13px 15px;display:flex;align-items:center;gap:8px;
+  font-size:13.5px;font-weight:800;cursor:pointer;
+}
+#overlay .filmSheet .moreSection summary::-webkit-details-marker{display:none}
+#overlay .filmSheet .moreSection summary::after{
+  content:"";width:8px;height:8px;margin-inline-start:auto;
+  border-bottom:2px solid var(--mute);border-inline-end:2px solid var(--mute);
+  transform:rotate(45deg);transition:transform .2s;flex:none;
+}
+#overlay .filmSheet .moreSection[open] summary::after{transform:rotate(225deg)}
+#overlay .filmSheet .moreInner{padding:17px 15px 7px}
+#overlay .filmSheet .moreInner>.field{margin-bottom:14px}
+#overlay .filmSheet :is(input,select,textarea){min-height:44px}
+#overlay .filmSheet input[type="checkbox"]{min-height:0}
+@media(max-width:520px){
+ #overlay .filmSheet{width:100%;max-height:95dvh;border-radius:14px}
+ #overlay .filmSheet .sheetHeading{padding:16px 15px 11px;font-size:18px}
+ #overlay .filmSheet .sheetScroll{padding:14px 14px 24px;scrollbar-gutter:auto}
+ #overlay .filmSheet .sheetActions{padding:10px 14px max(12px,env(safe-area-inset-bottom))}
+ #overlay .filmSheet .sheetActions #saveBtn{min-width:0;flex:1}
+ #overlay .filmSheet .filmTitleField{padding:13px 12px}
+ #overlay .filmSheet .tmSuggestList{max-height:300px}
+ #overlay .filmSheet .tmSuggestPick{display:none}
+ #overlay .filmSheet .moreInner .two{grid-template-columns:minmax(0,1fr);gap:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ #overlay .filmSheet .moreSection summary::after{transition:none}
+}
