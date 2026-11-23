@@ -241,6 +241,20 @@ def save_news_image(article, preferred, old_path=""):
             print(f"News image unavailable: {urlparse(url).hostname}: {exc}")
     return old_path if old_path and (ROOT / old_path).is_file() else ""
 
+def short_rss_summary(entry, title):
+    """Plain, publisher-provided RSS excerpt (not an article copy)."""
+    content = str(entry.get("summary") or entry.get("description") or "")
+    content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", content)
+    content = re.sub(r"(?s)<[^>]*>", " ", content)
+    content = re.sub(r"\s+", " ", unescape(content)).strip()
+    content = re.sub(r"(?i)\bthe post .{10,180}? appeared first on .*$", "", content).strip()
+    if content.casefold().startswith(title.casefold()):
+        content = content[len(title):].lstrip(": —-")
+    if len(content) < 32 or len(content) > 10000:
+        return ""
+    return content[:220].rsplit(" ", 1)[0] if len(content) > 220 else content
+
+
 def get_feed(name, urls):
     for url in urls:
         try:
@@ -275,6 +289,7 @@ def get_feed(name, urls):
                     "domain": urlparse(link).hostname or name,
                     "source": name,
                     "seendate": (when or NOW).strftime("%Y%m%dT%H%M%SZ"),
+                    "summary": short_rss_summary(entry, title),
                     "socialimage": "",
                     "_image_url": feed_image(entry, link),
                     "_norm": normalize_title(title),
@@ -319,6 +334,12 @@ def collect_news(existing):
         item["socialimage"] = save_news_image(
             item["url"], item.get("_image_url", ""), prior.get("socialimage", "")
         )
+        # Preserve a previous verified translation until the article headline changes.
+        if prior.get("title") == item.get("title") and prior.get("title_fa"):
+            item["title_fa"] = prior["title_fa"]
+            item["title_source_for_fa"] = prior.get("title_source_for_fa", prior["title"])
+            if prior.get("summary") == item.get("summary") and prior.get("summary_fa"):
+                item["summary_fa"] = prior["summary_fa"]
     output = [{k: v for k, v in item.items() if not k.startswith("_")} for item in chosen[:18]]
     if output:
         return output, utcstamp()
@@ -470,6 +491,7 @@ def main():
         "source": "My Film Archive GitHub Actions; TMDB official posters; publisher RSS news and locally hosted news thumbnails",
         "generated_at": utcstamp(),
         "news_updated_at": news_updated,
+        "news_translation_updated_at": existing.get("news_translation_updated_at"),
         "movies_updated_at": movies_updated,
         "news": news,
         "movies": movies,
