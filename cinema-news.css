@@ -254,3 +254,16 @@ dialog.cnMovieDialog #cnModalSource{font-size:12px;color:var(--gold);overflow-wr
   dialog.cnMovieDialog .cnModalContent{grid-template-columns:1fr}
   dialog.cnMovieDialog .cnModalPoster{width:154px;max-width:50vw;min-height:0}
 }
+
+/* Dedicated film page link, alongside the existing Persian translation control. */
+dialog.cnMovieDialog .cnModalPageBtn{
+  min-height:44px;padding:8px 13px;border-radius:10px;
+  border:1px solid var(--gold);background:var(--gold);color:var(--on-gold);
+  font:800 12px/1.6 'Vazirmatn',sans-serif;cursor:pointer;
+}
+dialog.cnMovieDialog .cnModalPageBtn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+@media(max-width:620px){
+  dialog.cnMovieDialog .cnModalHead{flex-wrap:wrap}
+  dialog.cnMovieDialog .cnModalButtons{flex-wrap:wrap;justify-content:flex-end}
+  dialog.cnMovieDialog .cnModalPageBtn{font-size:11px;padding:7px 9px}
+}
