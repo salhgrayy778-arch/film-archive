@@ -64,13 +64,24 @@ def old_snapshot():
     except (OSError, ValueError):
         return {}
 
+PUBLISHER_DOMAINS = frozenset({
+    "variety.com", "deadline.com", "hollywoodreporter.com",
+    "indiewire.com", "collider.com", "screenrant.com",
+})
+
 def clean_url(url):
+    """Allow HTTPS articles only from the editorial sources we deliberately fetch."""
     try:
         p = urlparse(str(url or "").strip())
-        if p.scheme not in ("https", "http") or not p.hostname or len(p.geturl()) > 2048:
+        host = (p.hostname or "").lower().rstrip(".")
+        if (p.scheme != "https" or not host or len(p.geturl()) > 2048
+                or p.username or p.password or p.port not in (None, 443)):
+            return ""
+        if not any(host == root or host.endswith("." + root)
+                   for root in PUBLISHER_DOMAINS):
             return ""
         path = re.sub(r"/+", "/", p.path).rstrip("/") or "/"
-        return urlunparse((p.scheme, p.netloc.lower(), path, "", "", ""))
+        return urlunparse(("https", p.netloc.lower(), path, "", "", ""))
     except (ValueError, TypeError):
         return ""
 
