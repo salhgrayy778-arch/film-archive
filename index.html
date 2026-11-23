@@ -1167,7 +1167,7 @@ function showThemePicker(open,restoreFocus=false){
   panel.hidden = !open;
   $('themeBtn').setAttribute('aria-expanded',String(open));
   if(open) (panel.querySelector('[aria-pressed="true"]') || panel.querySelector('button'))?.focus();
-  else if(restoreFocus) $('themeBtn').focus();
+  else if(restoreFocus) (($('themeBtn').getClientRects().length>0)?$('themeBtn'):$('menuBtn')).focus();
 }
 function initThemePicker(){
   $('themeBtn').addEventListener('click', () => showThemePicker($('themePanel').hidden));
