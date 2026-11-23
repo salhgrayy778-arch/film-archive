@@ -168,8 +168,8 @@ main{max-width:1180px;padding-inline:clamp(13px,3vw,26px);padding-bottom:38px}
 .reel .heroEyebrow::after{transform:rotate(180deg)}
 .reel #siteMainTitle{
   order:3;position:relative;margin:4px 0 2px;
-  font:900 clamp(32px,5.3vw,62px)/1.14 'Vazirmatn',Arial,sans-serif;
-  letter-spacing:-.025em;color:var(--hero-ink);
+  font:italic 600 clamp(46px,7vw,83px)/1.04 'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  letter-spacing:.006em;color:var(--hero-ink);
   text-shadow:0 6px 40px rgba(0,0,0,.28);
 }
 .reel #siteMainTitle::after{
@@ -311,7 +311,7 @@ html[dir="ltr"] .themePanel{inset-inline-start:clamp(10px,calc((100vw - 1160px)/
   .reel .brand .brandWordmark strong{font-size:12px}
   .reel .brand .brandWordmark small{font-size:8px;letter-spacing:.17em}
   .reel .heroEyebrow{order:2;font-size:9px;letter-spacing:.15em}
-  .reel #siteMainTitle{order:3;font-size:clamp(29px,8.2vw,43px);line-height:1.18}
+  .reel #siteMainTitle{order:3;font-size:clamp(41px,10.6vw,54px);line-height:1.1}
   .reel #stats{order:4;font-size:12.4px;max-width:38ch;padding:0 5px}
   .reel #syncLine{order:5;font-size:10.5px;max-width:40ch}
   .reel .heroTicket{order:6;margin-top:13px;font-size:8px;gap:9px;letter-spacing:.13em;padding:6px 12px}
