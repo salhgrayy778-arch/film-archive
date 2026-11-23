@@ -7,7 +7,8 @@ import sys
 root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
-                    "group-watch.js","sidebar-ui.js","add-film-ui.js")}
+                    "group-watch.js","sidebar-ui.js","add-film-ui.js",
+                    "account-profile.js")}
 index=files["index.html"]
 errors=[]
 def check(ok,message):
@@ -41,6 +42,19 @@ check("if(!requireCloud())return;" in index,"Edit/import controls are not accoun
 check("kvSet(KEY" not in index,"Personal movie archive must not be written to localStorage")
 check("const moviesGroup=createGroup(" not in (root/"sidebar-ui.js").read_text(encoding="utf-8"),"Unwanted movie-details sidebar category still visible")
 check("inactiveTools.hidden=true" in (root/"sidebar-ui.js").read_text(encoding="utf-8"),"Legacy poster/TMDB nodes were not preserved")
+# Account profiles are saved only inside authenticated, owner-scoped archives JSON.
+profile = files["account-profile.js"]
+check('src="account-profile.js"' in index and 'href="account-profile.css"' in index,"Profile UI assets not loaded")
+check("merged.profile=profileDirty" in index,"Movie archive sync could erase profile")
+check("profile:normalizeAccountProfile(data.profile)" in index,"Profile not read from owner row")
+check("saveAccountProfileDraft(value)" in index and "syncNow(true,true)" in index,"Profile save must persist to Supabase")
+check("accountProfile=blankAccountProfile()" in index,"Signout must clear profile state")
+check("if(favorites.length>=10)break" in index,"Max 10 favorites validation missing")
+check("data:image\\/jpeg;base64" in index,"Avatar data format not constrained")
+check("file.size>5*1024*1024" in profile and "canvas.toDataURL('image/jpeg'" in profile,"Profile photo size/compression missing")
+check("new URL('data/tmdb-catalog.json',base)" in profile,"Favorites should use cached local TMDB catalog")
+check("این سایت با عشق به سینما ساخته شده" in index and "salehgharaie48@gmail.com" in index,"Required footer copy missing")
+
 
 combined="\n".join(files.values())
 for name,expression in {
