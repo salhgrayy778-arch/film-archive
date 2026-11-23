@@ -20,7 +20,7 @@ function transmit(to,message){
 }
 function fail(message){
  clearTimeout(joinTimer);clearTimeout(subscriptionTimer);
- R.roomError='realtime-failed';$('rHost').disabled=false;$('rJoin').disabled=false;status();
+ R.roomError='realtime-failed';$('rHost').disabled=false;$('rJoin').disabled=false;R.watchRoomStatus?.();
  toast(message||label('اتصال واسط اتاق برقرار نشد؛ چند لحظه بعد دوباره تلاش کن','Room relay connection failed; please retry shortly'));
 }
 function handle(payload){
@@ -42,7 +42,7 @@ function handle(payload){
   R.conn=connection(roomId,true);
   R.members.set(roomId,String(payload.message.name||label('میزبان','Host')).slice(0,24));
   sendTo(roomId,{t:'syncreq'});
-  displayMembers();status();
+  R.watchRoomMembers?.();R.watchRoomStatus?.();
   return;
  }
  if(!R.conn||!R.conn.open)return;
@@ -114,8 +114,8 @@ startRoom=async function(host){
   });
   channel.on('broadcast',{event:'film-room'},({payload})=>handle(payload));
   channel.on('presence',{event:'leave'},({key,leftPresences})=>{
-   if(role==='guest'&&key===roomId){R.conn=null;R.roomError='host-left';status();}
-   if(role==='host'&&key!==clientId){const c=R.conns.get(key);if(c){c.close();R.conns.delete(key);R.members.delete(key);broadcastRoster();status();}}
+   if(role==='guest'&&key===roomId){R.conn=null;R.roomError='host-left';R.watchRoomStatus?.();}
+   if(role==='host'&&key!==clientId){const c=R.conns.get(key);if(c){c.close();R.conns.delete(key);R.members.delete(key);R.watchRoomBroadcastRoster?.();R.watchRoomStatus?.();}}
   });
   channel.subscribe(async state=>{
    if(state==='SUBSCRIBED'){
@@ -132,7 +132,7 @@ startRoom=async function(host){
       if(R.host&&R.conns.size&&R.source&&video.readyState>0)
        rsend({t:'tick',time:video.currentTime,playing:!video.paused});
      },4000);
-     status();displayMembers();
+     R.watchRoomStatus?.();R.watchRoomMembers?.();
     }else{
      R.conn=connection(roomId,false);
      sendTo(roomId,{t:'hello',name:nm()});
@@ -161,6 +161,6 @@ function joinFromInvite(){
 }
 window.addEventListener('hashchange',joinFromInvite);
 setTimeout(joinFromInvite,0);
-window.addEventListener('online',()=>{if(R.peer&&!R.peer.open)status();});
-window.addEventListener('offline',()=>{if(R.peer){R.roomError='offline';status();}});
+window.addEventListener('online',()=>{if(R.peer&&!R.peer.open)R.watchRoomStatus?.();});
+window.addEventListener('offline',()=>{if(R.peer){R.roomError='offline';R.watchRoomStatus?.();}});
 })();
