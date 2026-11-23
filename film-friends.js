@@ -14,6 +14,14 @@ async function request(path,options={}){
  return restCall(path,options);
 }
 async function json(path){return (await request(path,{cache:'no-store'})).json();}
+async function publicProfile(id){
+ const path='/film_public_profiles?select=user_id,display_name,bio,avatar,favorites&user_id=eq.'+encodeURIComponent(id)+'&limit=1';
+ if(ready())return (await json(path))[0]||null;
+ const response=await fetch(sb.url.replace(/\\/$/,'')+'/rest/v1'+path,
+  {headers:{apikey:sb.key},cache:'no-store'});
+ if(!response.ok)throw Error('Public profile HTTP '+response.status);
+ return (await response.json())[0]||null;
+}
 const avatar=(profile,size=46)=>{
  const a=make('span','filmFriendsAvatar');a.style.width=size+'px';a.style.height=size+'px';
  if(/^data:image\/jpeg;base64,[a-z0-9+/=]+$/i.test(profile?.avatar||'')&&profile.avatar.length<170000){
@@ -32,7 +40,7 @@ const filmLink=(filmId,title)=>{
 };
 function empty(parent,body){parent.appendChild(make('p','filmFriendsEmpty',body));}
 function loginGate(){const body=$('filmFriendsBody');body.replaceChildren();empty(body,T('برای دیدن دوستای فیلمباز، وارد حسابت شو.','Sign in to see film friends.'));const b=make('button','btn primary',T('ورود / ثبت‌نام','Sign in / sign up'));b.onclick=()=>openAuth('login');body.appendChild(b);}
-function show(){const root=$('filmFriendsDialog');if(!root.open)root.showModal();if(!ready()){loginGate();return;}if(active==='profile'&&selected)openProfile(selected);else openFeed();}
+function show(){const root=$('filmFriendsDialog');if(!root.open)root.showModal();if(active==='profile'&&selected){openProfile(selected);return;}if(!ready()){loginGate();return;}openFeed();}
 function status(error){console.warn('Film friends',error);notice(T('اطلاعات اجتماعی دریافت نشد. ابتدا فایل SQL بخش اجتماعی را در Supabase اجرا کن، سپس دوباره تلاش کن.','Social data unavailable. Apply the social SQL migration in Supabase and try again.'));}
 function createUI(){
  const style=make('style');style.textContent=`
@@ -133,26 +141,26 @@ async function openProfile(id){
  active='profile';selected=id;
  const body=$('filmFriendsBody');body.replaceChildren();notice(T('در حال دریافت پروفایل…','Loading profile…'));
  try{
-  if(!ready()){loginGate();return;}
-  const mine=id===ses.id;
+  const mine=ready()&&id===ses.id;
   if(mine)await publishMyProfile();
-  const [rows,followers,following,followed]=await Promise.all([
-   json('/film_public_profiles?select=user_id,display_name,bio,avatar,favorites&user_id=eq.'+encodeURIComponent(id)+'&limit=1'),
-   json('/film_follows?select=follower_id&followed_id=eq.'+encodeURIComponent(id)+'&limit=1000'),
-   json('/film_follows?select=followed_id&follower_id=eq.'+encodeURIComponent(id)+'&limit=1000'),
-   mine?Promise.resolve([]):json('/film_follows?select=followed_id&followed_id=eq.'+encodeURIComponent(id)+'&follower_id=eq.'+encodeURIComponent(ses.id))
+  const [profile,followers,following,followed]=await Promise.all([
+   publicProfile(id),
+   ready()?json('/film_follows?select=follower_id&followed_id=eq.'+encodeURIComponent(id)+'&limit=1000'):Promise.resolve([]),
+   ready()?json('/film_follows?select=followed_id&follower_id=eq.'+encodeURIComponent(id)+'&limit=1000'):Promise.resolve([]),
+   mine||!ready()?Promise.resolve([]):json('/film_follows?select=followed_id&followed_id=eq.'+encodeURIComponent(id)+'&follower_id=eq.'+encodeURIComponent(ses.id))
   ]);
   if(selected!==id)return;
-  notice('');const profile=rows[0];if(!profile){empty(body,T('این کاربر هنوز پروفایل عمومی ندارد.','No public profile for this user yet.'));return;}
+  notice('');if(!profile){empty(body,T('این کاربر هنوز پروفایل عمومی ندارد.','No public profile for this user yet.'));return;}
   const card=make('section','filmFriendsCard');
   const top=make('div','filmFriendsTop');top.append(avatar(profile,80));
   const text=make('div');text.append(make('h3','',profile.display_name),make('p','',profile.bio||T('بدون بیو','No bio')));
   top.appendChild(text);card.appendChild(top);
-  card.append(make('p','filmFriendsStats',followers.length+' '+T('دنبال‌کننده','followers')+' · '+following.length+' '+T('دنبال‌شونده','following')));
+  if(ready())card.append(make('p','filmFriendsStats',followers.length+' '+T('دنبال‌کننده','followers')+' · '+following.length+' '+T('دنبال‌شونده','following')));
   if(!mine){
    const followingNow=followed.length>0;
-   const btn=make('button','btn primary',followingNow?T('لغو دنبال‌کردن','Unfollow'):T('دنبال‌کردن','Follow'));
+   const btn=make('button','btn primary',!ready()?T('ورود برای دنبال‌کردن','Sign in to follow'):followingNow?T('لغو دنبال‌کردن','Unfollow'):T('دنبال‌کردن','Follow'));
    btn.onclick=async()=>{
+    if(!ready()){openAuth('login');return;}
     btn.disabled=true;try{
      const path='/film_follows'+(followingNow?'?follower_id=eq.'+encodeURIComponent(ses.id)+'&followed_id=eq.'+encodeURIComponent(id):'');
      await request(path,followingNow?{method:'DELETE'}:{method:'POST',body:JSON.stringify({follower_id:ses.id,followed_id:id})});
@@ -217,9 +225,9 @@ window.addEventListener('film-account-profile-updated',()=>{
 });
 window.addEventListener('popstate',()=>{
  const id=new URL(location.href).searchParams.get('user');
- if(validId(id)&&ready()){$('filmFriendsDialog').showModal();openProfile(id);}
+ if(validId(id)){if(!$('filmFriendsDialog').open)$('filmFriendsDialog').showModal();openProfile(id);}
 });
 const id=new URL(location.href).searchParams.get('user');
-if(validId(id)){const check=setInterval(()=>{if(ready()){clearInterval(check);if(!$('filmFriendsDialog').open)$('filmFriendsDialog').showModal();openProfile(id);}},600);setTimeout(()=>clearInterval(check),14000);}
+if(validId(id)){if(!$('filmFriendsDialog').open)$('filmFriendsDialog').showModal();openProfile(id);}
 window.filmFriends={open:show,openProfile,openFeed,publishMyProfile};
 })();
