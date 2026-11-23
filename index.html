@@ -2624,36 +2624,112 @@ async function freshToken(){
   }
 }
 
-/* ---------- همگام‌سازی ---------- */
-function scheduleSync(){ if(!ses || !sb.url) return; clearTimeout(syncT); syncT = setTimeout(()=>syncNow(false), 1500); }
-async function syncNow(manual){
-  if(!ses || !sb.url) return;
-  if(syncBusy){ syncAgain = true; return; }
-  syncBusy = true; setSync('در حال همگام‌سازی…');
+/* ---------- حساب کاربری: Supabase تنها منبع آرشیو ---------- */
+function clearPersonalView(){
+  cloudEpoch++;cloudReady=false;cloudLoading=false;cloudError='';
+  state.films=[];acMeta={snap:{},deleted:{},owner:'',synced:0};syncMsg='';
+  render();updateAcct();
+}
+async function validateAccount(){
+  if(!ses?.id||!ses.access_token)return false;
+  if(!(await freshToken()))return false;
+  const response=await fetch(sb.url.replace(/\/$/,'')+'/auth/v1/user',{
+    headers:{apikey:sb.key,Authorization:'Bearer '+ses.access_token},cache:'no-store'
+  });
+  if(!response.ok){
+    if(response.status===401||response.status===403){
+      ses=null;await kvSet(SES_KEY,'');clearPersonalView();
+    }
+    throw Error('Session verification '+response.status);
+  }
+  const user=await response.json();
+  if(!user?.id||user.id!==ses.id)throw Error('Account identity mismatch');
+  return true;
+}
+async function fetchAccountDocument(owner){
+  if(!ses||ses.id!==owner)throw Error('Account switched');
+  const resp=await restCall('/archives?select=user_id,data&user_id=eq.'+encodeURIComponent(owner)+'&limit=1',{cache:'no-store'});
+  const rows=await resp.json();
+  if(!Array.isArray(rows)||rows.length>1)throw Error('Invalid archive response');
+  if(rows[0]?.user_id!==undefined&&rows[0].user_id!==owner)throw Error('Wrong account archive');
+  const data=rows[0]?.data;
+  if(data && (!Array.isArray(data.films)||!data.deleted&&data.deleted!==undefined))throw Error('Invalid archive document');
+  return data?{films:data.films,deleted:data.deleted&&typeof data.deleted==='object'?data.deleted:{}}:null;
+}
+async function loadAccountArchive(){
+  if(!ses||cloudLoading)return false;
+  const owner=ses.id,epoch=++cloudEpoch;
+  cloudLoading=true;cloudReady=false;state.films=[];
+  acMeta={snap:{},deleted:{},owner:'',synced:0};cloudError='';
+  setSync(LX('در حال دریافت آرشیو حساب…','Loading your account archive…'));render();
   try{
-    if(!(await freshToken())) throw new Error('Failed to fetch');
-    const rows = await (await restCall('/archives?select=data&limit=1')).json();
-    const remote = rows[0] ? rows[0].data : null;
-    const local = { films: state.films, deleted: acMeta.deleted };
-    const merged = remote && remote.films ? mergeDocs(local, remote) : { films:[...state.films], deleted:{ ...acMeta.deleted } };
-    if(docSig(merged) !== docSig(local)){
-      state.films = merged.films; acMeta.deleted = merged.deleted; acMeta.snap = hashFilms();
-      await kvSet(KEY, JSON.stringify(state.films)); render();
+    if(!(await validateAccount()))throw Error('Session expired');
+    if(cloudEpoch!==epoch||ses?.id!==owner)return false;
+    const doc=await fetchAccountDocument(owner);
+    if(cloudEpoch!==epoch||ses?.id!==owner)return false;
+    state.films=(doc?.films||[]).filter(f=>f&&typeof f.id==='string'&&typeof f.title==='string')
+      .map(f=>({...f,logs:Array.isArray(f.logs)?f.logs:[]}));
+    acMeta={snap:{},deleted:doc?.deleted||{},owner,synced:Date.now()};
+    acMeta.snap=hashFilms();
+    cloudReady=true;cloudError='';
+    setSync(LX('آرشیو حساب آماده است ✓','Account archive loaded ✓'));render();
+    return true;
+  }catch(err){
+    console.error('Supabase account load failed',err);
+    if(cloudEpoch===epoch){
+      cloudReady=false;state.films=[];cloudError=String(err?.message||'');
+      setSync(LX('دریافت آرشیو ناموفق بود','Could not load account archive'));render();
     }
-    if(!remote || docSig(merged) !== docSig(remote)){
-      await restCall('/archives?on_conflict=user_id', { method:'POST', headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ user_id: ses.id, data: merged, updated_at: new Date().toISOString() }) });
-    }
-    acMeta.synced = Date.now(); await saveMeta();
-    setSync('همگام شد ✓');
-  }catch(e){ console.error(e); setSync('همگام نشد'); if(manual) toast(faErr(e.message)); }
-  finally{ syncBusy = false; if(syncAgain){ syncAgain = false; scheduleSync(); } }
+    return false;
+  }finally{if(cloudEpoch===epoch){cloudLoading=false;render();}}
+}
+function scheduleSync(){
+  if(!ses||!cloudReady)return;
+  clearTimeout(syncT);syncT=setTimeout(()=>syncNow(false,false),1500);
+}
+function syncNow(manual=false,persist=false){
+  if(!ses||!cloudReady)return Promise.resolve(false);
+  const owner=ses.id,epoch=cloudEpoch;
+  const action=async()=>{
+    if(!ses||ses.id!==owner||cloudEpoch!==epoch||!cloudReady)return false;
+    syncBusy=true;
+    if(manual)setSync(LX('در حال ذخیره در حساب…','Saving to your account…'));
+    try{
+      if(!(await freshToken()))throw Error('Session unavailable');
+      if(!ses||ses.id!==owner||epoch!==cloudEpoch)throw Error('Account switched');
+      const remote=await fetchAccountDocument(owner);
+      if(!ses||ses.id!==owner||epoch!==cloudEpoch)throw Error('Account switched');
+      const merged=mergeDocs({films:state.films,deleted:acMeta.deleted},remote||{films:[],deleted:{}});
+      if(persist&&(!remote||docSig(merged)!==docSig(remote))){
+        await restCall('/archives?on_conflict=user_id',{
+          method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+          body:JSON.stringify({user_id:owner,data:merged,updated_at:new Date().toISOString()})
+        });
+      }
+      if(!ses||ses.id!==owner||epoch!==cloudEpoch)throw Error('Account switched');
+      state.films=merged.films;acMeta.deleted=merged.deleted;acMeta.owner=owner;
+      acMeta.snap=hashFilms();acMeta.synced=Date.now();cloudError='';
+      setSync(persist?LX('در حساب ذخیره شد ✓','Saved to account ✓'):LX('آرشیو به‌روز شد ✓','Archive updated ✓'));
+      render();return true;
+    }catch(err){
+      console.error('Supabase archive sync failed',err);
+      if(ses?.id===owner&&cloudEpoch===epoch){
+        cloudError=String(err?.message||'');
+        setSync(LX('اتصال یا ذخیره حساب ناموفق بود','Account connection or save failed'));
+      }
+      if(manual)toast(faErr(err.message));
+      return false;
+    }finally{syncBusy=false;}
+  };
+  const p=cloudQueue.then(action,action);
+  cloudQueue=p.catch(()=>{});
+  return p;
 }
 
 /* ---------- نمایش ---------- */
 function updateAcct(){
   $('acctBtn').textContent = ses ? ses.email.split('@')[0].slice(0,14) : 'ورود / ثبت‌نام';
-  $('syncLine').textContent = ses ? ('حساب: ' + ses.email + (syncMsg ? ' • ' + syncMsg : '')) : 'ذخیره فقط روی همین دستگاه است؛ برای همگام‌سازی وارد شو';
+  $('syncLine').textContent=ses?('حساب: '+ses.email+(syncMsg?' • '+syncMsg:'')):LX('آرشیو شخصی با ورود به حساب فعال می‌شود','Sign in to access your personal movie archive');
 }
 function setSync(m){ syncMsg = m; updateAcct(); if($('auOv').classList.contains('open') && auView==='me') paintAuth(); }
 function closeAuth(){ closeModal('auOv'); }
@@ -2688,9 +2764,13 @@ function paintAuth(){
       <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn" id="auSync" type="button">همگام‌سازی حالا</button><button class="btn danger" id="auOut" type="button">خروج</button></div>`;
     on('auSync', ()=>syncNow(true));
     on('auOut', async ()=>{
-      await syncNow(false);
-      try{ fetch(sb.url.replace(/\/$/,'') + '/auth/v1/logout', { method:'POST', headers:{ apikey:sb.key, Authorization:'Bearer ' + ses.access_token } }).catch(()=>{}); }catch(e){}
-      ses = null; await kvSet(SES_KEY, ''); syncMsg = ''; updateAcct(); closeAuth(); toast('خارج شدی');
+      await cloudQueue.catch(()=>{});
+      const token=ses?.access_token;
+      try{if(token)await fetch(sb.url.replace(/\/$/,'')+'/auth/v1/logout',{
+        method:'POST',headers:{apikey:sb.key,Authorization:'Bearer '+token}
+      });}catch(err){console.warn('Remote logout failed',err);}
+      ses=null;await kvSet(SES_KEY,'');clearPersonalView();closeAuth();
+      toast(LX('از حساب خارج شدی','Signed out'));
     });
   } else if(v==='recover'){
     B.innerHTML = `<h2>رمز جدید</h2><div class="field"><label for="auPass">رمز جدید (حداقل ۶ نویسه)</label><input id="auPass" type="password" dir="ltr" autocomplete="new-password"></div>${msg}
@@ -2738,22 +2818,25 @@ function paintAuth(){
   on('auClose', closeAuth);
 }
 async function afterLogin(){
-  if(acMeta.owner && acMeta.owner !== ses.id && state.films.length){
-    state.films = []; acMeta = { snap:{}, deleted:{}, owner:'', synced:0 }; await kvSet(KEY, '[]');
-    toast('آرشیو حساب قبلی از این دستگاه پاک شد');
-  }
-  acMeta.owner = ses.id; await saveMeta(); updateAcct(); closeAuth(); render(); await syncNow(true);
+  if(!ses?.id){auMsg(LX('ورود ناموفق بود','Sign-in failed'));return false;}
+  clearPersonalView();updateAcct();
+  const ok=await loadAccountArchive();
+  if(ok){closeAuth();return true;}
+  auMsg(LX('وارد شدی اما آرشیو حساب از سرور دریافت نشد؛ در بخش حساب دوباره تلاش کن.','Signed in, but the archive did not load. Retry from Account.'));
+  return false;
 }
 function startAccount(){
   updateAcct();
-  $('acctBtn').addEventListener('click', ()=>openAuth());
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && ses && Date.now() - (acMeta.synced||0) > 30000) syncNow(false); });
-  const hp = new URLSearchParams(location.hash.slice(1));
-  if(hp.get('type')==='recovery' && hp.get('access_token') && sb.url){
-    acRec = { access_token:hp.get('access_token'), refresh_token:hp.get('refresh_token')||'', expires_in:+hp.get('expires_in')||3600 };
-    history.replaceState(null, '', location.pathname + location.search);
-    openAuth('recover', acRec.access_token);
-  }else if(ses) syncNow(false);
+  $('acctBtn').addEventListener('click',()=>openAuth());
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&ses&&cloudReady&&Date.now()-(acMeta.synced||0)>30000)syncNow(false,false);
+  });
+  const hp=new URLSearchParams(location.hash.slice(1));
+  if(hp.get('type')==='recovery'&&hp.get('access_token')&&sb.url){
+    acRec={access_token:hp.get('access_token'),refresh_token:hp.get('refresh_token')||'',expires_in:+hp.get('expires_in')||3600};
+    history.replaceState(null,'',location.pathname+location.search);
+    openAuth('recover',acRec.access_token);
+  }else if(ses)loadAccountArchive();
 }
 
 startLang();
