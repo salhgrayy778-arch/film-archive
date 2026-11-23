@@ -253,6 +253,8 @@ const posterObserver=typeof IntersectionObserver==='function'?new IntersectionOb
 },{rootMargin:'240px'}):null;
 function queuePoster(id,card){
  if(!id||!card.isConnected)return;
+ const popularity=Number(card.dataset.popularity||0);
+ if(popularity<20)return; // Do not fetch posters for obscure title-only results.
  const cached=extra.get(id);
  if(cached?.poster_path){
   const holder=card.querySelector('.filmResultPoster');
@@ -279,9 +281,9 @@ async function drainPosterQueue(){
   (async()=>{
    try{
     const d=await tm('/movie/'+job.id,{language:'fa-IR'});
-    if(d?.id!==job.id)return null;
+    if(d?.id!==job.id||Number(d.vote_count||0)<1000)return null;
     const record={id:job.id,title:d.title||d.original_title,
-      original_title:d.original_title||d.title,poster_path:d.poster_path||'',
+      original_title:d.original_title||d.title,poster_path:d.poster_path||'',vote_count:Number(d.vote_count)||0,
       fa_title:faValue(d.title)?d.title:'',overview_fa:faValue(d.overview)?d.overview:''};
     const previous=extra.get(job.id)||{};
     extra.set(job.id,{...previous,...record});
@@ -292,7 +294,7 @@ async function drainPosterQueue(){
 }
 function filmCard(m){
  const link=node('a','filmResultCard');link.href=permalink(m.id);
- link.dataset.filmId=String(m.id);link.setAttribute('aria-label',titleOf(m));
+ link.dataset.filmId=String(m.id);link.dataset.popularity=String(m.popularity||0);link.setAttribute('aria-label',titleOf(m));
  link.appendChild(createPoster(m,'filmResultPoster'));
  if(m._source==='universe'&&!posterOf(m)&&posterObserver)posterObserver.observe(link);
  const name=node('strong','',titleOf(m));name.dir='auto';link.appendChild(name);
