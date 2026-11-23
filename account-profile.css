@@ -1,0 +1,271 @@
+/* My Film Archive — account profile and cinematic site footer.
+   Uses existing theme tokens, with no external fonts or images. */
+.reel .hbar #acctBtn.has-avatar::before{display:none}
+.reel .hbar #acctBtn{display:inline-flex;align-items:center;gap:8px}
+.reel .hbar #acctBtn .acctBadgePhoto{
+ width:26px;height:26px;flex:none;aspect-ratio:1;border-radius:50%;
+ object-fit:cover;border:1px solid var(--gold);
+}
+.reel .hbar #acctBtn .acctBadgeLabel{
+ display:inline-block;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.accountProfileTeaser{
+ display:flex;flex-direction:column;gap:4px;
+ padding:12px 15px;margin:14px 0 8px;
+ border:1px solid color-mix(in srgb,var(--gold) 34%,var(--line));
+ border-radius:13px;background:color-mix(in srgb,var(--gold) 8%,var(--panel));
+}
+.accountProfileTeaser strong{font-size:14px;font-weight:850}
+.accountProfileTeaser span{color:var(--mute);font-size:12px}
+.siteCinemaFooter{
+ position:relative;z-index:1;
+ margin:60px auto 28px;
+ border-top:1px solid color-mix(in srgb,var(--gold) 48%,var(--line));
+ padding:28px 16px 13px;text-align:center;
+ color:var(--mute);
+}
+.siteCinemaFooter::before{
+ content:"";position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+ width:90px;height:3px;
+ background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.siteCinemaFooterInner{display:flex;flex-direction:column;align-items:center;gap:10px}
+.siteCinemaFooterLove{
+ margin:0;color:var(--ink);font-size:15px;font-weight:800;line-height:1.8;
+}
+.siteCinemaFooterContact{
+ margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+ gap:6px;line-height:1.9;font-size:13px;
+}
+.siteCinemaFooterContact a{
+ color:var(--gold);text-decoration:none;font-weight:850;overflow-wrap:anywhere;
+}
+.siteCinemaFooterContact a:hover{text-decoration:underline}
+.siteCinemaFooterContact a:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+
+dialog.accountProfileDialog[open]{
+ position:fixed!important;top:50%!important;left:50%!important;
+ right:auto!important;bottom:auto!important;margin:0!important;
+ transform:translate(-50%,-50%)!important;
+ box-sizing:border-box;display:block;
+ width:min(880px,calc(100vw - 28px));max-width:calc(100vw - 28px);
+ max-height:min(91dvh,900px);overflow:auto;overscroll-behavior:contain;
+ padding:0;border-radius:21px;
+ border:1px solid color-mix(in srgb,var(--gold) 42%,var(--line));
+ background:var(--panel);color:var(--ink);
+ box-shadow:0 26px 90px rgba(0,0,0,.52);
+}
+dialog.accountProfileDialog:not([open]){display:none!important}
+dialog.accountProfileDialog::backdrop{background:rgba(3,10,13,.77);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.accountProfileDialog .profileShell{min-width:0}
+.accountProfileDialog .profileHeading{
+ display:flex;align-items:center;justify-content:space-between;gap:16px;
+ padding:22px 26px 18px;
+ border-bottom:1px solid color-mix(in srgb,var(--gold) 25%,var(--line));
+ background:
+  radial-gradient(ellipse at 82% 2%,color-mix(in srgb,var(--gold) 14%,transparent),transparent 68%),
+  linear-gradient(120deg,var(--panel),color-mix(in srgb,var(--bg) 65%,var(--panel)));
+}
+.accountProfileDialog .profileKicker{font:800 10px/1.5 Arial,sans-serif;letter-spacing:.19em;color:var(--gold)}
+.accountProfileDialog .profileHeading h2{
+ font-size:clamp(22px,3.2vw,29px);font-weight:900;margin:3px 0;line-height:1.5;
+}
+.accountProfileDialog .profileHeading p{margin:0;color:var(--mute);font-size:12px}
+.accountProfileDialog .profileClose{
+ flex:none;width:44px;height:44px;display:grid;place-items:center;
+ border-radius:12px;border:1px solid var(--line);
+ background:color-mix(in srgb,var(--bg) 65%,var(--panel));color:var(--ink);font-size:21px;
+}
+.accountProfileDialog :is(button,input,textarea):focus-visible{
+ outline:2px solid var(--gold);outline-offset:2px;
+}
+.accountProfileDialog .profileRead,.accountProfileDialog .profileEdit{
+ padding:23px 26px 26px;min-width:0;
+}
+.accountProfileDialog .profileHero{
+ display:grid;grid-template-columns:104px minmax(0,1fr) auto;align-items:center;gap:17px;
+ padding:17px;
+ border:1px solid color-mix(in srgb,var(--gold) 24%,var(--line));
+ border-radius:16px;
+ background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 7%,var(--bg)),var(--panel));
+}
+.accountProfileDialog .profileAvatar{
+ width:112px;height:112px;display:grid;place-items:center;
+ border:2px solid color-mix(in srgb,var(--gold) 54%,var(--line));
+ border-radius:50%;overflow:hidden;flex:none;
+ color:var(--gold);font-size:45px;font-weight:900;
+ background:linear-gradient(145deg,color-mix(in srgb,var(--gold) 24%,var(--panel)),var(--bg));
+ box-shadow:0 5px 30px rgba(0,0,0,.13);
+}
+.accountProfileDialog .profileAvatarLarge{width:100px;height:100px}
+.accountProfileDialog .profileAvatar img{display:block;width:100%;height:100%;object-fit:cover}
+.accountProfileDialog .profileIdentity{min-width:0}
+.accountProfileDialog .profileIdentity h3{margin:0;font-size:21px;font-weight:900;line-height:1.5}
+.accountProfileDialog .profileIdentity #profileReadEmail{
+ color:var(--gold);font-size:12px;line-height:1.7;margin:2px 0 7px;
+ text-align:start;overflow-wrap:anywhere;
+}
+.accountProfileDialog .profileIdentity #profileReadBio{
+ color:var(--mute);font-size:13px;line-height:1.9;margin:0;
+ white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.accountProfileDialog .profileEditButton,.accountProfileDialog .profileSave{
+ min-height:44px;border:1px solid var(--gold);border-radius:11px;
+ background:var(--gold);color:var(--on-gold);
+ padding:10px 16px;font-weight:850;font-size:12px;
+}
+.accountProfileDialog .profileSectionTitle{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ margin:25px 0 14px;padding-bottom:11px;
+ border-bottom:1px solid var(--line);
+}
+.accountProfileDialog .profileSectionTitle h3{font-size:17px;font-weight:900;margin:0}
+.accountProfileDialog .profileSectionTitle span{font-size:12px;color:var(--gold);font-weight:850;direction:ltr}
+.accountProfileDialog .profileViewFavorites,.accountProfileDialog .profileSelectedFavorites{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;
+}
+.accountProfileDialog .profileFavoriteTile{
+ min-width:0;display:flex;flex-direction:column;gap:5px;
+ border:1px solid var(--line);border-radius:12px;overflow:hidden;
+ background:color-mix(in srgb,var(--bg) 66%,var(--panel));padding:6px;
+}
+.accountProfileDialog .profileFavoritePoster{
+ position:relative;aspect-ratio:2/3;min-height:100px;
+ display:flex;align-items:center;justify-content:center;
+ border-radius:8px;overflow:hidden;
+ background:linear-gradient(145deg,var(--strip),var(--panel));
+ color:var(--gold);font-size:36px;
+}
+.accountProfileDialog .profileFavoritePoster img{display:block;width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.accountProfileDialog .profileFavoriteRank{
+ position:absolute;top:5px;inset-inline-start:5px;
+ display:grid;place-items:center;min-width:25px;height:25px;
+ border-radius:8px;padding:0 5px;
+ background:color-mix(in srgb,var(--gold) 87%,#111 13%);color:var(--on-gold);
+ font:900 13px/1.5 Arial,sans-serif;
+}
+.accountProfileDialog .profileFavoriteTile strong{
+ font-size:12px;line-height:1.55;min-height:35px;
+ overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.accountProfileDialog .profileFavoriteTile small{font-size:11px;color:var(--mute)}
+.accountProfileDialog .profileFavoriteTools{
+ display:flex;justify-content:center;gap:5px;margin-top:auto;
+}
+.accountProfileDialog .profileFavoriteTools button{
+ min-width:30px;min-height:36px;padding:5px;
+ border:1px solid var(--line);border-radius:7px;
+ background:var(--panel);color:var(--ink);font-size:15px;
+}
+.accountProfileDialog .profileFavoriteTools button:last-child{color:var(--gold)}
+.accountProfileDialog button:disabled{opacity:.45;cursor:not-allowed}
+.accountProfileDialog .profileNoFavorites{
+ grid-column:1/-1;text-align:center;padding:34px 12px;
+ border:1px dashed color-mix(in srgb,var(--gold) 35%,var(--line));
+ border-radius:12px;color:var(--mute);font-size:13px;line-height:2;
+}
+.accountProfileDialog .profileFootnote{margin:19px 0 0;color:var(--mute);font-size:11px;line-height:1.8}
+.accountProfileDialog .profileEditGrid{
+ display:grid;grid-template-columns:180px minmax(0,1fr);gap:22px;
+ border:1px solid var(--line);border-radius:15px;padding:17px;
+ background:color-mix(in srgb,var(--panel) 82%,var(--bg));
+}
+.accountProfileDialog .profileAvatarEditor{
+ display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;
+}
+.accountProfileDialog .profileAvatarEditor label{font-size:12px;font-weight:850}
+.accountProfileDialog .profileAvatarEditor input[type=file]{
+ width:100%;font-size:11px;line-height:1.7;min-height:44px;cursor:pointer;
+}
+.accountProfileDialog .profileAvatarEditor p{margin:0;font-size:10px;color:var(--mute)}
+.accountProfileDialog .profileTextButton,.accountProfileDialog .profileCancel{
+ min-height:42px;padding:8px 15px;
+ border-radius:10px;border:1px solid var(--line);
+ background:var(--panel);color:var(--ink);font-size:12px;font-weight:800;
+}
+.accountProfileDialog .profileTextFields{display:flex;flex-direction:column;gap:8px;min-width:0}
+.accountProfileDialog .profileTextFields label,.accountProfileDialog .profileSearchLabel{font-weight:850;font-size:13px}
+.accountProfileDialog .profileTextFields :is(input,textarea),
+.accountProfileDialog .profileSearchBar input{
+ display:block;width:100%;min-height:45px;box-sizing:border-box;
+ border:1px solid var(--line);border-radius:10px;
+ padding:9px 12px;background:var(--bg);color:var(--ink);font-size:13px;
+}
+.accountProfileDialog .profileTextFields textarea{resize:vertical;min-height:106px}
+.accountProfileDialog .profileCharacterCount{align-self:flex-end;color:var(--mute);font-size:11px}
+.accountProfileDialog .profileSearchBar{
+ display:flex;align-items:center;gap:10px;
+ border:1px solid var(--line);border-radius:11px;
+ background:var(--bg);padding:3px 10px;margin:7px 0;
+}
+.accountProfileDialog .profileSearchBar>span{color:var(--gold);font-size:25px}
+.accountProfileDialog .profileSearchBar input{border:0;outline:0;background:transparent;padding-inline:0}
+.accountProfileDialog .profileSearchBar:focus-within{outline:2px solid var(--gold)}
+.accountProfileDialog .profileFilmSuggestions{
+ max-height:310px;overflow:auto;overscroll-behavior:contain;
+ display:flex;flex-direction:column;gap:5px;padding:6px;
+ border:1px solid var(--line);border-radius:11px;background:var(--bg);margin:9px 0;
+}
+.accountProfileDialog .profileFilmSuggestions[hidden]{display:none!important}
+.accountProfileDialog .profileSuggestionItem{
+ display:flex;align-items:center;gap:11px;
+ width:100%;min-height:65px;padding:6px 9px;border:1px solid transparent;
+ border-radius:9px;background:transparent;color:var(--ink);text-align:start;
+}
+.accountProfileDialog .profileSuggestionItem:hover,.accountProfileDialog .profileSuggestionItem:focus-visible{
+ border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--panel));
+}
+.accountProfileDialog .profileSuggestionPoster{
+ flex:none;width:41px;height:56px;display:grid;place-items:center;
+ border-radius:6px;background:var(--strip);overflow:hidden;font-size:22px;color:var(--gold);
+}
+.accountProfileDialog .profileSuggestionPoster img{display:block;width:100%;height:100%;object-fit:cover}
+.accountProfileDialog .profileSuggestionInfo{display:flex;flex-direction:column;gap:2px;min-width:0}
+.accountProfileDialog .profileSuggestionInfo strong{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.accountProfileDialog .profileSuggestionInfo small{font-size:11px;color:var(--mute);line-height:1.5}
+.accountProfileDialog .profileSearchEmpty{
+ margin:8px;padding:10px;color:var(--mute);font-size:12px;line-height:1.8;
+}
+.accountProfileDialog .profileAddOther{
+ min-height:44px;padding:8px 14px;
+ border-radius:10px;border:1px dashed var(--gold);
+ background:color-mix(in srgb,var(--gold) 10%,var(--panel));color:var(--ink);
+ font-size:12px;font-weight:850;margin:4px 0;
+}
+.accountProfileDialog .profileSearchHint{font-size:11px;line-height:1.9;color:var(--mute)}
+.accountProfileDialog .profileFeedback{
+ min-height:20px;font-size:12px;color:var(--gold);line-height:1.8;margin:12px 0;
+}
+.accountProfileDialog .profileActions{
+ display:flex;justify-content:flex-end;gap:9px;
+ border-top:1px solid var(--line);padding-top:15px;margin-top:17px;
+}
+@media(max-width:760px){
+ .accountProfileDialog .profileViewFavorites,.accountProfileDialog .profileSelectedFavorites{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .accountProfileDialog .profileHero{grid-template-columns:82px minmax(0,1fr)}
+ .accountProfileDialog .profileAvatarLarge{width:80px;height:80px;font-size:33px}
+ .accountProfileDialog .profileEditButton{grid-column:1/-1}
+}
+@media(max-width:520px){
+ dialog.accountProfileDialog[open]{
+  width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:calc(100dvh - 18px);
+  border-radius:15px;
+ }
+ .accountProfileDialog .profileHeading{padding:16px;gap:8px}
+ .accountProfileDialog .profileHeading h2{font-size:20px}
+ .accountProfileDialog .profileKicker{font-size:8px}
+ .accountProfileDialog .profileRead,.accountProfileDialog .profileEdit{padding:16px 13px 20px}
+ .accountProfileDialog .profileHero{padding:12px;gap:12px}
+ .accountProfileDialog .profileIdentity h3{font-size:17px}
+ .accountProfileDialog .profileEditGrid{grid-template-columns:1fr;gap:17px}
+ .accountProfileDialog .profileAvatarEditor{flex-direction:row;flex-wrap:wrap;justify-content:center}
+ .accountProfileDialog .profileAvatarEditor .profileAvatar{width:85px;height:85px}
+ .accountProfileDialog .profileAvatarEditor input[type=file]{width:auto;max-width:100%}
+ .accountProfileDialog .profileViewFavorites,.accountProfileDialog .profileSelectedFavorites{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .accountProfileDialog .profileSectionTitle h3{font-size:14px}
+ .siteCinemaFooter{margin-top:44px;padding:24px 10px 10px}
+ .siteCinemaFooterLove{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+ dialog.accountProfileDialog *,dialog.accountProfileDialog *::before,dialog.accountProfileDialog *::after{transition:none!important}
+}
