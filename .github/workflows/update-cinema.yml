@@ -40,7 +40,7 @@ jobs:
         run: python scripts/update_cinema.py
       - name: Commit updated data and cached posters
         run: |
-          git add data/home-feed.json assets/posters/
+          git add data/home-feed.json assets/posters/ assets/news/
           if git diff --cached --quiet; then
             echo "No data changes to publish"
             exit 0
