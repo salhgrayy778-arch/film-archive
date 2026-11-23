@@ -44,7 +44,9 @@ FEEDS = [
     ("Collider", ["https://collider.com/feed/"]),
     ("Screen Rant", ["https://screenrant.com/feed/"]),
 ]
-FILM_WORDS = re.compile(r"\b(film|films|movie|movies|cinema|hollywood|director|box.office|oscar|academy.award|actor|actress|screenplay|theatrical|premiere|festival|sundance|cannes|animation|sequel|trailer|feature|studio|disney|warner|paramount|universal|netflix|a24|sony.pictures)\b", re.I)
+FILM_WORDS = re.compile(r"\b(film|films|movie|movies|cinema|director|box.office|oscar|academy.award|screenplay|theatrical|premiere|sundance|cannes|sequel|feature.film|film.festival|animated.film|cinematography|movie.trailer|horror.movie|avengers|spider.man|star.wars|batman|superman|james.bond)\b", re.I)
+NOT_FILM = re.compile(r"\b(smosh|video.game|gaming|playstation|xbox|nintendo|tv.series|television|season\s*[1-9]|episode\s*[1-9]|season.finale|super.bowl|football|comic.books?|wwe|reality.show|talk.show|concert|music.video|podcast)\b", re.I)
+DEDICATED_FILM_FEEDS = {"Variety", "IndieWire"}
 STOP_WORDS = set("the a an and or of for from to in on at with as by is are was were into about new first last after before how what who why movie movies film films cinema hollywood says said report exclusive reveals revealed".split())
 
 def utcstamp():
@@ -73,8 +75,21 @@ def normalize_title(title):
     tokens = re.findall(r"[a-z0-9]+", text)
     return " ".join(w for w in tokens if w not in STOP_WORDS)
 
+def event_signature(title):
+    """Catch identical news events rewritten in distinct editorial headlines."""
+    normalized = normalize_title(title)
+    if ("oscar" in normalized or "academy award" in normalized) and (
+        "eligib" in normalized or ("animated" in normalized and "international" in normalized)
+    ):
+        return "oscars-eligibility"
+    return ""
+
+
 def duplicate(a, b):
     if a["url"] == b["url"]:
+        return True
+    same_event = event_signature(a["title"]) and event_signature(a["title"]) == event_signature(b["title"])
+    if same_event:
         return True
     x, y = a["_norm"], b["_norm"]
     if not x or not y:
@@ -119,7 +134,13 @@ def get_feed(name, urls):
                     continue
                 # Mixed entertainment feeds should still prioritize actual film coverage.
                 categories = " ".join(str(t.get("term", "")) for t in entry.get("tags", []))
-                if not FILM_WORDS.search(title+" "+categories):
+                # Exclude television, sports and gaming items unless specifically
+                # described as a movie/film adaptation or cinematic release.
+                explicit_film = bool(FILM_WORDS.search(title))
+                if NOT_FILM.search(title) and not re.search(r"\b(film|films|movie|movies|cinema|box.office)\b", title, re.I):
+                    continue
+                category_movie = bool(re.search(r"\b(film|films|movie|movies|cinema)\b", categories, re.I))
+                if not explicit_film and not (name in DEDICATED_FILM_FEEDS or category_movie):
                     continue
                 rows.append({
                     "title": title[:240],
