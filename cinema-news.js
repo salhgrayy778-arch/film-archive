@@ -199,7 +199,9 @@ function initLocalMovieDetails(){
   translateButton.textContent=showPersian?L('↩ متن اصلی','↩ Original'):L('ترجمه فارسی','Persian translation');
   el('cnModalTranslationNote').textContent=showPersian
     ?correctTranslation
-      ?L('ترجمه ماشینی خلاصه فیلم؛ برای بررسی دقیق‌تر به متن اصلی مراجعه کن.','Machine-translated synopsis; check the original for accuracy.')
+      ?current.overview_translation_source==='tmdb'
+        ?L('خلاصه فارسی ثبت‌شده در TMDB.','Persian synopsis supplied by TMDB.')
+        :L('ترجمه ماشینی خلاصه فیلم؛ برای بررسی دقیق‌تر به متن اصلی مراجعه کن.','Machine-translated synopsis; check the original for accuracy.')
       :L('ترجمه فارسی این فیلم هنوز منتشر نشده است؛ متن اصلی نمایش داده می‌شود.','Persian translation is not yet published; showing the original text.')
     :'';
  }
