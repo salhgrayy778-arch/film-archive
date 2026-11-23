@@ -966,7 +966,7 @@ const UX_EN_MAP = new Map(Object.entries({
 
   'ثبت اولین فیلم':'Add first film','وارد کردن از Letterboxd':'Import from Letterboxd',
   'به آرشیو فیلم‌هایت خوش آمدی':'Welcome to your film archive',
-  'اولین فیلمت را ثبت کن، یا فهرست فیلم‌ها را از Letterboxd بیاور. اطلاعات ابتدا روی همین دستگاه و مرورگر ذخیره می‌شود؛ برای انتقال و نگهداری مطمئن‌تر، پشتیبان بگیر.':'Add your first film or import your Letterboxd library. Data starts in this browser; make a backup for safer storage and transfer.',
+  'اولین فیلمت را ثبت کن، یا فهرست فیلم‌ها را از Letterboxd بیاور. اطلاعات در حساب شخصی ذخیره می‌شوند؛ برای اطمینان بیشتر می‌توانی پشتیبان هم بگیری.':'Add your first film or import your Letterboxd library. Data starts in this browser; make a backup for safer storage and transfer.',
   'پاک کردن همه فیلترها':'Clear all filters','فیلتر فعال':'active filters',
   'تغییرات ذخیره‌نشده':'Unsaved changes','تغییرات این فیلم هنوز ذخیره نشده است. می‌خواهی ویرایش را ادامه بدهی؟':'These film edits are not saved yet. Do you want to keep editing?',
   'ادامه ویرایش':'Keep editing','دور انداختن تغییرات':'Discard changes','انصراف':'Cancel',
@@ -1065,6 +1065,7 @@ function safeExternalHref(input){
 const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
 
 let state = { films:[], tab:'news', dashView:'overview', q:'', sort:'new', genre:'', editId:null, form:null };
+let cloudReady=false, cloudLoading=false, cloudEpoch=0, cloudQueue=Promise.resolve(), cloudError='';
 const mem = {};
 const JM=EN?['January','February','March','April','May','June','July','August','September','October','November','December']:['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 const jal=d=>{if(EN){const x=new Date(d+'T12:00:00');return{y:x.getFullYear(),m:x.getMonth()+1};}const p=new Intl.DateTimeFormat('fa-IR-u-nu-latn',{year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date(d+'T12:00:00'));const g=t=>+p.find(x=>x.type===t).value;return{y:g('year'),m:g('month')};};
@@ -1077,11 +1078,27 @@ function posterOf(f){
   const poster=safePosterSrc(f.poster);
   return poster ? `<img src="${esc(poster)}" alt="پوستر ${esc(f.title)}" loading="lazy" referrerpolicy="no-referrer">` : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
 }
+function archiveGate(element){
+  const headline=cloudLoading?LX('در حال دریافت آرشیو حسابت…','Loading your account archive…')
+    :ses?LX('آرشیو حساب در دسترس نیست','Your account archive is unavailable')
+    :LX('برای دیدن فیلم‌ها وارد حساب شو','Sign in to see your movies');
+  const help=ses?LX('تا وقتی اطلاعات از سرور دریافت نشوند، ویرایش فعال نمی‌شود.','Editing is locked until the account archive loads from the server.')
+    :LX('داشبورد، فهرست فیلم‌ها و دفترچه تماشا متعلق به حساب شخصی تو هستند.','Your dashboard, watchlist and watch diary belong to your account.');
+  element.innerHTML='<div class="welcome" style="max-width:720px;margin:22px auto"><h2>'+esc(headline)+'</h2><p>'+esc(help)+'</p><div class="actions"><button type="button" class="btn primary" data-cloud-retry>'+esc(ses?LX('تلاش دوباره','Try again'):LX('ورود / ثبت‌نام','Sign in / Sign up'))+'</button></div></div>';
+  element.querySelector('[data-cloud-retry]').onclick=()=>{if(ses)loadAccountArchive();else openAuth('login');};
+}
+function requireCloud(){
+  if(cloudReady&&ses&&!cloudLoading)return true;
+  if(!ses)openAuth('login');
+  else toast(LX('ابتدا دریافت آرشیو حسابت باید کامل شود','Your account archive must finish loading first'));
+  return false;
+}
 function renderDash(){
+  if(!cloudReady){archiveGate($('dash'));return;}
   const F=state.films, seen=F.filter(f=>f.status==='seen'), rated=seen.filter(f=>f.rating>0);
   if(!F.length){
     $('dash').innerHTML=`<div class="welcome"><h2>به آرشیو فیلم‌هایت خوش آمدی</h2>
-      <p>اولین فیلمت را ثبت کن، یا فهرست فیلم‌ها را از Letterboxd بیاور. اطلاعات ابتدا روی همین دستگاه و مرورگر ذخیره می‌شود؛ برای انتقال و نگهداری مطمئن‌تر، پشتیبان بگیر.</p>
+      <p>اولین فیلمت را ثبت کن، یا فهرست فیلم‌ها را از Letterboxd بیاور. اطلاعات در حساب شخصی ذخیره می‌شوند؛ برای اطمینان بیشتر می‌توانی پشتیبان هم بگیری.</p>
       <div class="actions"><button class="btn primary" type="button" id="firstFilm">ثبت اولین فیلم</button><button class="btn" type="button" id="firstImport">وارد کردن از Letterboxd</button></div></div>`;
     $('firstFilm').onclick=()=>openSheet(null);
     $('firstImport').onclick=()=>{ $('menuBtn').click(); $('lbBtn').focus(); };
@@ -1106,6 +1123,7 @@ function renderDash(){
     ${yrs.length?`<div class="years">${yrs.map(y=>`<span>${fa(y)}: <b>${fa(years[y])}</b></span>`).join('')}</div>`:'<div class="empty">—</div>'}`;
 }
 function renderDiary(){
+  if(!cloudReady){archiveGate($('diary'));return;}
   const E=allEntries(); let key='';
   $('diary').innerHTML=E.length?E.map(e=>{
     const j=jal(e.date), k=j.y+'-'+j.m; let h='';
@@ -1130,23 +1148,21 @@ async function kvSet(key, value){
   try{ if(window.storage){ const r = await window.storage.set(key, value); if(r) ok = true; } }catch(e){}
   return ok;
 }
-async function loadFilms(){
-  const v = await kvGet(KEY);
-  try{ return v ? JSON.parse(v) : []; }catch(e){ return []; }
-}
+// Archive data is now exclusively account-owned; legacy browser storage is
+// kept intact for a one-time user-approved import, never loaded automatically.
+async function loadFilms(){return [];}
 async function saveFilms(){
-  const oldMeta = { ...acMeta, snap:{...acMeta.snap}, deleted:{...acMeta.deleted} };
-  const versions = state.films.map(f=>[f, f.u]);
+  if(!cloudReady||!ses){toast(LX('ابتدا وارد حساب خودت شو','Sign in to save movies'));return false;}
+  const oldMeta={...acMeta,snap:{...acMeta.snap},deleted:{...acMeta.deleted}};
+  const versions=state.films.map(f=>[f,f.u]);
   stamp();
-  const ok = await kvSet(KEY, JSON.stringify(state.films));
+  const ok=await syncNow(true,true);
   if(!ok){
-    acMeta = oldMeta;
-    versions.forEach(([f,u])=>{if(u===undefined) delete f.u; else f.u=u;});
-    toast('ذخیره خودکار انجام نشد؛ فایل پشتیبان بگیر');
+    acMeta=oldMeta;
+    versions.forEach(([f,u])=>{if(u===undefined)delete f.u;else f.u=u;});
+    toast(LX('ذخیره در حساب انجام نشد؛ دوباره تلاش کن','Could not save to your account; please retry'));
     return false;
   }
-  await saveMeta();
-  scheduleSync();
   return true;
 }
 function toast(msg){
@@ -1226,6 +1242,7 @@ function render(){
   $('siteMainTitle').textContent = 'My Film Archive';
   $('stats').textContent = v==='news'
     ? LX('آخرین اخبار، تازه‌اکران‌ها و ترندهای سینمای جهان','Latest movie news, theatrical releases and global trends')
+    : !cloudReady ? LX('برای دیدن آرشیو شخصی وارد حساب شو','Sign in for your personal archive')
     : state.films.length
       ? `${fa(seen)} فیلم دیده‌ام  •  ${fa(want)} در فهرست انتظار`
       : LX('هنوز فیلمی ثبت نشده','No films logged yet');
@@ -1241,6 +1258,7 @@ function render(){
   });
   const showingSummary = v==='dash' && dashView==='overview';
   const showingLibrary = v==='dash' && !showingSummary;
+  $('addBtn').title=cloudReady?'':LX('ابتدا وارد حساب شو','Sign in before adding movies');
   $('dash').hidden = !showingSummary;
   $('dashLibrary').hidden = !showingLibrary;
   document.querySelector('.tools').hidden = !showingLibrary;
@@ -1250,6 +1268,10 @@ function render(){
   if(v==='diary') return renderDiary();
   if(showingSummary) return renderDash();
   if(!showingLibrary) return;
+  if(!cloudReady){
+    document.querySelector('.tools').hidden=true;
+    archiveGate($('grid'));return;
+  }
 
   const dashboardTitles = {
     priority:LX('فیلم‌های اولویت‌دار','Priority movies'),
@@ -1422,6 +1444,7 @@ function requestSheetDismiss(){
   else closeSheet();
 }
 function openSheet(id){
+  if(!requireCloud())return;
   const f = id ? state.films.find(x=>x.id===id) : null;
   state.editId = id || null;
   state.form = f ? {...f, rating:f.rating||0} : { status:'seen', rating:0, poster:'' };
@@ -1450,6 +1473,7 @@ function closeSheet(){
   state.form=null; state.editId=null; sheetInitial=null;
 }
 async function submitSheet(){
+  if(!requireCloud())return;
   const title = $('fTitle').value.trim();
   if(!title){ toast('نام فیلم را بنویس'); $('fTitle').focus(); return; }
   // Optional numeric values keep their original constraints; open collapsed section before focusing errors.
@@ -1502,6 +1526,7 @@ async function submitSheet(){
 const newId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 async function deleteFilm(){
+  if(!requireCloud())return;
   const b = $('delBtn');
   if(b.dataset.armed !== '1'){
     b.dataset.armed = '1'; b.textContent = 'مطمئنی؟ دوباره بزن';
@@ -1543,6 +1568,8 @@ function exportData(){
   toast('فایل پشتیبان ساخته شد');
 }
 async function importBackup(file){
+  if(!requireCloud())return;
+  const previous=state.films.map(f=>({...f,logs:(f.logs||[]).map(l=>({...l}))}));
   try{
     if(!file || file.size>15*1024*1024)throw new Error('backup too large');
     const obj = JSON.parse(await file.text());
@@ -1570,8 +1597,8 @@ async function importBackup(file){
         logs};
       state.films.push(data);ids.add(id);added++;
     }
-    render();await saveFilms();
-    toast(`${fa(added)} فیلم اضافه شد`);
+    if(!await saveFilms()){state.films=previous;render();return;}
+    render();toast(`${fa(added)} فیلم اضافه شد`);
   }catch(e){toast('فایل پشتیبان معتبر نیست یا بیش از حد بزرگ است');}
 }
 
@@ -1631,6 +1658,7 @@ async function readZip(buf){
 }
 
 async function importLetterboxd(fileList){
+  if(!requireCloud())return;
   try{
     const csvs = {};
     for(const f of fileList){
@@ -1766,7 +1794,7 @@ function init(){
 
   initRoom(); dust(); initPlus(); initPosters(); initDrawer();
   kvGet(THEME_KEY).then(t=>{ if(THEMES.includes(t)) theme = t; applyTheme(); });
-  loadFilms().then(async list=>{ state.films = list; await loadMeta(); render(); checkBackup(); startAccount(); });
+  loadMeta().then(()=>{state.films=[];render();startAccount();}).catch(error=>{console.error(error);render();startAccount();});
 }
 /* ---------- اتاق تماشای دونفره (PeerJS؛ بارگذاری فقط هنگام نیاز) ---------- */
 const RN_KEY = 'film-archive-rname';
@@ -2522,11 +2550,11 @@ let acMeta = { snap:{}, deleted:{}, owner:'', synced:0 };
 let syncT = null, syncBusy = false, syncAgain = false, syncMsg = '', auView = 'login', acToken = '', acRec = null;
 
 async function loadMeta(){
-  try{ const v = await kvGet(META_KEY); if(v) acMeta = { ...acMeta, ...JSON.parse(v) }; }catch(e){}
-  try{ const c = await kvGet(SB_CFG_KEY); if(c){ const o = JSON.parse(c); if(!SB_URL) sb.url = o.url || ''; if(!SB_KEY) sb.key = o.key || ''; } }catch(e){}
-  try{ const x = await kvGet(SES_KEY); if(x) ses = JSON.parse(x); }catch(e){}
+  try{const cfg=await kvGet(SB_CFG_KEY);if(cfg){const o=JSON.parse(cfg);if(!SB_URL)sb.url=o.url||'';if(!SB_KEY)sb.key=o.key||'';}}catch(e){}
+  try{const raw=await kvGet(SES_KEY);if(raw){const stored=JSON.parse(raw);if(stored?.id&&stored.access_token&&stored.refresh_token)ses=stored;}}catch(e){ses=null;}
+  acMeta={snap:{},deleted:{},owner:'',synced:0};
 }
-const saveMeta = () => kvSet(META_KEY, JSON.stringify(acMeta));
+const saveMeta=async()=>true; // Account metadata stays in RAM and in Supabase, not browser storage.
 
 /* تغییرها را شناسایی و مهر زمانی می‌زند (برای ادغام درست بین دستگاه‌ها) */
 function hashFilms(){
