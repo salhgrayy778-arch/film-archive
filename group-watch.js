@@ -403,8 +403,8 @@ function customizeRoomUI() {
   const sync=$room('rSync');if(sync)sync.lastChild.textContent=localLabel('همگام‌سازی با میزبان','Sync with host');
   const hint=document.querySelector('#room>.hint');
   if(hint)hint.textContent=localLabel(
-    'میزبان لینک اتاق را با هر تعداد مهمان به اشتراک می‌گذارد. در کد محدودیت عددی ثابت وجود ندارد، اما ظرفیت واقعی به اینترنت و دستگاه میزبان و سرویس PeerJS بستگی دارد و میزبان باید آنلاین بماند. همه می‌توانند چت، واکنش و کنترل پخش را همگام کنند. خود فایل ویدئو منتقل نمی‌شود؛ هر نفر باید فایل یا لینک مستقیم فیلم را داشته باشد.',
-    'Share the room link with other guests. There is no built-in participant limit, but capacity depends on host bandwidth, device and PeerJS; host must stay online. All participants can chat, react and control synchronized playback. The video itself is not transferred: each person needs their own file or a direct URL.'
+    'میزبان لینک اتاق را با مهمان‌ها به اشتراک می‌گذارد. ارتباط اعضا از طریق سرور همگام‌سازی اتاق برقرار می‌شود و به اتصال مستقیم دو دستگاه وابسته نیست. میزبان باید آنلاین بماند. چت، واکنش و کنترل پخش همگام می‌شوند؛ خود فایل ویدئو منتقل نمی‌شود و هر نفر باید فایل یا لینک مستقیم فیلم را داشته باشد.',
+    'Share the room link with guests. Participants connect through the room relay, not a direct device-to-device connection. The host must stay online. Chat, reactions and playback controls are synchronized; video files are not transferred, so each person needs their own file or a direct URL.'
   );
   const firstHint=document.querySelector('#room .rmain .rbox .hint');
   if(firstHint)firstHint.innerHTML=localLabel(
