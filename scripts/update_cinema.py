@@ -8,6 +8,10 @@ from __future__ import annotations
 
 import calendar
 from collections import Counter
+from html import unescape
+from html.parser import HTMLParser
+import hashlib
+import ipaddress
 from datetime import datetime, timezone, timedelta
 from difflib import SequenceMatcher
 from io import BytesIO
@@ -18,7 +22,7 @@ import re
 import sys
 import time
 import unicodedata
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse, urljoin
 
 import feedparser
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -27,6 +31,7 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 DATA_FILE = ROOT / "data" / "home-feed.json"
 POSTER_DIR = ROOT / "assets" / "posters"
+NEWS_DIR = ROOT / "assets" / "news"
 API = "https://api.themoviedb.org/3"
 POSTER_SOURCE = "https://image.tmdb.org/t/p/original"
 HEADERS = {"User-Agent": "MyFilmArchive/1.1 (+https://github.com/salhgrayy778-arch/film-archive)", "Accept": "application/json, application/rss+xml, application/xml, text/xml, */*"}
@@ -114,6 +119,128 @@ def parse_date(entry):
             pass
     return None
 
+
+# Publisher-provided RSS article images are downloaded as compact thumbnails.
+# They remain attributed to the publisher and link to the original story.
+class ArticleImageParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.og_image = ""
+        self.first_image = ""
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag.lower() == "meta":
+            prop = (a.get("property") or a.get("name") or "").lower()
+            if prop in ("og:image", "og:image:secure_url", "twitter:image") and not self.og_image:
+                self.og_image = a.get("content") or ""
+        elif tag.lower() == "img" and not self.first_image:
+            self.first_image = a.get("data-src") or a.get("src") or ""
+
+def image_url(value, base=""):
+    try:
+        src = urljoin(base, unescape(str(value or "").strip()))
+        p = urlparse(src)
+        if p.scheme not in ("https", "http") or not p.hostname or len(src) > 2000:
+            return ""
+        host = p.hostname.lower()
+        if host in ("localhost", "metadata.google.internal") or host.endswith((".local", ".internal")):
+            return ""
+        try:
+            addr = ipaddress.ip_address(host)
+            if not addr.is_global:
+                return ""
+        except ValueError:
+            pass
+        return src
+    except (ValueError, TypeError):
+        return ""
+
+def feed_image(entry, article):
+    candidates = []
+    for name in ("media_content", "media_thumbnail"):
+        for item in entry.get(name, []) or []:
+            if isinstance(item, dict):
+                candidates.append(item.get("url") or item.get("href"))
+    for item in entry.get("links", []):
+        if item.get("rel") == "enclosure" and str(item.get("type", "")).startswith("image/"):
+            candidates.append(item.get("href"))
+    for name in ("content", "summary_detail"):
+        field = entry.get(name)
+        bodies = field if isinstance(field, list) else ([field] if field else [])
+        for content in bodies:
+            body = content.get("value", "") if isinstance(content, dict) else ""
+            if not body:
+                continue
+            parser = ArticleImageParser()
+            parser.feed(body[:30000])
+            if parser.first_image:
+                candidates.append(parser.first_image)
+    for src in candidates:
+        url = image_url(src, article)
+        if url:
+            return url
+    return ""
+
+def article_image(article):
+    """Fallback to the publisher's OpenGraph lead image if RSS lacks a photo."""
+    try:
+        resp = SESSION.get(article, timeout=(7, 12), headers={"Accept": "text/html"})
+        resp.raise_for_status()
+        if "text/html" not in resp.headers.get("Content-Type", "").lower():
+            return ""
+        parser = ArticleImageParser()
+        parser.feed(resp.text[:240000])
+        return image_url(parser.og_image or parser.first_image, article)
+    except (requests.RequestException, OSError, ValueError):
+        return ""
+
+def save_news_image(article, preferred, old_path=""):
+    """Same-origin article thumbnail, without copying the original large image."""
+    key = hashlib.sha256(article.encode("utf-8")).hexdigest()[:16]
+    local = (Path("assets") / "news" / f"{key}.webp").as_posix()
+    dest = ROOT / local
+    if dest.is_file() and dest.stat().st_size > 2000:
+        return local
+    if old_path and re.fullmatch(r"assets/news/[a-f0-9]{16}\.webp", old_path):
+        old_file = ROOT / old_path
+        if old_file.exists() and old_file.stat().st_size > 2000:
+            return old_path
+    urls = [preferred] if preferred else []
+    fallback = article_image(article)
+    if fallback and fallback not in urls:
+        urls.append(fallback)
+    for url in urls:
+        if not image_url(url):
+            continue
+        try:
+            response = SESSION.get(url, stream=True, timeout=(8, 18), headers={"Accept": "image/avif,image/webp,image/jpeg,image/png,image/*;q=0.8,*/*;q=0.5"})
+            response.raise_for_status()
+            ctype = response.headers.get("Content-Type", "").lower()
+            if not ctype.startswith("image/"):
+                response.close()
+                continue
+            raw = bytearray()
+            for chunk in response.iter_content(65536):
+                raw.extend(chunk)
+                if len(raw) > 8*1024*1024:
+                    raise ValueError("Image download exceeds 8 MB")
+            response.close()
+            image = Image.open(BytesIO(raw))
+            image = ImageOps.exif_transpose(image).convert("RGB")
+            # Reject tracking pixels and tiny logo images.
+            if image.width < 260 or image.height < 150:
+                continue
+            image = ImageOps.fit(image, (720, 405), method=Image.Resampling.LANCZOS)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            temp = dest.with_suffix(".tmp")
+            image.save(temp, "WEBP", quality=82, method=4)
+            temp.replace(dest)
+            return local
+        except (requests.RequestException, OSError, ValueError, UnidentifiedImageError) as exc:
+            print(f"News image unavailable: {urlparse(url).hostname}: {exc}")
+    return old_path if old_path and (ROOT / old_path).is_file() else ""
+
 def get_feed(name, urls):
     for url in urls:
         try:
@@ -149,6 +276,7 @@ def get_feed(name, urls):
                     "source": name,
                     "seendate": (when or NOW).strftime("%Y%m%dT%H%M%SZ"),
                     "socialimage": "",
+                    "_image_url": feed_image(entry, link),
                     "_norm": normalize_title(title),
                     "_ts": (when or NOW).timestamp(),
                 })
@@ -185,6 +313,12 @@ def collect_news(existing):
             break
         try_add(row)
     chosen.sort(key=lambda x: x["_ts"], reverse=True)
+    previous = {entry.get("url"): entry for entry in existing.get("news", []) if isinstance(entry, dict)}
+    for item in chosen[:18]:
+        prior = previous.get(item["url"], {})
+        item["socialimage"] = save_news_image(
+            item["url"], item.get("_image_url", ""), prior.get("socialimage", "")
+        )
     output = [{k: v for k, v in item.items() if not k.startswith("_")} for item in chosen[:18]]
     if output:
         return output, utcstamp()
@@ -333,7 +467,7 @@ def main():
         return 1
     payload = {
         "schema_version": 2,
-        "source": "My Film Archive GitHub Actions; TMDB official metadata and poster artwork; publisher RSS headlines",
+        "source": "My Film Archive GitHub Actions; TMDB official posters; publisher RSS news and locally hosted news thumbnails",
         "generated_at": utcstamp(),
         "news_updated_at": news_updated,
         "movies_updated_at": movies_updated,
