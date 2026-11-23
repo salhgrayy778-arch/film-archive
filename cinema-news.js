@@ -171,7 +171,7 @@ function initLocalMovieDetails(){
  dialog.setAttribute('aria-describedby','cnModalOverview');
  dialog.innerHTML='<div class="cnModalHead">'
   +'<div class="cnModalHeading"><span class="cnModalEyebrow">'+L('پرونده فیلم','MOVIE DETAILS')+'</span><h3 id="cnModalTitle" dir="auto"></h3></div>'
-  +'<div class="cnModalButtons"><button type="button" class="cnModalTranslateBtn" id="cnModalTranslate" aria-pressed="false"></button>'
+  +'<div class="cnModalButtons"><button type="button" class="cnModalPageBtn" id="cnModalPage">'+L('صفحه کامل فیلم','Full movie page')+'</button><button type="button" class="cnModalTranslateBtn" id="cnModalTranslate" aria-pressed="false"></button>'
   +'<button type="button" class="cnModalCloseBtn" id="cnModalClose" aria-label="'+L('بستن جزئیات فیلم','Close movie details')+'">✕</button></div></div>'
   +'<div class="cnModalContent"><div id="cnModalPoster" class="cnModalPoster"></div>'
   +'<div class="cnModalData"><p id="cnModalMeta"></p>'
@@ -209,6 +209,12 @@ function initLocalMovieDetails(){
    if(!current)return;
    showPersian=!showPersian;
    applyMovieLanguage();
+ });
+ el('cnModalPage').addEventListener('click',()=>{
+   const id=current?.id;
+   if(!id)return;
+   dialog.close();
+   window.filmDiscovery?.openFilm(id);
  });
  el('cnModalClose').addEventListener('click',()=>dialog.close());
  dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
