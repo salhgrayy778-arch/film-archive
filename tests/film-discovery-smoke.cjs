@@ -133,14 +133,14 @@ async function main(){
  assert.equal(state.tab,'film');
  assert.equal(new URL(location.href).searchParams.get('film'),'10');
  assert.equal(registry.filmDetailTitle.textContent,'میان‌ستاره‌ای');
- assert.equal(registry.filmDetailSynopsis.textContent,'Space exploration.');
+ assert.equal(registry.filmDetailSynopsis.textContent,'کاوش در فضا.','Persian pages display available translated summaries by default');
  const also=await window.filmDiscovery.searchAllMovies('Great',10);
  assert.equal(also[0].id,999,'Add-film full-title search reaches out-of-curated titles');
  await settle();
  const recommendations=registry.filmSimilarGrid.children.filter(x=>x.tagName==='A');
  assert.ok(recommendations.some(x=>x.dataset.filmId==='20'),'Film page suggests same-director movie');
  registry.filmDetailTranslate.onclick();
- assert.equal(registry.filmDetailSynopsis.textContent,'کاوش در فضا.');
+ assert.equal(registry.filmDetailSynopsis.textContent,'Space exploration.','Translation toggle restores original synopsis');
 
  registry.filmWatchToggle.onclick();
  assert.equal(registry.filmProviderChooser.hidden,false);
