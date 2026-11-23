@@ -431,6 +431,7 @@ function showFilm(m){
   if(!value)continue;const line=node('span');line.appendChild(node('strong','',label));line.appendChild(document.createTextNode(String(value).slice(0,350)));cast.appendChild(line);
  }
  paintSynopsis();updateAccountButtons();document.title=titleOf(m)+' | My Film Archive';
+ window.dispatchEvent(new CustomEvent('film-detail-loaded',{detail:{movie:{...m}}}));
 }
 async function fetchLiveDetail(id){
  try{
@@ -572,6 +573,11 @@ window.filmDiscovery={
  async fullIndexInfo(){
   return await getUniverseManifest();
  },
+ async getCuratedMovies(){
+  await loadCatalog();
+  return catalog.slice();
+ },
+ getCurrentMovie(){return current?{...current}:null;},
  onTabRendered(tab){
   if(tab==='search')renderSearch();
   if(tab==='film'){
