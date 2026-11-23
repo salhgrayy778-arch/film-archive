@@ -170,6 +170,12 @@ function setFilm(movie){
  $f('fTitle').focus({preventScroll:true});
 }
 $f('fTitle').addEventListener('input',()=>{
+  if(selectedId!==null && state.form){
+    state.form.tmdb='';
+    if(String(state.form.poster||'').includes('/assets/catalog/')){
+      state.form.poster='';paintPoster();
+    }
+  }
   selectedId=null;selected.hidden=true;usedCatalog=false;
   clearTimeout(typedTimer);
   typedTimer=setTimeout(suggest,160);
@@ -178,14 +184,14 @@ $f('fTitle').addEventListener('keydown',e=>{
  if(result.hidden||!visible.length)return;
  if(e.key==='ArrowDown'){e.preventDefault();activate(activeIndex+1);}
  else if(e.key==='ArrowUp'){e.preventDefault();activate(activeIndex<0?visible.length-1:activeIndex-1);}
- else if(e.key==='Enter'&&activeIndex>=0){e.preventDefault();setFilm(visible[activeIndex]);}
+ else if(e.key==='Enter'&&activeIndex>=0){e.preventDefault();chooseFilm(visible[activeIndex]);}
  else if(e.key==='Escape'){e.stopPropagation();hideOptions();}
 });
 result.addEventListener('click',event=>{
  const choice=event.target.closest('[data-tmdb-id]');
  if(!choice)return;
  const entry=visible.find(m=>m.id===Number(choice.dataset.tmdbId));
- if(entry)setFilm(entry);
+ if(entry)chooseFilm(entry);
 });
 document.addEventListener('pointerdown',event=>{
  if(!field.contains(event.target))hideOptions();
@@ -211,23 +217,26 @@ directButton.addEventListener('click',async()=>{
  finally{directButton.disabled=false;}
 });
 // Populate full TMDB fields for direct search results if permitted by the user's connection.
-const existingClick=result.onclick;
-result.addEventListener('click',async e=>{
- const el=e.target.closest('[data-tmdb-id]');if(!el||!sectionIsOpen())return;
- const movie=visible.find(m=>m.id===Number(el.dataset.tmdbId));
+async function hydrateLive(movie){
  if(!movie||movie.details_ok!==false||movie.poster_url)return;
- // Direct-search-only movie: details cannot be guaranteed; try a single request.
+ // Optional live-search result. The saved offline TMDB catalog already contains
+ // full metadata and doesn't need a second request.
  try{
-  const detail=await tm('/movie/'+movie.id,{language:EN?'en-US':'fa-IR',append_to_response:'credits'});
-  if(!sectionIsOpen()||state.form.tmdb!==movie.id)return;
-  $f('fRuntime').value=detail.runtime||'';
-  $f('fDirector').value=(detail.credits?.crew||[]).filter(x=>x.job==='Director').map(x=>x.name).join('، ');
-  $f('fCast').value=(detail.credits?.cast||[]).slice(0,6).map(x=>x.name).join('، ');
-  $f('fCountry').value=(detail.production_countries||[]).map(x=>x.name).join('، ');
-  const genre=(detail.genres||[]).map(g=>genres[g.id]).find(Boolean);if(genre)$f('fGenre').value=genre;
-  selected.textContent=L('✓ اطلاعات تکمیلی دریافت شد.','✓ Additional movie details received.');
- }catch(error){ /* Manual fields remain editable. */ }
-});
+  const data=await tm('/movie/'+movie.id,{language:EN?'en-US':'fa-IR',append_to_response:'credits'});
+  if(!sectionIsOpen()||Number(state.form.tmdb)!==movie.id)return;
+  $f('fRuntime').value=data.runtime||'';
+  $f('fDirector').value=(data.credits?.crew||[]).filter(x=>x.job==='Director').map(x=>x.name).join('، ');
+  $f('fCast').value=(data.credits?.cast||[]).slice(0,6).map(x=>x.name).join('، ');
+  $f('fCountry').value=(data.production_countries||[]).map(x=>x.name).join('، ');
+  const g=(data.genres||[]).map(x=>genres[x.id]).find(Boolean);
+  if(g)$f('fGenre').value=g;
+  selected.textContent=L('✓ مشخصات تکمیلی فیلم دریافت شد.','✓ Additional movie details retrieved.');
+ }catch(error){ /* All fields remain editable; nothing is lost. */ }
+}
+function chooseFilm(movie){
+ setFilm(movie);
+ if(movie && movie.details_ok===false && !movie.poster_url)hydrateLive(movie);
+}
 const oldOpenSheet=openSheet;
 openSheet=function(id){
   oldOpenSheet(id);
