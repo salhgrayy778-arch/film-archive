@@ -2621,7 +2621,8 @@ async function freshToken(){
   try{ await setSession(await authCall('/token?grant_type=refresh_token', { refresh_token: ses.refresh_token })); return true; }
   catch(e){
     if(/Failed to fetch|NetworkError|Load failed/i.test(e.message)) return false;
-    ses = null; await kvSet(SES_KEY, ''); updateAcct(); toast('نشست تمام شد؛ دوباره وارد شو'); return false;
+    ses=null;await kvSet(SES_KEY,'');clearPersonalView();
+    toast(LX('نشست حساب تمام شد؛ دوباره وارد شو','Your account session expired; sign in again'));return false;
   }
 }
 
