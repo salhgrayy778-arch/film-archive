@@ -126,7 +126,8 @@ function drawOptions(movies){
   const title=String(EN?m.title:(m.fa_title||m.title)||m.original_title);
   const secondary=String(m.original_title||'');
   return '<button type="button" role="option" class="tmSuggestItem" id="tmOption-'+i+'" data-tmdb-id="'+m.id+'" aria-selected="false">'
-   +'<span class="tmSuggestCover">'+(poster?'<img loading="lazy" decoding="async" src="'+escapeHTML(poster)+'" alt="">':'🎬')+'</span>'
+   +'<span class="tmSuggestCover">'+(poster?'<img loading="lazy" decoding="async" src="'+escapeHTML(poster)+'" alt="">'
+    :'<span class="tmTitleOnlyCover" dir="auto" title="'+L('پوستر اصلی موجود نیست','Original poster unavailable')+'">'+escapeHTML(title.slice(0,42))+'</span>')+'</span>'
    +'<span class="tmSuggestCopy"><strong dir="auto">'+escapeHTML(title)+'</strong>'
    +'<small dir="auto">'+escapeHTML(secondary+(year?' · '+year:''))+'</small></span>'
    +'<span class="tmSuggestPick">'+L('انتخاب','Select')+'</span></button>';
@@ -181,7 +182,8 @@ function setFilm(movie){
  const fields=[movie.director,movie.cast,movie.runtime,movie.country,poster].filter(Boolean).length;
  const isTitleOnly=movie._source==='universe'||(!movie.details_ok&&!fields);
  selected.hidden=false;
- selected.innerHTML='<span class="tmSelectedPoster">'+(poster?'<img src="'+escapeHTML(poster)+'" alt="" loading="lazy">':'🎬')+'</span>'
+ selected.innerHTML='<span class="tmSelectedPoster">'+(poster?'<img src="'+escapeHTML(poster)+'" alt="" loading="lazy">'
+    :'<span class="tmTitleOnlyCover" dir="auto" title="'+L('پوستر اصلی موجود نیست','Original poster unavailable')+'">'+escapeHTML(title.slice(0,42))+'</span>')+'</span>'
   +'<span class="tmSelectedCopy"><strong dir="auto">'+escapeHTML(title)+'</strong><small>'
   +escapeHTML(isTitleOnly
     ?L('✓ عنوان فیلم پیدا شد. پوستر و اطلاعات تکمیلی این عنوان هنوز ذخیره نشده‌اند؛ ممکن است از TMDB دریافت شوند یا می‌توانی دستی وارد کنی.','✓ Title found. Poster and full details are not cached; we will try TMDB if reachable, or you can fill them manually.')
