@@ -27,7 +27,7 @@ ROOT=Path(__file__).resolve().parent.parent
 EXPORT=ROOT/"data"/"tmdb-universe"/"by-id"
 OUT=ROOT/"data"/"tmdb-extra.json"
 CURATED=ROOT/"data"/"tmdb-catalog.json"
-MAX_ITEMS=8500
+MAX_ITEMS=25000
 
 def read_existing():
     try:
