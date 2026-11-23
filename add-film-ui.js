@@ -13,6 +13,14 @@ const normalized=value=>String(value||'').normalize('NFKD').toLocaleLowerCase()
   .replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim();
 const canonicalMoviePoster=p=>/^assets\/(?:catalog|posters)\/\d+-[a-f0-9]{12}\.webp$/i.test(String(p||''))
   ?new URL(p,SITE).href:'';
+// Match the main movie search: prefer cached art, then a verified TMDB poster path.
+const moviePoster=movie=>{
+ const cached=canonicalMoviePoster(movie?.poster_url);
+ if(cached)return cached;
+ const path=String(movie?.poster_path||'');
+ return /^\/[a-zA-Z0-9_-]{8,90}\.(?:jpg|png|webp)$/i.test(path)
+  ?'https://image.tmdb.org/t/p/w342'+path:'';
+};
 const genres={18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'جنایی و معمایی',
  53:'جنایی و معمایی',27:'ترسناک',878:'علمی‌تخیلی',14:'علمی‌تخیلی',
  28:'اکشن',12:'اکشن',10749:'عاشقانه',99:'مستند',16:'انیمیشن',
@@ -121,7 +129,7 @@ function activate(index){
 function drawOptions(movies){
  visible=movies;result.hidden=false;updateExpanded(true);
  result.innerHTML=movies.map((m,i)=>{
-  const poster=canonicalMoviePoster(m.poster_url);
+  const poster=moviePoster(m);
   const year=String(m.release_date||'').slice(0,4);
   const title=String(EN?m.title:(m.fa_title||m.title)||m.original_title);
   const secondary=String(m.original_title||'');
@@ -174,7 +182,7 @@ function setFilm(movie){
  const ids=Array.isArray(movie.genre_ids)?movie.genre_ids:[];
  const genre=ids.map(x=>genres[x]).find(Boolean);
  if(genre)$f('fGenre').value=genre;
- const poster=canonicalMoviePoster(movie.poster_url);
+ const poster=moviePoster(movie);
  if(poster)state.form.poster=poster;
  state.form.tmdb=Number(movie.id);
  paintPoster();
@@ -251,6 +259,12 @@ async function hydrateLive(movie){
   $f('fDirector').value=(data.credits?.crew||[]).filter(x=>x.job==='Director').map(x=>x.name).join('، ');
   $f('fCast').value=(data.credits?.cast||[]).slice(0,6).map(x=>x.name).join('، ');
   $f('fCountry').value=(data.production_countries||[]).map(x=>x.name).join('، ');
+  const officialPoster=moviePoster(data);
+  if(officialPoster&&sectionIsOpen()&&Number(state.form.tmdb)===movie.id){
+   state.form.poster=officialPoster;paintPoster();
+   const cover=selected.querySelector('.tmSelectedPoster');
+   if(cover){cover.replaceChildren();const image=document.createElement('img');image.src=officialPoster;image.alt='';image.loading='lazy';cover.appendChild(image);}
+  }
   const g=(data.genres||[]).map(x=>genres[x.id]).find(Boolean);
   if(g)$f('fGenre').value=g;
   const summary=selected.querySelector('.tmSelectedCopy small');if(summary)summary.textContent=L('✓ مشخصات تکمیلی فیلم دریافت شد.','✓ Additional movie details retrieved.');
@@ -258,7 +272,7 @@ async function hydrateLive(movie){
 }
 function chooseFilm(movie){
  setFilm(movie);
- if(movie && !canonicalMoviePoster(movie.poster_url) &&
+ if(movie && !moviePoster(movie) &&
     (movie.details_ok===false||movie._source==='universe'||movie._source==='live'))hydrateLive(movie);
 }
 const oldOpenSheet=openSheet;
