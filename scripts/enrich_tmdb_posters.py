@@ -39,6 +39,13 @@ def read_existing():
         pass
     return {}
 
+def read_scan_cursor():
+    try:
+        obj=json.loads(OUT.read_text(encoding="utf-8"))
+        return max(0,int(obj.get("scan_cursor") or 0))
+    except (OSError,ValueError,TypeError):
+        return 0
+
 def read_curated():
     try:
         d=json.loads(CURATED.read_text(encoding="utf-8"))
@@ -118,12 +125,13 @@ def fetch_detail(candidate,headers,auth):
         print(f"TMDB extended detail/poster for {movie_id} failed: {str(exc)[:160]}")
         return None
 
-def save(rows):
+def save(rows, scan_cursor):
     data={
         "schema_version":1,
         "source":"TMDB verified metadata and locally cached original movie poster images",
         "updated_at":datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z"),
         "movie_count":len(rows),
+        "scan_cursor":scan_cursor,
         "movies":sorted(rows.values(),key=lambda x:(-float(x.get("popularity") or 0),x["id"])),
     }
     temp=OUT.with_suffix(".json.tmp")
@@ -145,16 +153,17 @@ def run(batch_size):
         return 0
     excluded=read_curated()|set(current)
     candidates=popularity_candidates(excluded)
+    cursor=read_scan_cursor()%max(1,len(candidates))
     # Some TMDB entries have no poster or inaccessible metadata, so try twice
     # the requested batch size while keeping API load bounded.
     candidate_count=min(batch_size*2,len(candidates),MAX_ITEMS-len(current)+batch_size)
     target=min(batch_size,MAX_ITEMS-len(current))
     print(f"Minimum TMDB votes: {MIN_TMDB_VOTES}; curated posters: {len(read_curated())}, existing extra: {len(current)}, "
-          f"candidate attempts: {candidate_count}, new target: {target}",flush=True)
+          f"candidate attempts: {candidate_count}, scan offset: {cursor}, new target: {target}",flush=True)
     successes=0
     with ThreadPoolExecutor(max_workers=6) as workers:
-        jobs=[workers.submit(fetch_detail,row,headers,auth)
-              for row in candidates[:candidate_count]]
+        batch=(candidates[cursor:cursor+candidate_count]+candidates[:max(0,cursor+candidate_count-len(candidates))])
+        jobs=[workers.submit(fetch_detail,row,headers,auth) for row in batch]
         for job in as_completed(jobs):
             value=job.result()
             if value and value["id"] not in current:
@@ -165,10 +174,13 @@ def run(batch_size):
     # reused in later runs if temporarily not represented in JSON.
     if len(current)>MAX_ITEMS:
         current=dict(sorted(current.items(),key=lambda p:-p[1]["popularity"])[:MAX_ITEMS])
-    if successes:
-        save(current)
+    # Advance through candidates even if none qualifies; otherwise the same
+    # obscure titles are fetched every day and famous older films are missed.
+    if candidates:
+        next_cursor=(cursor+candidate_count)%len(candidates)
+        save(current,next_cursor)
     else:
-        print("No additional image-backed metadata could be verified; preserving old data.")
+        print("No remaining candidates to enrich; preserving existing catalog.")
     return 0
 
 def main():
