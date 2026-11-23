@@ -90,6 +90,21 @@ def fetch_detail(candidate,headers,auth):
             "overview":str(detail.get("overview") or "")[:1400],
             "details_ok":True,
         }
+        # Use TMDB Persian metadata when it actually contains Persian text.
+        try:
+            fa=catalog_build.get_json("/movie/"+str(movie_id),
+                {"language":"fa-IR"},headers,auth)
+            if fa.get("id")==movie_id:
+                fa_title=str(fa.get("title") or "").strip()
+                fa_overview=str(fa.get("overview") or "").strip()
+                if any("\u0600" <= ch <= "\u06ff" for ch in fa_title):
+                    value["fa_title"]=fa_title[:180]
+                if any("\u0600" <= ch <= "\u06ff" for ch in fa_overview):
+                    value["overview_fa"]=fa_overview[:1400]
+                    value["overview_source_for_fa"]=value["overview"]
+                    value["overview_translation_source"]="tmdb"
+        except (requests.RequestException,ValueError,TypeError):
+            pass
         artwork=catalog_build.poster_url(value)
         if not artwork:return None
         value["poster_url"]=artwork
