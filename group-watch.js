@@ -14,6 +14,7 @@ const sendOne = (c,m) => { if (c && c.open) { try { c.send(m); return true; } ca
 const activeConnections = () => R.host ? Array.from(R.conns.values()).filter(c => c.open) : (R.conn && R.conn.open ? [R.conn] : []);
 const isConnected = () => activeConnections().length > 0;
 const roomReady = () => {
+  if(!ses||!cloudReady||cloudLoading)return false;
   if (navigator.onLine === false || R.roomError || !R.peer || !R.peer.open) return false;
   return R.host ? !!(R.peer.id && $room('rCodeShow').textContent.trim()===R.peer.id)
     : !!(R.conn && R.conn.open);
@@ -280,11 +281,14 @@ leaveRoom = function () {
   displayMembers();status();
 };
 startRoom = async function (host) {
+  if(!requireCloud())return;
+  const verifiedOwner=ses.id;
   const code=$room('rCode').value.trim();
   if(!host&&!/^[\w-]{4,40}$/.test(code)) {toast(localLabel('کد اتاق را وارد کن','Enter a room code'));return;}
   R.roomError=null;
   rst(localLabel('در حال اتصال…','Connecting…'),false);
   try{await loadPeer();}catch(e){status();toast(localLabel('کتابخانهٔ اتصال بارگذاری نشد','Connection library failed to load'));return;}
+  if(!ses||ses.id!==verifiedOwner||!cloudReady||cloudLoading){status();return;}
   leaveRoom();R.host=host;$room('rLeave').hidden=false;displayMembers();
   if(host) {
     // A hard-to-guess room ID is safer than Math.random-based short codes.
