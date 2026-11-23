@@ -153,7 +153,6 @@ html[dir=ltr] #cinemaNews .cnHeadingActions{direction:ltr;margin-right:auto;marg
 dialog.cnMovieDialog[open]{
   position:fixed!important;
   top:50%!important;left:50%!important;right:auto!important;bottom:auto!important;
-  inset-block-start:50%!important;inset-inline-start:50%!important;
   transform:translate(-50%,-50%)!important;
   margin:0!important;
   display:block;
