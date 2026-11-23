@@ -364,3 +364,35 @@
  .filmSimilarHeader p{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.filmSimilarCard{transition:none}}
+
+
+/* Legible fallback when TMDB has no locally hosted original poster. This
+   is original title typography, intentionally marked as a placeholder. */
+.filmResultPoster.filmPosterFallback,
+.filmDetailPosterImage.filmPosterFallback{
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ gap:10px;padding:15px;box-sizing:border-box;text-align:center;
+ background:
+  repeating-linear-gradient(135deg,transparent 0,transparent 27px,
+     color-mix(in srgb,var(--gold) 5%,transparent) 28px,
+     color-mix(in srgb,var(--gold) 5%,transparent) 29px),
+  radial-gradient(ellipse at 25% 10%,color-mix(in srgb,var(--gold) 22%,transparent),transparent 65%),
+  linear-gradient(145deg,color-mix(in srgb,var(--panel) 92%,var(--gold)),var(--bg));
+}
+.filmPosterFallbackIcon{font-size:clamp(23px,3vw,43px);line-height:1;color:var(--gold);opacity:.78}
+.filmPosterFallbackTitle{
+ font-size:clamp(10px,1.4vw,16px);font-weight:900;line-height:1.6;
+ color:var(--ink);overflow-wrap:anywhere;display:-webkit-box;
+ -webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden;
+}
+.filmPosterFallbackLabel{
+ margin-top:3px;font-size:10px;line-height:1.6;color:var(--mute);
+ max-width:100%;overflow-wrap:anywhere;
+}
+.filmDetailPosterImage.filmPosterFallback .filmPosterFallbackTitle{
+ font-size:clamp(15px,2.2vw,23px);-webkit-line-clamp:6;
+}
+@media(max-width:520px){
+ .filmResultPoster.filmPosterFallback{padding:10px;gap:7px}
+ .filmResultPoster.filmPosterFallback .filmPosterFallbackLabel{font-size:9px}
+}
