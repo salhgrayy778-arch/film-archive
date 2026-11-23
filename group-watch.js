@@ -168,7 +168,7 @@ onMsg = function(message,c) {
     if (R.local!==m.name || R.localSize!==m.size)
       chat(localLabel('فایل انتخاب شد: ','Selected file: ')+m.name+localLabel(' — همان فایل را از دستگاه خودت انتخاب کن.',' — open the same file on your device.'),'sys');
   } else if (m.t==='chat') {
-    if (typeof m.text!=='string'||!m.text.trim()) return;
+    if (typeof m.text!=='string'||!m.text.trim()||m.text.length>4000) return;
     const msg=m.text.slice(0,300);
     $room('typing').hidden=true;chat(msg,'you',sender);
     forwarded={t:'chat',name:sender,text:msg};
@@ -269,7 +269,11 @@ startRoom = async function (host) {
   try{await loadPeer();}catch(e){status();toast(localLabel('کتابخانهٔ اتصال بارگذاری نشد','Connection library failed to load'));return;}
   leaveRoom();R.host=host;$room('rLeave').hidden=false;displayMembers();
   if(host) {
-    const id='film-'+Math.random().toString(36).slice(2,10);
+    // A hard-to-guess room ID is safer than Math.random-based short codes.
+    const secureBytes=new Uint8Array(12);
+    if(!globalThis.crypto?.getRandomValues){toast(localLabel('برای ساخت اتاق، سایت را با HTTPS باز کن','Open the site over HTTPS to create a room'));leaveRoom();return;}
+    globalThis.crypto.getRandomValues(secureBytes);
+    const id='film-'+Array.from(secureBytes,b=>b.toString(16).padStart(2,'0')).join('');
     R.peer=new Peer(id);
     R.peer.on('open',pid=>{
       R.roomError=null;
