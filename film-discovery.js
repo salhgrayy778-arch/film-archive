@@ -239,10 +239,62 @@ function rankedMovies(term){
  }).filter(x=>x.score>=0).sort((a,b)=>b.score-a.score).map(x=>x.m);
 }
 function empty(container,text){container.replaceChildren(node('p','filmSearchEmpty',text));}
+/* Load official artwork for visible title-only results, never guessing by title.
+ * Bounded concurrency avoids sending a million API calls from the browser.
+ * A failure leaves the descriptive placeholder intact. */
+const posterTasks=new Map(),posterQueue=[];let posterActive=0;
+const posterObserver=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{
+ for(const entry of entries){
+  if(!entry.isIntersecting)continue;
+  posterObserver.unobserve(entry.target);
+  const id=Number(entry.target.dataset.filmId||0);
+  if(id)queuePoster(id,entry.target);
+ }
+},{rootMargin:'240px'}):null;
+function queuePoster(id,card){
+ if(!id||!card.isConnected)return;
+ const cached=extra.get(id);
+ if(cached?.poster_path){
+  const holder=card.querySelector('.filmResultPoster');
+  if(holder)holder.replaceWith(createPoster(cached,'filmResultPoster'));
+  return;
+ }
+ if(posterTasks.has(id)){posterTasks.get(id).then(update=>paintPoster(card,update));return;}
+ const task=new Promise(resolve=>{posterQueue.push({id,resolve});drainPosterQueue();});
+ posterTasks.set(id,task);
+ task.then(update=>paintPoster(card,update));
+}
+function paintPoster(card,m){
+ if(!m||!card.isConnected)return;
+ const holder=card.querySelector('.filmResultPoster');
+ if(holder&&posterOf(m))holder.replaceWith(createPoster(m,'filmResultPoster'));
+ if(!EN&&faValue(m.fa_title)){
+  const title=card.querySelector('strong');
+  if(title){title.textContent=m.fa_title;title.dir='rtl';}
+ }
+}
+async function drainPosterQueue(){
+ while(posterActive<3&&posterQueue.length){
+  const job=posterQueue.shift();posterActive++;
+  (async()=>{
+   try{
+    const d=await tm('/movie/'+job.id,{language:'fa-IR'});
+    if(d?.id!==job.id)return null;
+    const record={id:job.id,title:d.title||d.original_title,
+      original_title:d.original_title||d.title,poster_path:d.poster_path||'',
+      fa_title:faValue(d.title)?d.title:'',overview_fa:faValue(d.overview)?d.overview:''};
+    const previous=extra.get(job.id)||{};
+    extra.set(job.id,{...previous,...record});
+    return record;
+   }catch(e){return null;}
+  })().then(job.resolve).finally(()=>{posterActive--;drainPosterQueue();});
+ }
+}
 function filmCard(m){
  const link=node('a','filmResultCard');link.href=permalink(m.id);
  link.dataset.filmId=String(m.id);link.setAttribute('aria-label',titleOf(m));
  link.appendChild(createPoster(m,'filmResultPoster'));
+ if(m._source==='universe'&&!posterOf(m)&&posterObserver)posterObserver.observe(link);
  const name=node('strong','',titleOf(m));name.dir='auto';link.appendChild(name);
  if(m.original_title&&m.original_title!==titleOf(m))link.appendChild(node('small','',m.original_title));
  link.appendChild(node('small','',String(m.release_date||'').slice(0,4)));
