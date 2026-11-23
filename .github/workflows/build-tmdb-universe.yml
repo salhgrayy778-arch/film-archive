@@ -1,0 +1,79 @@
+name: Build comprehensive TMDB movie title index
+
+on:
+  workflow_dispatch:
+  schedule:
+    # The ordinary TMDB index export is ready by 08:00 UTC; weekly refresh.
+    - cron: '13 11 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_tmdb_universe.py'
+      - '.github/workflows/build-tmdb-universe.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tmdb-universe-build
+  cancel-in-progress: false
+
+jobs:
+  full-movie-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - name: Checkout site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Prepare Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install requests
+        run: python -m pip install --quiet --disable-pip-version-check requests==2.32.5
+      - name: Test index builder on sample movies and Unicode titles
+        run: |
+          python - <<'PY'
+          import json, tempfile
+          from pathlib import Path
+          from scripts.build_tmdb_universe import read_export, build, normalize, bucket_for_word
+          assert bucket_for_word('star') == 's'
+          assert normalize('Amélie') == 'amelie'
+          with tempfile.TemporaryDirectory() as work:
+              folder = Path(work)
+              sample = [
+                  {'id':18,'original_title':'The Fifth Element','popularity':30,'adult':False},
+                  {'id':550,'original_title':'Fight Club','popularity':45,'adult':False},
+                  {'id':5541,'original_title':'فیلم فارسی','popularity':2,'adult':False},
+                  {'id':700,'original_title':'Adult','adult':True},
+              ]
+              lines = [json.dumps(s,ensure_ascii=False).encode() for s in sample]
+              output = folder / 'output'
+              manifest = build(read_export(lines),output,'test.jsonl',minimum=3)
+              assert manifest['movie_count'] == 3
+              import gzip
+              fifth = json.loads(gzip.decompress((output/'search'/'f.json.gz').read_bytes()))
+              assert any(r[0]==18 for r in fifth)
+              assert any(r[0]==550 for r in fifth)
+              id_bucket = json.loads(gzip.decompress((output/'by-id'/f'{18 % 64:02d}.json.gz').read_bytes()))
+              assert any(r[0]==18 for r in id_bucket)
+              assert not any(r[0]==700 for r in fifth)
+              print('Universe builder fixture PASS')
+          PY
+      - name: Download and index all IDs and original titles from TMDB daily export
+        run: python scripts/build_tmdb_universe.py
+      - name: Commit compressed, searchable TMDB title index
+        run: |
+          git add data/tmdb-universe/
+          if git diff --cached --quiet; then
+            echo 'No changes in TMDB title index'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'data: refresh comprehensive TMDB movie title search index'
+          git pull --rebase origin main
+          git push origin HEAD:main
