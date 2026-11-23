@@ -30,11 +30,11 @@ async function serverSnapshot(){
 }
 
 const fromCache=(key,ttl)=>{
- try{const x=JSON.parse(sessionStorage.getItem('film-archive-home-'+key)||'null');
+ try{const x=JSON.parse(sessionStorage.getItem('film-archive-home-v3-'+key)||'null');
   return x&&Number.isFinite(x.ts)&&Array.isArray(x.items)?{items:x.items,fresh:Date.now()-x.ts<ttl,ts:x.ts}:null;
  }catch(e){return null;}
 };
-const saveCache=(key,items)=>{try{sessionStorage.setItem('film-archive-home-'+key,JSON.stringify({ts:Date.now(),items}));}catch(e){}};
+const saveCache=(key,items)=>{try{sessionStorage.setItem('film-archive-home-v3-'+key,JSON.stringify({ts:Date.now(),items}));}catch(e){}};
 const placeholder=(text,links)=>'<div class="cn-placeholder">'+escHtml(text)+(links?'<div class="cn-source-strip">'+srcList.map(x=>'<a href="'+x[1]+'" target="_blank" rel="noopener noreferrer">'+x[0]+'</a>').join(' · ')+'</div>':'')+'</div>';
 const formattedDay=s=>{
  if(!/^\d{4}-\d\d-\d\d$/.test(s||''))return '';
@@ -63,7 +63,10 @@ function renderFilm(items,id){
 }
 function renderNews(items){
  if(!Array.isArray(items)||!items.length){el('cnNewsFeed').innerHTML=placeholder(L('از سرویس خبر، گزارشی دریافت نشد. خبرهای واقعی را از رسانه‌های پایین دنبال کن.','No current stories were returned. Browse the publisher links below.'),true);return;}
- el('cnNewsFeed').innerHTML=items.slice(0,12).map(a=>{
+ // Prefer the newest stories with a real locally hosted editorial image.
+ // This avoids text-only news cards when some publisher feeds lack image rights/data.
+ const featured=[...items].sort((a,b)=>Number(!!newsPath(b.socialimage))-Number(!!newsPath(a.socialimage)));
+ el('cnNewsFeed').innerHTML=featured.slice(0,12).map(a=>{
   const url=validURL(a.url),image=newsPath(a.socialimage),title=String(a.title||'').trim();
   if(!url||!title)return '';
   const source=String(a.source||a.domain||'').replace(/^www\./,'').slice(0,65),time=seenTime(a.seendate);
