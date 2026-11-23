@@ -54,7 +54,7 @@ function makeBrowser(){
     R.receivedChat=message.text;
    }
   },
-  oldLeaveCalls:0,leaveRoom(){this.oldLeaveCalls++;},
+  startRoom(){},rsend(){},oldLeaveCalls:0,leaveRoom(){this.oldLeaveCalls++;},
  };
  ctx.globalThis=ctx;vm.createContext(ctx);
  new vm.Script(source,{filename:'group-watch-realtime.js'}).runInContext(ctx);
