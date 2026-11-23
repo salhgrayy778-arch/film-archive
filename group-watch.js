@@ -14,7 +14,7 @@ const sendOne = (c,m) => { if (c && c.open) { try { c.send(m); return true; } ca
 const activeConnections = () => R.host ? Array.from(R.conns.values()).filter(c => c.open) : (R.conn && R.conn.open ? [R.conn] : []);
 const isConnected = () => activeConnections().length > 0;
 const roomReady = () => {
-  if(!ses||!cloudReady||cloudLoading)return false;
+  // Room invitations work even when a visitor does not have an account.
   if (navigator.onLine === false || R.roomError || !R.peer || !R.peer.open) return false;
   return R.host ? !!(R.peer.id && $room('rCodeShow').textContent.trim()===R.peer.id)
     : !!(R.conn && R.conn.open);
@@ -67,6 +67,8 @@ const status = () => {
     : localLabel('اتاق ساخته شد · منتظر مهمان','Room created · Waiting for guests');
   else text=localLabel('به اتاق متصل هستی','Connected to room');
   rst(text,ready);
+  $room('peLink')?.classList.toggle('on',ready);
+  $room('peYou')?.classList.toggle('off',!ready);
   const indicator=$room('dot');
   indicator.hidden=!R.peer;
   if(!ready && R.peer && !R.roomError && navigator.onLine!==false)indicator.className='pending';
@@ -277,19 +279,24 @@ leaveRoom = function () {
   if(R.conn)try{R.conn.close();}catch(e){}
   try{peer&&peer.destroy();}catch(e){}
   R.conn=null;R.host=false;R.members.clear();R.link='';
+  $room('rHost').disabled=false;$room('rJoin').disabled=false;
   $room('rLeave').hidden=true;$room('rInfo').hidden=true;
   displayMembers();status();
 };
 startRoom = async function (host) {
-  if(!requireCloud())return;
-  const verifiedOwner=ses.id;
-  const code=$room('rCode').value.trim();
-  if(!host&&!/^[\w-]{4,40}$/.test(code)) {toast(localLabel('کد اتاق را وارد کن','Enter a room code'));return;}
+  const rawCode=$room('rCode').value.trim();
+  let code=rawCode;
+  try{if(/^https?:\/\//i.test(code))code=new URL(code).hash.replace(/^#join=/,'');}catch(e){}
+  code=code.replace(/^#?join=/,'').replace(/[\u200e\u200f\u200c]/g,'').trim();
+  $room('rCode').value=code;
+  if(!host&&!/^film-[a-f0-9]{24}$/.test(code)){
+    toast(localLabel('کد اتاق نامعتبر است؛ کد کامل را کپی کن','Invalid room code; copy the entire code.'));return;
+  }
   R.roomError=null;
   rst(localLabel('در حال اتصال…','Connecting…'),false);
   try{await loadPeer();}catch(e){status();toast(localLabel('کتابخانهٔ اتصال بارگذاری نشد','Connection library failed to load'));return;}
-  if(!ses||ses.id!==verifiedOwner||!cloudReady||cloudLoading){status();return;}
   leaveRoom();R.host=host;$room('rLeave').hidden=false;displayMembers();
+  $room('rHost').disabled=true;$room('rJoin').disabled=true;
   if(host) {
     // A hard-to-guess room ID is safer than Math.random-based short codes.
     const secureBytes=new Uint8Array(12);
@@ -297,22 +304,28 @@ startRoom = async function (host) {
     globalThis.crypto.getRandomValues(secureBytes);
     const id='film-'+Array.from(secureBytes,b=>b.toString(16).padStart(2,'0')).join('');
     R.peer=new Peer(id);
+    const hostPeer=R.peer;
     R.peer.on('open',pid=>{
+      if(R.peer!==hostPeer)return;
       R.roomError=null;
       $room('rCodeShow').textContent=pid;
       R.link=/^https?:$/.test(location.protocol)?location.origin+location.pathname+'#join='+pid:'';
       $room('rCopyLink').hidden=!R.link;
-      $room('rInfo').hidden=false;status();displayMembers();
+      $room('rInfo').hidden=false;
+      $room('rHost').disabled=false;$room('rJoin').disabled=false;
+      status();displayMembers();
     });
-    R.peer.on('connection',wire);
+    R.peer.on('connection',c=>{if(R.peer===hostPeer)wire(c);else c.close();});
   } else {
     R.peer=new Peer();
     const guestPeer=R.peer;
     let joined=false;
+    let timeout=null;
+    const finish=()=>{clearTimeout(timeout);$room('rHost').disabled=false;$room('rJoin').disabled=false;};
     const joinFailed=(fa,en)=>{
       if(R.peer!==guestPeer||joined)return;
       R.roomError='join-failed';
-      status();
+      finish();status();
       toast(localLabel(fa,en));
     };
     guestPeer.on('open',()=>{
@@ -320,7 +333,7 @@ startRoom = async function (host) {
       try {
         const connection=guestPeer.connect(code,{reliable:true});
         if(!connection){joinFailed('امکان اتصال با این کد وجود ندارد','Unable to connect with this code');return;}
-        connection.on('open',()=>{joined=true;R.roomError=null;status();});
+        connection.on('open',()=>{joined=true;R.roomError=null;finish();status();});
         connection.on('error',()=>joinFailed('اتصال به اتاق ناموفق بود؛ کد و اینترنت هر دو نفر را بررسی کن','Could not join the room; check the code and both connections'));
         wire(connection);
       } catch(error) {
@@ -328,7 +341,7 @@ startRoom = async function (host) {
         joinFailed('امکان ورود به اتاق وجود ندارد؛ دوباره تلاش کن','Unable to join the room; please retry');
       }
     });
-    setTimeout(()=>{
+    timeout=setTimeout(()=>{
       if(R.peer===guestPeer&&!joined){
         joinFailed('اتاق پیدا نشد یا میزبان در دسترس نیست؛ کد را بررسی کن و مطمئن شو میزبان آنلاین است','Room not found or host unreachable; check the code and make sure the host is online');
       }
@@ -339,10 +352,25 @@ startRoom = async function (host) {
     if(R.peer===owner && R.host && isConnected() && R.source && rv().readyState>0)
       rsend({t:'tick',time:rv().currentTime,playing:!rv().paused});
   },4000);
-  R.peer.on('error',e=>{if(R.peer!==owner)return;R.roomError=e?.type||'error';peerErr(e);status();});
+  R.peer.on('error',e=>{if(R.peer!==owner)return;R.roomError=e?.type||'error';
+    $room('rHost').disabled=false;$room('rJoin').disabled=false;
+    peerErr(e);status();});
   R.peer.on('disconnected',()=>{if(R.peer!==owner)return;status();try{R.peer.reconnect();}catch(e){}});
   status();
 };
+// Room networking is invitation-based, separate from private cloud archives.
+paintRoomAccountGate = function(){
+  const gate=$room('roomAccountGate'),grid=document.querySelector('#room .rgrid');
+  if(gate)gate.hidden=true;
+  if(grid)grid.hidden=false;
+};
+function readInvite(){
+  const match=location.hash.match(/^#join=(film-[a-f0-9]{24})$/);
+  if(match){
+    $room('rCode').value=match[1];
+    $room('tab-room')?.click();
+  }
+}
 function customizeRoomUI() {
   const tab=$room('tab-room');tab.textContent=localLabel('تماشای گروهی','Group watch');
   const heading=document.querySelector('#room .sec');
@@ -390,6 +418,9 @@ function customizeRoomUI() {
   const share=$room('rShare');
   share.addEventListener('click',()=>{}, {passive:true});
   window.addEventListener('online',status);
+  window.addEventListener('hashchange',readInvite);
+  readInvite();
+  paintRoomAccountGate();
   window.addEventListener('offline',()=>{
     // A disconnected browser must not keep a previously loaded film playing.
     if(!rv().paused)rv().pause();
