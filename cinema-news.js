@@ -1,5 +1,5 @@
-/* Film Archive: world cinema homepage, live TMDB lists and GDELT headline index.
-   No generated headlines; all journalism links to its original publisher. */
+/* Film Archive: world cinema homepage, same-origin cinema news and film data.
+   News headlines are taken from multiple publishers; posters are official local TMDB assets. */
 (function(){
 'use strict';
 if(!document.getElementById('cinemaNews')||typeof tm!=='function')return;
@@ -7,9 +7,22 @@ const root=document.getElementById('cinemaNews'),el=id=>document.getElementById(
 const L=(fa,en)=>EN?en:fa;
 const escHtml=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const validURL=x=>{try{const v=new URL(String(x||''));return ['https:','http:'].includes(v.protocol)?v.href:'';}catch(e){return '';}};
-const srcList=[['Variety','https://variety.com/v/film/'],['Deadline','https://deadline.com/category/film/'],['The Hollywood Reporter','https://www.hollywoodreporter.com/movies/'],['IndieWire','https://www.indiewire.com/c/film/']];
+const srcList=[['Variety','https://variety.com/v/film/'],['Deadline','https://deadline.com/category/film/'],['The Hollywood Reporter','https://www.hollywoodreporter.com/movies/'],['IndieWire','https://www.indiewire.com/c/film/'],['Collider','https://collider.com/'],['Screen Rant','https://screenrant.com/']];
 const N_TTL=15*60000,M_TTL=60*60000;
-let fetching=false,lastCheck=0;
+let fetching=false,lastCheck=0,snapshotTask=null,snapshotTime=0,lastSnapshot=null;
+async function serverSnapshot(){
+ if(snapshotTask&&Date.now()-snapshotTime<8*60000)return snapshotTask;
+ snapshotTime=Date.now();
+ const url=new URL('data/home-feed.json',location.href);url.searchParams.set('v',String(Date.now()));
+ snapshotTask=fetch(url,{cache:'no-store'}).then(async r=>{
+  if(!r.ok)throw Error('Cinema data HTTP '+r.status);
+  const data=await r.json();
+  if(data.schema_version!==2||!data.movies||!Array.isArray(data.news))throw Error('Invalid published cinema data');
+  lastSnapshot=data;return data;
+ }).catch(err=>{snapshotTask=null;throw err;});
+ return snapshotTask;
+}
+
 const fromCache=(key,ttl)=>{
  try{const x=JSON.parse(sessionStorage.getItem('film-archive-home-'+key)||'null');
   return x&&Number.isFinite(x.ts)&&Array.isArray(x.items)?{items:x.items,fresh:Date.now()-x.ts<ttl,ts:x.ts}:null;
@@ -27,12 +40,12 @@ const seenTime=s=>{
  const d=/^\d{8}T\d{6}Z$/.test(v)?new Date(v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+'T'+v.slice(9,11)+':'+v.slice(11,13)+':'+v.slice(13,15)+'Z'):new Date(v);
  return Number.isNaN(d.getTime())?'':d.toLocaleString(EN?'en-US':'fa-IR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 };
-const posterPath=p=>/^\/[a-zA-Z0-9/_-]+\.(jpg|jpeg|png|webp)$/i.test(String(p||''))?'https://image.tmdb.org/t/p/w342'+p:'';
+const posterPath=p=>/^assets\/posters\/\d+-[a-f0-9]{12}\.webp$/i.test(String(p||''))?p:'';
 function renderFilm(items,id){
  const host=el(id);
  if(!Array.isArray(items)||!items.length){host.innerHTML=placeholder(L('فیلمی برای نمایش پیدا نشد. دوباره تازه‌سازی کن.','No movies found. Try refreshing.'));return;}
  host.innerHTML=items.slice(0,12).map(m=>{
-  const title=String(m.title||m.original_title||'').trim(),cover=posterPath(m.poster_path);
+  const title=String(m.title||m.original_title||'').trim(),cover=posterPath(m.poster_url);
   const href='https://www.themoviedb.org/movie/'+Number(m.id);
   const rating=Number(m.vote_average)||0,release=formattedDay(m.release_date);
   return '<article class="cn-film-card"><a href="'+href+'" target="_blank" rel="noopener noreferrer" aria-label="'+escHtml(title)+'"><div class="cn-film-poster">'
@@ -44,9 +57,9 @@ function renderFilm(items,id){
 function renderNews(items){
  if(!Array.isArray(items)||!items.length){el('cnNewsFeed').innerHTML=placeholder(L('از سرویس خبر، گزارشی دریافت نشد. خبرهای واقعی را از رسانه‌های پایین دنبال کن.','No current stories were returned. Browse the publisher links below.'),true);return;}
  el('cnNewsFeed').innerHTML=items.slice(0,12).map(a=>{
-  const url=validURL(a.url),image=validURL(a.socialimage),title=String(a.title||'').trim();
+  const url=validURL(a.url),image='',title=String(a.title||'').trim();
   if(!url||!title)return '';
-  const source=String(a.domain||'').replace(/^www\./,'').slice(0,65),time=seenTime(a.seendate);
+  const source=String(a.source||a.domain||'').replace(/^www\./,'').slice(0,65),time=seenTime(a.seendate);
   return '<article class="cn-news-card"><a target="_blank" rel="noopener noreferrer" href="'+escHtml(url)+'" aria-label="'+escHtml(title)+'">'
    +'<div class="cn-news-thumb">WORLD CINEMA'+(image?'<img src="'+escHtml(image)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'')+'</div>'
    +'<div class="cn-news-info"><h4 dir="auto">'+escHtml(title)+'</h4><div class="cn-news-meta"><span class="cn-source">'+escHtml(source||L('رسانه اصلی','Original publisher'))+'</span>'
@@ -54,8 +67,9 @@ function renderNews(items){
  }).join('');
 }
 async function movies(path){
- const r=await tm(path,{language:EN?'en-US':'fa-IR',region:'US',page:1});
- return (Array.isArray(r.results)?r.results:[]).filter(x=>x&&Number.isSafeInteger(x.id)&&x.id>0&&(x.title||x.original_title)).slice(0,20);
+ const snapshot=await serverSnapshot();
+ const section=path==='/movie/now_playing'?'now':path==='/movie/upcoming'?'soon':path==='/trending/movie/week'?'trends':'';
+ return (Array.isArray(snapshot.movies[section])?snapshot.movies[section]:[]).filter(x=>x&&Number.isSafeInteger(x.id)&&x.id>0);
 }
 async function fetchMovieGroup(key,path,id,force,onlyFuture){
  const old=fromCache(key,M_TTL);
@@ -72,26 +86,26 @@ async function fetchMovieGroup(key,path,id,force,onlyFuture){
   if(old){renderFilm(old.items,id);return false;}
   el(id).innerHTML=placeholder(e.message==='key'
     ?L('کلید TMDB معتبر نیست؛ آن را در بخش ابزارها بررسی کن.','Invalid TMDB key. Check it in Tools.')
-    :L('ارتباط با TMDB برقرار نشد؛ بعداً دوباره تلاش کن.','Could not connect to TMDB. Try again later.'));
+    :L('اطلاعات فیلم‌ها در سرور سایت هنوز منتشر نشده‌اند.','Movie snapshot has not yet been published on the site.'));
   return false;
  }
 }
 async function requestNews(timespan){
- const u=new URL('https://api.gdeltproject.org/api/v2/doc/doc');
- u.searchParams.set('query','(domain:variety.com OR domain:deadline.com OR domain:hollywoodreporter.com OR domain:indiewire.com) (film OR movie OR cinema OR hollywood OR "box office")');
- u.searchParams.set('mode','ArtList');u.searchParams.set('format','json');
- u.searchParams.set('maxrecords','30');u.searchParams.set('timespan',timespan);u.searchParams.set('sort','DateDesc');
- const ac=new AbortController(),timeout=setTimeout(()=>ac.abort(),18000);
- try{
-  const resp=await fetch(u,{signal:ac.signal,headers:{Accept:'application/json'}});
-  if(!resp.ok)throw Error('News service HTTP '+resp.status);
-  const json=await resp.json(),seen=new Set();
-  return (Array.isArray(json.articles)?json.articles:[]).filter(a=>{
-   const url=validURL(a?.url),title=String(a?.title||'').trim();
-   if(!url||!title||seen.has(url))return false;
-   seen.add(url);return true;
-  }).slice(0,16);
- }finally{clearTimeout(timeout);}
+ const snapshot=await serverSnapshot();
+ const unique=[],records=Array.isArray(snapshot.news)?snapshot.news:[];
+ const normalize=t=>String(t||'').toLowerCase().replace(/[^a-z0-9\u0600-\u06ff ]/g,' ').replace(/\s+/g,' ').trim();
+ const words=t=>new Set(normalize(t).split(' ').filter(w=>w.length>3));
+ for(const entry of records){
+  const title=normalize(entry?.title),url=validURL(entry?.url);
+  if(!title||!url)continue;
+  if(unique.some(prev=>{
+   if(prev.url===url||normalize(prev.title)===title)return true;
+   const x=words(title),y=words(prev.title),count=[...x].filter(w=>y.has(w)).length;
+   return count>=4&&count/new Set([...x,...y]).size>=.67;
+  }))continue;
+  unique.push(entry);
+ }
+ return unique.slice(0,18);
 }
 async function headlines(force){
  const cache=fromCache('news',N_TTL);
@@ -105,13 +119,14 @@ async function headlines(force){
  }catch(e){
   console.warn('Cinema news index unavailable',e);
   if(cache?.items.length)renderNews(cache.items);
-  else el('cnNewsFeed').innerHTML=placeholder(L('ارتباط با سرویس خبر برقرار نشد. می‌توانی اخبار را مستقیم از رسانه‌های زیر بخوانی.','News service is unavailable. Follow the original publishers below.'),true);
+  else el('cnNewsFeed').innerHTML=placeholder(L('فایل خبرها در سرور سایت هنوز منتشر نشده است؛ از لینک رسانه‌های زیر استفاده کن.','News snapshot is not yet published. Publisher links are below.'),true);
   return false;
  }
 }
 async function refresh(force){
  if(fetching)return;
  if(!force&&lastCheck>Date.now()-N_TTL)return;
+ if(force)snapshotTask=null;
  fetching=true;
  const btn=el('cnRefresh');btn.disabled=true;btn.textContent=L('در حال تازه‌سازی…','Refreshing…');
  el('cnUpdated').textContent=L('در حال دریافت اطلاعات زنده…','Loading live feeds…');
@@ -123,10 +138,14 @@ async function refresh(force){
    fetchMovieGroup('trends','/trending/movie/week','cnTrending',!!force,false)
   ]);
   lastCheck=Date.now();
-  const stamp=new Date().toLocaleString(EN?'en-US':'fa-IR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-  el('cnUpdated').textContent=result.every(Boolean)
-   ?L('آخرین بررسی: ','Last checked: ')+stamp
-   :L('برخی منابع در دسترس نیستند؛ ممکن است اطلاعات ذخیره‌شده قدیمی باشد. بررسی: ','Some sources are unavailable; cached data may be outdated. Checked: ')+stamp;
+  const data=lastSnapshot;
+  const newsAt=data?.news_updated_at?seenTime(data.news_updated_at):'';
+  const filmsAt=data?.movies_updated_at?seenTime(data.movies_updated_at):'';
+  const age=Date.parse(data?.generated_at||'');
+  const stale=Number.isFinite(age)&&Date.now()-age>24*3600000;
+  const times=[newsAt&&L('اخبار: ','News: ')+newsAt,filmsAt&&L('فیلم‌ها: ','Movies: ')+filmsAt].filter(Boolean);
+  el('cnUpdated').textContent=(stale?L('⚠ داده‌ها قدیمی‌اند • ','⚠ Data may be stale • '):'')
+   +(times.length?times.join(' • '):L('منتظر اولین اجرای به‌روزرسانی GitHub','Waiting for the first GitHub update'));
  }catch(e){
   el('cnUpdated').textContent=L('بررسی آنلاین ناموفق بود. دوباره تلاش کن.','Live refresh failed. Try again.');
  }finally{fetching=false;btn.disabled=false;btn.textContent=L('↻ تازه‌سازی اخبار و فیلم‌ها','↻ Refresh cinema news and movies');}
@@ -135,8 +154,8 @@ root.innerHTML="\n<div class=\"cn-hero\">\n <div class=\"cn-eyebrow\"><span clas
 if(EN)root.querySelectorAll('[data-en]').forEach(node=>{node.textContent=node.getAttribute('data-en');});
 el('cnSources').innerHTML=L('خبرگزاری‌ها: ','News publishers: ')+srcList.map(x=>'<a href="'+x[1]+'" target="_blank" rel="noopener noreferrer">'+x[0]+'</a>').join(' · ');
 el('cnAttribution').innerHTML=L('داده‌های فیلم و پوستر از ','Movie data and posters from ')+'<a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>. '
- +L('این سایت از API سرویس TMDB استفاده می‌کند اما مورد تأیید یا پشتیبانی TMDB نیست. عنوان خبرها از ','This product uses the TMDB API but is not endorsed or certified by TMDB. News indexed by ')
- +'<a href="https://www.gdeltproject.org/" target="_blank" rel="noopener noreferrer">GDELT</a> — '
+ +L('این سایت از TMDB API استفاده می‌کند، اما مورد تأیید آن نیست. خبرها از منابع اصلی و ','This product uses the TMDB API but is not endorsed or certified by TMDB. Stories from ')
+ +'<span>publisher RSS feeds</span> — '
  +L('برای خواندن خبر، وارد وب‌سایت رسانهٔ اصلی می‌شوی.','follow a headline to the original publication.');
 for(const id of ['cnNowPlaying','cnUpcoming','cnTrending'])el(id).innerHTML=placeholder(L('در حال دریافت فیلم‌ها…','Loading movies…'));
 el('cnNewsFeed').innerHTML=placeholder(L('در حال دریافت خبرهای واقعی…','Loading real news…'));
