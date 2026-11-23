@@ -165,7 +165,10 @@ function setFilm(movie){
  selectedId=movie.id;usedCatalog=true;
  const fields=[movie.director,movie.cast,movie.runtime,movie.country,poster].filter(Boolean).length;
  selected.hidden=false;
- selected.textContent=L('✓ فیلم انتخاب شد؛ '+fields+' مورد از مشخصات تکمیل شد. همه فیلدها قابل ویرایش‌اند.','✓ Film selected; '+fields+' details filled. Everything remains editable.');
+ selected.innerHTML='<span class="tmSelectedPoster">'+(poster?'<img src="'+escapeHTML(poster)+'" alt="" loading="lazy">':'🎬')+'</span>'
+  +'<span class="tmSelectedCopy"><strong dir="auto">'+escapeHTML(title)+'</strong><small>'
+  +escapeHTML(L('✓ '+fields+' مورد از اطلاعات تکمیل شد؛ می‌توانی جزئیات را ویرایش کنی.','✓ '+fields+' details filled; you can still edit everything.'))
+  +'</small></span>';
  hideOptions();
  $f('fTitle').focus({preventScroll:true});
 }
@@ -230,7 +233,7 @@ async function hydrateLive(movie){
   $f('fCountry').value=(data.production_countries||[]).map(x=>x.name).join('، ');
   const g=(data.genres||[]).map(x=>genres[x.id]).find(Boolean);
   if(g)$f('fGenre').value=g;
-  selected.textContent=L('✓ مشخصات تکمیلی فیلم دریافت شد.','✓ Additional movie details retrieved.');
+  const summary=selected.querySelector('.tmSelectedCopy small');if(summary)summary.textContent=L('✓ مشخصات تکمیلی فیلم دریافت شد.','✓ Additional movie details retrieved.');
  }catch(error){ /* All fields remain editable; nothing is lost. */ }
 }
 function chooseFilm(movie){
