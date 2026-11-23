@@ -123,7 +123,7 @@ async function lookupUniverseMovie(id){
 const idNumber=value=>/^[1-9]\d{0,11}$/.test(String(value||''))?Number(value):null;
 const faValue=value=>/[\u0600-\u06ff]/.test(String(value||''));
 const normalize=value=>String(value||'').normalize('NFKD').toLocaleLowerCase()
- .replace(/[\u064b-\u065f\u0670]/g,'').replace(/ي/g,'ی').replace(/ك/g,'ک')
+ .replace(/\p{M}/gu,'').replace(/ي/g,'ی').replace(/ك/g,'ک')
  .replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim();
 function node(tag,cls,text){
  const e=document.createElement(tag);if(cls)e.className=cls;
