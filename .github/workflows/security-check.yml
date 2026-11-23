@@ -30,5 +30,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Check public security baseline
         run: python3 scripts/security_check.py
+      - name: Validate JavaScript module syntax
+        run: |
+          node --check film-friends.js
+          node --check account-profile.js
+          node --check film-discovery.js
+          node --check group-watch.js
+          node --check cinema-translation.js
       - name: Test movie search, watchlists and deep links
         run: node tests/film-discovery-smoke.cjs
