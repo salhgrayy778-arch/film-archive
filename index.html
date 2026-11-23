@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' https://api.themoviedb.org https://itunes.apple.com https://en.wikipedia.org https://fa.wikipedia.org https://*.supabase.co wss://*.supabase.co https://0.peerjs.com wss://0.peerjs.com https://*.peerjs.com wss://*.peerjs.com https://cdn.jsdelivr.net; media-src 'self' https: blob:; worker-src 'self' blob:; upgrade-insecure-requests">
 <script>try{if(localStorage.getItem("film-archive-lang")==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr";}const savedTheme=localStorage.getItem("film-archive-theme");if(savedTheme&&savedTheme!=="auto")document.documentElement.setAttribute("data-theme",savedTheme);}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23F2D394%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23B5843F%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2215%22%20fill%3D%22%230B1B21%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2226%22%20width%3D%2244%22%20height%3D%2230%22%20rx%3D%227%22%20fill%3D%22%23132A30%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M9%2026%208%2016%2050%207%2053%2018Z%22%20fill%3D%22%23152C31%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M19%2013%2026%2022M34%2010%2042%2019%22%20stroke%3D%22%23D6B572%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2241%22%20r%3D%2210.5%22%20fill%3D%22none%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222.5%22%2F%3E%3Cpath%20d%3D%22m29%2035%2011%206-11%206Z%22%20fill%3D%22%23E3C283%22%2F%3E%3C%2Fsvg%3E">
 <title>My Film Archive | World Cinema News</title>
@@ -1040,6 +1042,26 @@ const COLORS = ['#1F3B36','#1C2F44','#3A3A22','#2B3A3F','#40301F','#23364A','#2E
 const $ = id => document.getElementById(id);
 const fa = n => EN ? String(n) : Number(n).toLocaleString('fa-IR',{useGrouping:false});
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Display only expected image URL schemes; never render imported javascript:,
+// file:, untrusted SVG data URLs or CSS-breaking unvalidated image URLs.
+function safePosterSrc(input){
+  if(typeof input!=='string' || input.length>3000000) return '';
+  const value=input.trim();
+  if(/^data:image\/(?:png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(value))return value;
+  if(/^assets\/(?:catalog|posters)\/[a-z0-9_.-]+\.webp$/i.test(value))return value;
+  try{
+    const url=new URL(value,document.baseURI);
+    if(url.protocol==='https:' || (url.protocol==='http:' && url.origin===location.origin)){
+      if(url.username||url.password)return '';
+      return url.href;
+    }
+  }catch(error){}
+  return '';
+}
+function safeExternalHref(input){
+  try{const url=new URL(String(input||''));return url.protocol==='https:'&&!url.username&&!url.password?url.href:'';}
+  catch(error){return '';}
+}
 const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
 
 let state = { films:[], tab:'news', dashView:'overview', q:'', sort:'new', genre:'', editId:null, form:null };
@@ -1052,7 +1074,8 @@ function entries(f){ if(f.logs&&f.logs.length) return f.logs; return f.status===
 function allEntries(){ return state.films.flatMap(f=>entries(f).map(e=>({...e,film:f}))).filter(e=>validD(e.date)).sort((a,b)=>b.date.localeCompare(a.date)); }
 function posterOf(f){
   const color = COLORS[[...f.title].reduce((a,c)=>a+c.charCodeAt(0),0) % COLORS.length];
-  return f.poster ? `<img src="${esc(f.poster)}" alt="پوستر ${esc(f.title)}" loading="lazy" referrerpolicy="no-referrer">` : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
+  const poster=safePosterSrc(f.poster);
+  return poster ? `<img src="${esc(poster)}" alt="پوستر ${esc(f.title)}" loading="lazy" referrerpolicy="no-referrer">` : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
 }
 function renderDash(){
   const F=state.films, seen=F.filter(f=>f.status==='seen'), rated=seen.filter(f=>f.rating>0);
@@ -1076,7 +1099,7 @@ function renderDash(){
     <div class="kpi"><b>${fa(F.length-seen.length)}</b><span>فهرست انتظار</span></div>
     <div class="kpi"><b>${avg?fa(avg.toFixed(1)):'—'}</b><span>میانگین امتیاز (از ۵)</span></div></div>
     <h2 class="sec">آخرین تماشاها</h2>
-    ${last.length?`<div class="strip">${last.map((f,i)=>`<button class="card" data-id="${f.id}" style="--i:${i}"><div class="poster">${posterOf(f)}</div><h3>${esc(f.title)}</h3>${f.rating?`<div class="stars">${starsText(f.rating)}</div>`:''}</button>`).join('')}</div>`:'<div class="empty">هنوز تماشایی با تاریخ ثبت نشده.</div>'}
+    ${last.length?`<div class="strip">${last.map((f,i)=>`<button class="card" data-id="${esc(f.id)}" style="--i:${i}"><div class="poster">${posterOf(f)}</div><h3>${esc(f.title)}</h3>${f.rating?`<div class="stars">${starsText(f.rating)}</div>`:''}</button>`).join('')}</div>`:'<div class="empty">هنوز تماشایی با تاریخ ثبت نشده.</div>'}
     <h2 class="sec">تماشا در هر ماه سال ${fa(curY)}</h2>
     <div class="chartScroll"><div class="bars">${months.map((c,i)=>`<div class="bar" role="img" aria-label="${JM[i]}: ${fa(c)} تماشا" title="${JM[i]}" style="height:${Math.round(c/mx*110)}px">${c?`<i>${fa(c)}</i>`:''}<em aria-hidden="true">${EN?JM[i].slice(0,3):['فرو','ارد','خرد','تیر','مرد','شهر','مهر','آبا','آذر','دی','بهم','اسف'][i]}</em></div>`).join('')}</div></div>
     <h2 class="sec">تماشا در هر سال</h2>
@@ -1087,7 +1110,7 @@ function renderDiary(){
   $('diary').innerHTML=E.length?E.map(e=>{
     const j=jal(e.date), k=j.y+'-'+j.m; let h='';
     if(k!==key){ key=k; h=`<div class="dgroup">${JM[j.m-1]} ${fa(j.y)}</div>`; }
-    return h+`<button class="drow" data-id="${e.film.id}"><div class="poster">${posterOf(e.film)}</div><div><h3>${esc(e.film.title)} ${e.film.year?`<span class="d">(${fa(e.film.year)})</span>`:''}</h3><div class="d">${fdate(e.date)}</div>${e.rating?`<div class="stars">${starsText(e.rating)}</div>`:''}${e.note?`<p>${esc(e.note)}</p>`:''}</div></button>`;
+    return h+`<button class="drow" data-id="${esc(e.film.id)}"><div class="poster">${posterOf(e.film)}</div><div><h3>${esc(e.film.title)} ${e.film.year?`<span class="d">(${fa(e.film.year)})</span>`:''}</h3><div class="d">${fdate(e.date)}</div>${e.rating?`<div class="stars">${starsText(e.rating)}</div>`:''}${e.note?`<p>${esc(e.note)}</p>`:''}</div></button>`;
   }).join(''):'<div class="empty"><b>دفترچه خالی است</b>برای فیلم‌های دیده‌شده تاریخ تماشا ثبت کن.</div>';
 }
 function paintLogs(){
@@ -1272,11 +1295,12 @@ function render(){
   }
   $('grid').innerHTML = list.map((f,i)=>{
     const color = COLORS[[...f.title].reduce((a,c)=>a+c.charCodeAt(0),0) % COLORS.length];
-    const poster = f.poster
-      ? `<img src="${esc(f.poster)}" alt="پوستر ${esc(f.title)}" loading="lazy" referrerpolicy="no-referrer">`
+    const posterURL=safePosterSrc(f.poster);
+    const poster = posterURL
+      ? `<img src="${esc(posterURL)}" alt="پوستر ${esc(f.title)}" loading="lazy" referrerpolicy="no-referrer">`
       : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
     const meta = [f.director, f.year ? fa(f.year) : ''].filter(Boolean).join(' - ');
-    return `<button class="card" data-id="${f.id}" style="--i:${Math.min(i,20)}">
+    return `<button class="card" data-id="${esc(f.id)}" style="--i:${Math.min(i,20)}">
       <div class="poster">${poster}${f.status==='want'?'<span class="badge">می‌خواهم ببینم</span>':''}</div>
       <h3>${esc(f.title)}${f.liked?' <span class="heart">♥</span>':''}</h3>
       ${meta?`<div class="meta">${esc(meta)}</div>`:''}
@@ -1373,7 +1397,8 @@ function paintStatus(){
 }
 function paintPoster(){
   const p = state.form.poster;
-  $('thumb').style.backgroundImage = p ? `url("${String(p).replace(/"/g,'%22')}")` : 'none';
+  const safe=safePosterSrc(p);
+  $('thumb').style.backgroundImage = safe ? 'url('+JSON.stringify(safe)+')' : 'none';
   $('clearPoster').hidden = !p;
 }
 
@@ -1414,7 +1439,8 @@ function openSheet(id){
   $('delBtn').textContent = 'حذف'; $('delBtn').dataset.armed = '0';
   ['moreDetails','moreHistory','morePoster'].forEach(id=>$(id).open=false);
   const link = $('lbLink');
-  if(f?.lb && /^https?:\/\//i.test(f.lb)){ link.href = f.lb; link.hidden = false; } else { link.hidden = true; }
+  const filmLink=safeExternalHref(f?.lb);
+  if(filmLink){ link.href = filmLink; link.hidden = false; } else { link.hidden = true; }
   paintStatus(); paintRate(); paintPoster(); paintLogs();
   sheetInitial = snapshotSheet();
   openModal('overlay','#fTitle');
@@ -1499,7 +1525,7 @@ function shrinkImage(file){
       URL.revokeObjectURL(url);
       resolve(c.toDataURL('image/jpeg',0.75));
     };
-    img.onerror = reject;
+    img.onerror = error=>{URL.revokeObjectURL(url);reject(error);};
     img.src = url;
   });
 }
@@ -1702,6 +1728,10 @@ function init(){
   $('pickPoster').addEventListener('click', ()=>$('posterFile').click());
   $('posterFile').addEventListener('change', async e=>{
     const f = e.target.files[0]; if(!f) return;
+    if(!/^image\/(?:jpeg|png|webp|gif)$/i.test(f.type) || f.size>10*1024*1024){
+      toast('فقط تصویر PNG، JPEG، WebP یا GIF تا ۱۰ مگابایت پذیرفته می‌شود');
+      e.target.value='';return;
+    }
     try{ state.form.poster = await shrinkImage(f); paintPoster(); }
     catch(err){ toast('این عکس خوانده نشد'); }
     e.target.value = '';
@@ -2327,8 +2357,9 @@ function initPosters(){
   });
   $('pxUrlOk').addEventListener('click', ()=>{
     const u = $('pxUrl').value.trim();
-    if(!/^https?:\/\/\S+$/i.test(u)){ toast('لینک عکس باید با http یا https شروع شود'); return; }
-    state.form.poster = u; paintPoster(); $('pxUrl').value = ''; toast('پوستر گذاشته شد');
+    const valid=safePosterSrc(u);
+    if(!valid){ toast('آدرس امن HTTPS تصویر را وارد کن'); return; }
+    state.form.poster = valid; paintPoster(); $('pxUrl').value = ''; toast('پوستر گذاشته شد');
   });
   $('pxAll').addEventListener('click', pxBulk);
   $('pxReset').addEventListener('click', async ()=>{
@@ -2398,7 +2429,7 @@ function openDetail(id, rnd){
     ${f.notes ? `<h3 class="sec">یادداشت و نقد</h3><p style="white-space:pre-wrap">${esc(f.notes)}</p>` : ''}
     <h3 class="sec">تاریخچهٔ تماشا</h3>
     ${logs.length ? logs.map(e=>`<div class="drw"><span>${fdate(e.date)}</span>${e.rating ? `<b class="stars" aria-label="امتیاز این نوبت تماشا: ${fa(e.rating)} از ${fa(5)}">${fa(e.rating)} از ${fa(5)} ${starsText(e.rating)}</b>` : ''}${e.note ? `<i>${esc(e.note)}</i>` : ''}</div>`).join('') : '<div class="hint">هنوز تماشایی ثبت نشده.</div>'}
-    ${f.lb && /^https?:\/\//i.test(f.lb) ? `<a class="lbLink" href="${esc(f.lb)}" target="_blank" rel="noopener">صفحهٔ فیلم در Letterboxd</a>` : ''}
+    ${safeExternalHref(f.lb) ? `<a class="lbLink" href="${esc(safeExternalHref(f.lb))}" target="_blank" rel="noopener noreferrer">صفحهٔ فیلم در Letterboxd</a>` : ''}
     <div class="actions"><button class="btn" id="dClose" type="button">بستن</button>${f.status==='want' ? '<button class="btn" id="dSeen" type="button">دیدمش ✓</button>' : ''}${rnd ? '<button class="btn" id="dAgain" type="button">یکی دیگر</button>' : ''}<button class="btn primary" id="dEdit" type="button">ویرایش</button></div>`;
   openModal('dOv','#dClose');
   $('dClose').onclick = () => closeModal('dOv');
@@ -2683,6 +2714,7 @@ init();
 <script src="group-watch.js"></script>
 <script src="mkv-support.js"></script>
 <script src="cinema-news.js"></script>
+<script src="cinema-translation.js"></script>
 <script src="sidebar-ui.js"></script>
 <script src="add-film-ui.js"></script>
 </body>
