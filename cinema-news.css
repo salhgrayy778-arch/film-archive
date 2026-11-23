@@ -103,3 +103,47 @@
 @media (prefers-reduced-motion:reduce){
  #cinemaNews .cn-film-card img,#cinemaNews .cn-news-card img{transition:none}
 }
+
+/* Inline Persian translation for every cinema section, on the heading's left side. */
+#cinemaNews .cn-heading{position:relative;gap:10px;align-items:start}
+#cinemaNews .cn-heading>div:first-child{min-width:0;flex:1}
+#cinemaNews .cnHeadingActions{
+  margin-left:0;margin-right:auto;flex:none;
+  display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:flex-start;
+  max-width:55%;
+  direction:rtl;
+}
+html[dir=ltr] #cinemaNews .cn-heading{flex-direction:row-reverse}
+html[dir=ltr] #cinemaNews .cnHeadingActions{direction:ltr;margin-right:auto;margin-left:0}
+#cinemaNews .cnTranslateBtn{
+  min-height:44px;display:inline-flex;justify-content:center;align-items:center;
+  padding:8px 13px;white-space:nowrap;flex:none;
+  border:1px solid color-mix(in srgb,var(--gold) 58%,var(--line));
+  border-radius:10px;background:color-mix(in srgb,var(--gold) 12%,var(--panel));
+  color:var(--ink);font-size:12px;font-weight:800;
+  cursor:pointer;transition:background .15s,border-color .15s;
+}
+#cinemaNews .cnTranslateBtn:hover{background:color-mix(in srgb,var(--gold) 20%,var(--panel))}
+#cinemaNews .cnTranslateBtn[aria-pressed=true]{
+  background:var(--gold);border-color:var(--gold);color:var(--on-gold);
+}
+#cinemaNews .cnTranslateBtn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+#cinemaNews .cnHeadingActions>a{font-size:11.5px;min-height:44px;display:inline-flex;align-items:center}
+#cinemaNews .cnNewsSummary{
+  margin:0;color:var(--mute);font-size:12.5px;line-height:1.8;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+#cinemaNews .cnTranslationBadge{
+  align-self:flex-start;display:inline-flex;width:fit-content;
+  font-size:10px;line-height:1.5;padding:3px 8px;border-radius:7px;
+  background:color-mix(in srgb,var(--gold) 11%,var(--bg));
+  border:1px solid color-mix(in srgb,var(--gold) 32%,var(--line));
+  color:var(--mute);
+}
+@media(max-width:650px){
+ #cinemaNews .cn-heading{flex-wrap:wrap;gap:7px}
+ #cinemaNews .cn-heading>div:first-child{flex:1 0 100%}
+ #cinemaNews .cnHeadingActions{max-width:100%;width:100%;justify-content:flex-start;margin:0}
+ #cinemaNews .cnTranslateBtn{font-size:11.5px}
+}
+@media(prefers-reduced-motion:reduce){#cinemaNews .cnTranslateBtn{transition:none}}
