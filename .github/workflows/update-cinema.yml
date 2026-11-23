@@ -41,7 +41,7 @@ jobs:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: python scripts/update_cinema.py
       - name: Install offline English-to-Persian translator
-        run: python -m pip install --disable-pip-version-check --quiet argostranslate==1.11.0
+        run: python -m pip install --disable-pip-version-check --quiet argostranslate==1.11.0 deep-translator==1.11.4
       - name: Cache offline Persian language model
         uses: actions/cache@v4
         with:
