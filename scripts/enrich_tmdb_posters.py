@@ -66,6 +66,43 @@ def popularity_candidates(excluded):
     records.sort(key=lambda m:(-m[2],m[0]))
     return records
 
+def top_voted_candidates(excluded, headers, auth, limit):
+    """Official TMDB vote-count ranking, not daily-trending popularity.
+    It finds high-engagement older films which can be buried in daily exports.
+    """
+    ranked=[]
+    for page in range(1,301):
+        if len(ranked)>=limit:
+            break
+        try:
+            result=catalog_build.get_json("/discover/movie",{
+                "language":"en-US",
+                "sort_by":"vote_count.desc",
+                "vote_count.gte":MIN_TMDB_VOTES,
+                "include_adult":"false",
+                "page":page,
+            },headers,auth)
+        except (requests.RequestException,ValueError,TypeError) as exc:
+            print(f"Top-voted TMDB discovery page {page} unavailable: {str(exc)[:130]}")
+            break
+        entries=result.get("results",[])
+        if not entries:
+            break
+        for item in entries:
+            mid=item.get("id")
+            if not isinstance(mid,int) or mid in excluded or not item.get("poster_path"):
+                continue
+            votes=int(item.get("vote_count") or 0)
+            if votes<MIN_TMDB_VOTES:
+                continue
+            ranked.append((mid,str(item.get("original_title") or item.get("title") or "")[:180],
+                           float(item.get("popularity") or 0)))
+            if len(ranked)>=limit:
+                break
+    print(f"Top-voted TMDB candidates: {len(ranked):,}",flush=True)
+    return ranked
+
+
 def fetch_detail(candidate,headers,auth):
     movie_id,original,popularity=candidate
     try:
@@ -162,7 +199,11 @@ def run(batch_size):
           f"candidate attempts: {candidate_count}, scan offset: {cursor}, new target: {target}",flush=True)
     successes=0
     with ThreadPoolExecutor(max_workers=6) as workers:
-        batch=(candidates[cursor:cursor+candidate_count]+candidates[:max(0,cursor+candidate_count-len(candidates))])
+        top=top_voted_candidates(excluded,headers,auth,candidate_count)
+        top_ids={row[0] for row in top}
+        fallback_count=max(0,candidate_count-len(top))
+        fallback=candidates[cursor:cursor+fallback_count]+candidates[:max(0,cursor+fallback_count-len(candidates))]
+        batch=top+[row for row in fallback if row[0] not in top_ids]
         jobs=[workers.submit(fetch_detail,row,headers,auth) for row in batch]
         for job in as_completed(jobs):
             value=job.result()
@@ -177,7 +218,7 @@ def run(batch_size):
     # Advance through candidates even if none qualifies; otherwise the same
     # obscure titles are fetched every day and famous older films are missed.
     if candidates:
-        next_cursor=(cursor+candidate_count)%len(candidates)
+        next_cursor=(cursor+fallback_count)%len(candidates)
         save(current,next_cursor)
     else:
         print("No remaining candidates to enrich; preserving existing catalog.")
