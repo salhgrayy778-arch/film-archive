@@ -1,0 +1,76 @@
+# My Film Archive — Security controls and deployment checklist
+
+This is a **static GitHub Pages web app** with optional Supabase user accounts and
+PeerJS group watch. Security depends on several distinct layers.
+
+## Implemented in the site
+
+- Content Security Policy via HTML `<meta http-equiv>`: restricts scripts to the
+  website plus explicitly listed CDN origins, disables object and iframe
+  content, limits server connections, and upgrades insecure requests.
+  **Limitation:** the existing legacy inline scripts require `'unsafe-inline'`;
+  this is defense-in-depth, not a complete XSS barrier.
+- Browser referrer privacy policy.
+- URL scheme validation for poster images and external Letterboxd links.
+- Restricted locally uploaded poster types: JPEG / PNG / WebP / GIF up to 10 MB;
+  SVG image uploads are not accepted.
+- Escaped user-provided archive identifiers when rendered as HTML attributes.
+- Cryptographically strong 96-bit room codes. Invited users still need to keep
+  room links private; there is currently no server-side room authentication.
+- Same-origin cached cinema data and official posters, avoiding visitor TMDB
+  credentials and cross-origin image requirements.
+- Original news publishers remain linked; translations are generated only in
+  GitHub Actions and rendered as plain text in the browser.
+
+## REQUIRED manual Supabase action
+
+Review and run **`security/supabase-archives-rls.sql`** in the Supabase
+SQL Editor of the *actual project*. This file does not run automatically.
+
+**Before executing:** take a backup and verify `public.archives` has
+`user_id uuid`, `data jsonb`, and `updated_at`. Check the existing
+policies. The SQL adds a **restrictive owner-only RLS guard** and permissive
+owner policies, revokes anonymous table privileges, and grants authenticated
+access. Test with two unrelated accounts: Account A must never see or modify
+Account B's records.
+
+Also review Supabase Auth settings: verify email confirmations,
+MFA for administrators, password and anti-abuse settings, acceptable login
+rate limits, and token/session expiry. Never place `service_role` keys,
+database passwords, or private API tokens in browser-accessible HTML/JS.
+
+The Supabase **publishable** key is by design client-visible and not a secret;
+the **service_role** key is sensitive and must only be stored in trusted
+server-side environments.
+
+## GitHub Pages limitations
+
+A pure GitHub Pages site cannot configure the HTTP response headers required
+for the strongest versions of these controls:
+
+- `Content-Security-Policy: frame-ancestors 'none'` (anti-clickjacking).
+- `Strict-Transport-Security` and some other response-header protections.
+- HttpOnly and Secure cookies set by a custom first-party authentication server.
+
+These require a hosting platform, reverse proxy or CDN with HTTP header
+configuration. The in-page CSP does not support `frame-ancestors`.
+Read more: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors
+
+## Translation and data integrity
+
+News headlines and short RSS excerpts are translated by an offline
+English-to-Persian model in GitHub Actions. The original headline,
+publisher and original article URL remain intact; these are machine
+translations, not editorially verified. If translation cannot run, the site
+must show the original text instead of fabricated Persian news.
+
+Review Actions permissions periodically; use repository secrets for
+server-side provider credentials. GitHub Actions artifacts and logs should
+not print secrets. Rotate any credentials found committed to history.
+
+## Ongoing testing
+
+After every relevant release, test in Persian and English, desktop/mobile,
+with/without VPN. Test add-film autocomplete, authentic poster loading,
+group room creation and joining, signup/login and archive sync. The static
+code changes and CI workflow status do not prove production account security.
