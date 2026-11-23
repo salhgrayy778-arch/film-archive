@@ -6,6 +6,8 @@ if (typeof R === 'undefined' || typeof setFile !== 'function') return;
 const local = (fa,en) => typeof EN!=='undefined' && EN ? en : fa;
 const $m = id => document.getElementById(id);
 const originalChooseFile=setFile;
+const canWatch = () => typeof R.watchRoomReady === 'function' && R.watchRoomReady();
+const lockedNotice = () => toast(local('اول اتاق بساز یا به یک اتاق متصل شو.','Create or join a room before choosing a movie.'));
 let selectedMKV=null,requestId=0,converting=false,ff=null;
 const MAX_CONVERT_BYTES=128*1024*1024; // WASM uses several copies of the input
 const CDN='https://cdn.jsdelivr.net/npm/';
@@ -38,12 +40,14 @@ function showMKVHelp(file) {
 }
 setFile=function(file) {
   if(!file)return;
+  if(!canWatch()){lockedNotice();return;}
   const result=originalChooseFile(file);
   showMKVHelp(file);
   return result;
 };
 const originalSetSrc=setSrc;
 setSrc=function(url,fromPeer) {
+  if(!canWatch()){lockedNotice();return;}
   selectedMKV=null;requestId++;
   convertButton().hidden=true;
   return originalSetSrc(url,fromPeer);
@@ -91,6 +95,7 @@ async function getFFmpeg() {
 async function convertSelected() {
   const file=selectedMKV;
   if(!file||converting)return;
+  if(!canWatch()){lockedNotice();return;}
   if(file.size>MAX_CONVERT_BYTES) {
     toast(local('تبدیل MKV بزرگ با FFmpeg یا HandBrake به MP4 با H.264 و AAC انجام شود.','For large MKV, convert on your computer to MP4 (H.264 video + AAC audio) with FFmpeg or HandBrake.'));
     return;
@@ -104,10 +109,10 @@ async function convertSelected() {
   btn.textContent=local('در حال بارگذاری موتور تبدیل…','Loading converter…');
   try {
     const engine=await getFFmpeg();
-    if(token!==requestId)return;
+    if(token!==requestId||!canWatch())return;
     btn.textContent=local('در حال خواندن ویدئو…','Reading video…');
     await engine.writeFile('movie-input.mkv',new Uint8Array(await file.arrayBuffer()));
-    if(token!==requestId)return;
+    if(token!==requestId||!canWatch())return;
     // Re-encode to browser-compatible H.264/AAC. Slow on large devices, so 128 MB cap.
     const exitCode=await engine.exec([
       '-i','movie-input.mkv','-map','0:v:0','-map','0:a:0?',
@@ -117,7 +122,7 @@ async function convertSelected() {
     ],300000);
     if(exitCode!==0)throw new Error('ffmpeg exited '+exitCode);
     const bytes=await engine.readFile('movie-output.mp4');
-    if(token!==requestId)return;
+    if(token!==requestId||!canWatch())return;
     // Keep the originally shared file metadata; participants still select their own source.
     freeBlob();
     R.blob=URL.createObjectURL(new Blob([bytes],{type:'video/mp4'}));
@@ -135,6 +140,10 @@ async function convertSelected() {
   }
 }
 convertButton();
+window.addEventListener('film-room-ended',()=>{
+  selectedMKV=null;requestId++;
+  convertButton().hidden=true;
+});
 const mkvHint=document.createElement('p');
 mkvHint.className='hint';
 mkvHint.textContent=local(
