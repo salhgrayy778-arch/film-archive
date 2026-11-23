@@ -147,6 +147,6 @@ document.getElementById('tab-news')?.addEventListener('click',()=>{if(Date.now()
 document.addEventListener('visibilitychange',()=>{if(visible()&&Date.now()-lastCheck>N_TTL)refresh(false);});
 window.addEventListener('online',()=>{if(visible())refresh(true);});
 setInterval(()=>{if(visible()&&Date.now()-lastCheck>N_TTL)refresh(false);},N_TTL);
-document.title=L('سینمای جهان | اخبار و فیلم‌های جدید','World Cinema | News & New Releases');
+document.title=L('My Film Archive | اخبار سینمای جهان','My Film Archive | World Cinema News');
 refresh(false);
 })();
