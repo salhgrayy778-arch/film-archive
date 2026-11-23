@@ -2775,7 +2775,9 @@ function syncNow(manual=false,persist=false){
       }
       if(!ses||ses.id!==owner||epoch!==cloudEpoch)throw Error('Account switched');
       state.films=merged.films;acMeta.deleted=merged.deleted;acMeta.owner=owner;
-      accountProfile=normalizeAccountProfile(merged.profile);profileDirty=false;
+      accountProfile=normalizeAccountProfile(merged.profile);
+      // A read-only refresh must not clear a pending explicit profile edit.
+      if(persist)profileDirty=false;
       acMeta.snap=hashFilms();acMeta.synced=Date.now();cloudError='';
       setSync(persist?LX('در حساب ذخیره شد ✓','Saved to account ✓'):LX('آرشیو به‌روز شد ✓','Archive updated ✓'));
       render();publishAccountProfile();return true;
