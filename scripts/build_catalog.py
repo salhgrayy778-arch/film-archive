@@ -24,7 +24,7 @@ import update_cinema as core
 ROOT=Path(__file__).resolve().parent.parent
 OUTPUT=ROOT / "data" / "tmdb-catalog.json"
 IMAGE_DIR=ROOT / "assets" / "catalog"
-MAX_CATALOG=720
+MAX_CATALOG=1100
 DETAIL_WORKERS=6
 POSTER_WORKERS=8
 API=core.API
@@ -32,15 +32,17 @@ SESSION=core.SESSION
 
 GENRE_IDS={18,35,80,9648,53,27,878,14,28,12,10749,99,16,36,10752}
 CATEGORIES=[
-    ("/movie/popular",14,{}),
+    ("/movie/popular",18,{}),
     ("/trending/movie/week",5,{}),
-    ("/movie/top_rated",9,{}),
-    ("/movie/now_playing",3,{"region":"US"}),
-    ("/movie/upcoming",3,{"region":"US"}),
-    ("/discover/movie",4,{"sort_by":"primary_release_date.desc","vote_count.gte":20}),
-    ("/discover/movie",3,{"sort_by":"popularity.desc","primary_release_date.gte":"2000-01-01","primary_release_date.lte":"2010-12-31"}),
-    ("/discover/movie",3,{"sort_by":"popularity.desc","primary_release_date.gte":"1990-01-01","primary_release_date.lte":"1999-12-31"}),
-    ("/discover/movie",2,{"sort_by":"popularity.desc","primary_release_date.gte":"1970-01-01","primary_release_date.lte":"1989-12-31"}),
+    ("/movie/top_rated",18,{}),
+    ("/movie/now_playing",4,{"region":"US"}),
+    ("/movie/upcoming",4,{"region":"US"}),
+    ("/discover/movie",10,{"sort_by":"vote_average.desc","vote_count.gte":500}),
+    ("/discover/movie",5,{"sort_by":"primary_release_date.desc","vote_count.gte":20}),
+    ("/discover/movie",7,{"sort_by":"popularity.desc","primary_release_date.gte":"2010-01-01","primary_release_date.lte":"2019-12-31"}),
+    ("/discover/movie",7,{"sort_by":"popularity.desc","primary_release_date.gte":"2000-01-01","primary_release_date.lte":"2009-12-31"}),
+    ("/discover/movie",7,{"sort_by":"popularity.desc","primary_release_date.gte":"1990-01-01","primary_release_date.lte":"1999-12-31"}),
+    ("/discover/movie",5,{"sort_by":"popularity.desc","primary_release_date.gte":"1970-01-01","primary_release_date.lte":"1989-12-31"}),
 ]
 
 def cached_catalog():
