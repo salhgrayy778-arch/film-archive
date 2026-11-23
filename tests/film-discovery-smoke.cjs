@@ -88,7 +88,7 @@ function fakeBrowser(startUrl){
  };
  return {context,registry,movies,location,window,state};
 }
-async function settle(){for(let i=0;i<30;i++)await Promise.resolve();}
+async function settle(){for(let i=0;i<15;i++)await Promise.resolve();await new Promise(resolve=>setTimeout(resolve,65));for(let i=0;i<15;i++)await Promise.resolve();}
 async function main(){
  const source=readFileSync('film-discovery.js','utf8');
  const compiled=new vm.Script(source,{filename:'film-discovery.js'});
