@@ -1544,15 +1544,35 @@ function exportData(){
 }
 async function importBackup(file){
   try{
+    if(!file || file.size>15*1024*1024)throw new Error('backup too large');
     const obj = JSON.parse(await file.text());
     const arr = Array.isArray(obj) ? obj : obj.films;
-    if(!Array.isArray(arr)) throw new Error();
-    const ids = new Set(state.films.map(f=>f.id));
-    let added = 0;
-    arr.forEach(f=>{ if(f && f.title && !ids.has(f.id)){ state.films.push(f); added++; } });
-    render(); await saveFilms();
+    if(!Array.isArray(arr)||arr.length>10000)throw new Error('invalid archive size');
+    const ids=new Set(state.films.map(f=>String(f.id)));
+    let added=0;
+    for(const record of arr){
+      if(!record||typeof record!=='object'||Array.isArray(record)||typeof record.title!=='string')continue;
+      const title=record.title.trim();
+      if(!title||title.length>250)continue;
+      const id=typeof record.id==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(record.id)
+        ? record.id : newId();
+      if(ids.has(id))continue;
+      const logs=Array.isArray(record.logs)
+        ? record.logs.slice(0,500).filter(log=>log&&typeof log==='object'&&typeof log.date==='string').map(log=>({
+          date:log.date.slice(0,10),
+          rating:Number.isFinite(Number(log.rating))?Math.min(5,Math.max(0,Number(log.rating))):0,
+          note:String(log.note||'').slice(0,3000)
+        })) : [];
+      const data={...record,id,title,
+        poster:safePosterSrc(record.poster),
+        status:record.status==='want'?'want':'seen',
+        notes:String(record.notes||'').slice(0,15000),
+        logs};
+      state.films.push(data);ids.add(id);added++;
+    }
+    render();await saveFilms();
     toast(`${fa(added)} فیلم اضافه شد`);
-  }catch(e){ toast('فایل پشتیبان معتبر نیست'); }
+  }catch(e){toast('فایل پشتیبان معتبر نیست یا بیش از حد بزرگ است');}
 }
 
 /* ---------- ورود از Letterboxd (zip یا csv) ---------- */
