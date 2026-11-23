@@ -71,7 +71,13 @@ async function publishMyProfile(){
  if(!ready())return false;
  const p=normalizeAccountProfile(accountProfile);
  const payload={user_id:ses.id,display_name:p.name||ses.email?.split('@')[0]||T('فیلم‌باز','Movie fan'),bio:p.bio||'',avatar:p.avatar||'',
- favorites:p.favorites.map(x=>({id:x.id,title:x.title,poster:x.poster,year:x.year}))};
+ favorites:p.favorites.map(x=>{
+   if(!String(x.id||'').startsWith('archive:'))return {id:x.id,title:x.title,poster:x.poster,year:x.year};
+   const entry=state.films.find(f=>'archive:'+f.id===x.id);
+   const tmdbId=Number(entry?.tmdb);
+   return {id:Number.isSafeInteger(tmdbId)&&tmdbId>0?'tmdb:'+tmdbId:x.id,
+    title:x.title,poster:x.poster,year:x.year};
+  })};
  await request('/film_public_profiles?on_conflict=user_id',{method:'POST',
  headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});
  return true;
@@ -154,6 +160,13 @@ async function openProfile(id){
     }catch(e){status(e);btn.disabled=false;}
    };card.appendChild(btn);
   }
+  const share=make('button','btn',T('کپی لینک پروفایل','Copy profile link'));
+  share.onclick=async()=>{
+    const url=new URL(location.href);url.searchParams.delete('film');url.searchParams.set('user',id);url.hash='';
+    try{await navigator.clipboard.writeText(url.href);notice(T('لینک کپی شد','Link copied'));}
+    catch(error){window.prompt(T('لینک پروفایل','Profile link'),url.href);}
+  };
+  card.appendChild(share);
   card.appendChild(make('h3','',T('۱۰ فیلم برتر','Top 10 films')));
   const favorites=make('div','filmFriendsFavorites');
   for(const m of Array.isArray(profile.favorites)?profile.favorites.slice(0,10):[]){
@@ -200,6 +213,7 @@ function addComposer(){
 createUI();addComposer();
 window.addEventListener('film-account-profile-updated',()=>{
  if(ready())publishMyProfile().catch(e=>console.warn('Public profile sync',e));
+ else setTimeout(()=>{if(ready())publishMyProfile().catch(e=>console.warn('Public profile sync',e));},1000);
 });
 window.addEventListener('popstate',()=>{
  const id=new URL(location.href).searchParams.get('user');
