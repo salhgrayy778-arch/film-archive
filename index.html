@@ -220,9 +220,200 @@ main,.reel{position:relative;z-index:1}
 #auBody p{font-size:14px;color:var(--mute);margin-bottom:10px}
 #auBody p b{color:var(--ink)}
 .chk{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:14.5px}.chk input{width:auto}
+
+/* ================= آیکون‌ها ================= */
+.ic{width:1.25em;height:1.25em;display:inline-block;vertical-align:-.28em;flex:none}
+.btn .ic{margin-inline-end:6px}
+.flipx{transform:scaleX(-1)}
+.btn.primary .ic{vertical-align:-.3em}
+#rndBtn .ic,#pxFind .ic{margin-inline-end:6px}
+.chip{display:inline-flex;align-items:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:2px 12px;font-size:12.5px;direction:ltr}
+
+/* ================= اتاق دونفره ================= */
+#room .sec .ic{color:var(--gold);width:1.2em;height:1.2em}
+.rgrid{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:980px){.rgrid{grid-template-columns:minmax(0,1.9fr) minmax(290px,1fr);align-items:start}}
+.rbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px}
+.rside .rbox:first-child{margin-top:0}
+.rbox .rrow:first-child{margin-top:0}
+.rbox .rrow{align-items:stretch}
+.rbox .rrow .btn{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.rbox .hint{margin-top:10px;line-height:1.9}
+.rbox .hint b{color:var(--ink)}
+.rbh{font-weight:900;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+
+.stage{border-color:rgba(201,162,90,.55);box-shadow:0 18px 44px rgba(0,0,0,.4),0 0 0 1px rgba(201,162,90,.12);border-radius:10px;background:#050b0b;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.stage video{object-fit:contain;background:#000}
+.stage video::cue{font-family:'Vazirmatn',Tahoma,sans-serif;font-size:1.05em;line-height:1.7;color:#fff;background:rgba(0,0,0,.62)}
+.stage:fullscreen{aspect-ratio:auto;border:0;border-radius:0;width:100vw;height:100vh}
+.stage:-webkit-full-screen{aspect-ratio:auto;border:0;border-radius:0;width:100vw;height:100vh}
+.stage.idle{cursor:none}
+.vph{flex-direction:column;gap:6px;color:#CDB9A6;background:radial-gradient(ellipse at 50% 30%,#14282A,#050b0b 75%)}
+.vph svg{color:#C9A25A;opacity:.9;margin-bottom:6px;max-width:70%;height:auto}
+.vph b{color:#F0E4D2;font-size:17px}
+.vph span{font-size:13px;max-width:34ch;line-height:1.8}
+.rl{transform-origin:center;transform-box:fill-box;animation:spin 14s linear infinite}
+.rl.r2{animation-duration:11s;animation-direction:reverse}
+
+.bigplay{position:absolute;left:50%;top:50%;width:78px;height:78px;margin:-39px 0 0 -39px;border-radius:50%;border:2px solid #C9A25A;background:rgba(7,18,17,.7);color:#E7C47E;font-size:34px;display:flex;align-items:center;justify-content:center;z-index:4;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);transition:transform .25s,opacity .25s,background .2s;animation:ring 2.4s ease-out infinite}
+.bigplay .ic{margin-inline-start:4px}
+.bigplay:hover{background:rgba(201,162,90,.9);color:#0D1B1A}
+.stage.playing .bigplay,.stage.noSrc .bigplay{opacity:0;pointer-events:none;transform:scale(1.35);animation:none}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(201,162,90,.45)}100%{box-shadow:0 0 0 26px rgba(201,162,90,0)}}
+
+.spin{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;border:3px solid rgba(240,228,210,.18);border-top-color:#E7C47E;animation:rot .9s linear infinite;z-index:2;pointer-events:none}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+.ctl{position:absolute;left:0;right:0;bottom:0;padding:34px 12px 8px;background:linear-gradient(0deg,rgba(5,11,11,.94),rgba(5,11,11,.55) 55%,transparent);direction:ltr;color:#F0E4D2;transition:opacity .25s;z-index:3;pointer-events:none}
+.ctl .seek,.ctl .crow{pointer-events:auto}
+.stage.noSrc .ctl{opacity:.35}
+.stage.noSrc .ctl *,.stage.idle .ctl *{pointer-events:none}
+.stage.idle .ctl{opacity:0}
+.crow{display:flex;align-items:center;gap:2px}
+.cb{background:none;border:0;color:#F0E4D2;width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;padding:0;transition:background .15s,color .15s,transform .15s}
+.cb .ic{width:1em;height:1em;margin:0;vertical-align:0}
+.cb:hover{background:rgba(201,162,90,.22);color:#E7C47E}
+.cb:active{transform:scale(.9)}
+.cb.txt{width:auto;padding:0 11px;border-radius:20px;font-size:13px;font-weight:700;font-family:'Vazirmatn',Tahoma,sans-serif}
+.sp{flex:1}
+.time{font-size:12.5px;color:#D5C2AE;margin:0 8px;white-space:nowrap;direction:rtl;unicode-bidi:isolate}
+.vol{display:flex;align-items:center}
+.vol input[type=range]{width:0;opacity:0;padding:0;border:0;background:none;height:20px;accent-color:#C9A25A;transition:width .2s,opacity .2s,margin .2s;margin:0}
+.vol:hover input[type=range],.vol:focus-within input[type=range]{width:78px;opacity:1;margin:0 8px 0 2px}
+@media(max-width:600px){.bigplay{width:64px;height:64px;margin:-32px 0 0 -32px;font-size:28px}.vol input[type=range]{display:none}.cb{width:36px;height:36px;font-size:20px}.time{margin:0 4px;font-size:11.5px}}
+
+.seek{position:relative;height:20px;cursor:pointer;touch-action:none;display:block;margin-bottom:2px}
+.seek::before,.buf,.played{content:"";position:absolute;left:0;top:50%;height:4px;margin-top:-2px;border-radius:3px;pointer-events:none;transition:height .15s,margin .15s}
+.seek::before{right:0;background:rgba(240,228,210,.22)}
+.buf{width:0;background:rgba(240,228,210,.3)}
+.played{width:0;background:linear-gradient(90deg,#9C7B3A,#E7C47E)}
+.seek:hover::before,.seek:hover .buf,.seek:hover .played,.seek.drag::before,.seek.drag .buf,.seek.drag .played{height:7px;margin-top:-3.5px}
+.knob{position:absolute;left:0;top:50%;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;border-radius:50%;background:#E7C47E;box-shadow:0 0 0 5px rgba(201,162,90,.25);transform:scale(0);transition:transform .15s;pointer-events:none}
+.seek:hover .knob,.seek.drag .knob,.seek:focus-visible .knob{transform:scale(1)}
+.tip{position:absolute;bottom:24px;left:0;transform:translateX(-50%);background:#071211;border:1px solid #27413F;border-radius:6px;padding:0 8px;font-size:12px;opacity:0;pointer-events:none;color:#F0E4D2;direction:rtl}
+.seek:hover .tip,.seek.drag .tip{opacity:1}
+
+.popw{position:relative}
+.pop{position:absolute;bottom:48px;right:0;min-width:178px;background:rgba(7,18,17,.97);border:1px solid #27413F;border-radius:12px;padding:6px;z-index:6;direction:rtl;font-size:13px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.pop button{display:flex;width:100%;justify-content:space-between;align-items:center;background:none;border:0;color:#F0E4D2;padding:8px 10px;border-radius:7px;text-align:right;gap:10px}
+.pop button:hover{background:rgba(201,162,90,.2)}
+.pop button[aria-checked="true"]{color:#E7C47E;font-weight:700}
+.pop button[aria-checked="true"]::after{content:"✓"}
+.pop .ccs{padding:4px 10px 6px;font-size:12px;color:#A9B3A5}
+
+.reactLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}
+.flt{position:absolute;bottom:74px;width:44px;text-align:center;animation:floatUp 2.8s ease-out forwards;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+.flt .ic{width:42px;height:42px}
+.flt small{display:block;font-size:11px;color:#F0E4D2;text-shadow:0 1px 4px #000;white-space:nowrap;margin:0 -20px}
+@keyframes floatUp{0%{transform:translate(0,0) scale(.3);opacity:0}10%{opacity:1;transform:translate(0,-16px) scale(1.15)}100%{transform:translate(var(--dx,0),-250px) scale(.9);opacity:0}}
+.reacts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.rx{background:var(--panel);border:1px solid var(--line);border-radius:50%;width:48px;height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:transform .18s,border-color .18s,box-shadow .18s}
+.rx .ic{width:28px;height:28px}
+.rx:hover{transform:translateY(-4px) scale(1.08);border-color:var(--gold);box-shadow:0 8px 18px rgba(0,0,0,.35)}
+.rx:active{transform:scale(.88)}
+
+.fsmsg{position:absolute;left:14px;bottom:92px;display:flex;flex-direction:column;gap:6px;z-index:4;pointer-events:none;direction:rtl;max-width:70%}
+.fsm{background:rgba(7,18,17,.78);border:1px solid rgba(201,162,90,.4);color:#F0E4D2;border-radius:14px;padding:5px 12px;font-size:14px;animation:rise .3s both;width:fit-content;max-width:100%}
+.fsm b{color:#E7C47E;margin-inline-end:6px}
+.skipfx{position:absolute;top:50%;margin-top:-34px;width:68px;height:68px;border-radius:50%;background:rgba(7,18,17,.7);border:1px solid #C9A25A;color:#E7C47E;display:flex;align-items:center;justify-content:center;font-size:30px;z-index:4;pointer-events:none;animation:skipf .6s ease-out forwards}
+.skipfx .ic{width:1em;height:1em;margin:0}
+@keyframes skipf{0%{opacity:0;transform:scale(.6)}30%{opacity:1}100%{opacity:0;transform:scale(1.25)}}
+
+.cdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,11,11,.72);color:#E7C47E;z-index:5}
+.cdown svg{animation:pulseN 1s ease-out infinite}
+@keyframes pulseN{0%{transform:scale(1.18);opacity:.3}25%{opacity:1}100%{transform:scale(1)}}
+
+.pres{display:flex;align-items:flex-start;justify-content:center;margin-bottom:6px}
+.pe{display:flex;flex-direction:column;align-items:center;gap:5px;width:92px;font-size:12.5px;color:var(--ink);transition:opacity .3s}
+.pe span{max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pe i{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:22px;background:var(--gold);color:var(--on-gold);border:2px solid var(--gold);box-shadow:0 0 0 5px rgba(201,162,90,.16);transition:all .3s}
+.pe.you i{background:var(--strip);color:#F0E4D2;border-color:#4C7A70;box-shadow:0 0 0 5px rgba(76,122,112,.2)}
+.pe.off{color:var(--mute)}
+.pe.off i{background:none;color:var(--mute);border:2px dashed var(--line);box-shadow:none}
+.link{flex:1;max-width:88px;height:2px;margin-top:26px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 12px);transition:all .4s}
+.link.on{background:linear-gradient(90deg,var(--gold),#E7C47E,var(--gold));background-size:200% 100%;box-shadow:0 0 12px rgba(201,162,90,.6);animation:flow 2.5s linear infinite}
+@keyframes flow{to{background-position:-200% 0}}
+.rstat{justify-content:center;margin:8px 0 12px;flex-wrap:wrap}
+.ping{font-size:11.5px;border-radius:12px;padding:0 9px;border:1px solid var(--line);color:var(--mute)}
+.ping.g{color:#6FCF97;border-color:#6FCF97}.ping.m{color:#E7C47E;border-color:#E7C47E}.ping.b{color:var(--danger);border-color:var(--danger)}
+.invite{margin-top:14px;padding:12px;border:1px dashed var(--gold);border-radius:10px;background:rgba(201,162,90,.06)}
+.invite .code{font-family:ui-monospace,Consolas,monospace;font-size:19px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-align:center;padding:8px 0;user-select:all;-webkit-user-select:all;word-break:break-all}
+.invite .rrow .btn{flex:1;padding:8px 6px;font-size:13px}
+
+.rside #chLog{height:300px;margin-bottom:10px;display:flex;flex-direction:column;gap:2px;padding:10px}
+@media(max-width:979px){.rside #chLog{height:220px}}
+#chLog .m{display:flex;flex-direction:column;gap:1px;max-width:86%;width:fit-content;padding:6px 11px;border-radius:14px;border:1px solid var(--line);background:var(--bg);margin:3px 0;word-break:break-word;animation:rise .25s both}
+#chLog .m.me{background:var(--gold);color:var(--on-gold);border-color:var(--gold);border-start-end-radius:4px}
+#chLog .m.you{margin-inline-start:auto;border-start-start-radius:4px}
+#chLog .m b{font-size:12px}
+#chLog .m time{font-size:10.5px;opacity:.65;align-self:flex-end}
+#chLog .sys{text-align:center;margin:4px 0}
+.typing{display:inline-flex;gap:3px}
+.typing i{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+.tools2 .btn{flex:1 1 auto;font-size:13.5px}
+.tools2 .btn[aria-pressed="true"]{background:var(--gold);color:var(--on-gold);border-color:var(--gold);font-weight:700}
+
+body.cinema main::before{content:"";position:fixed;inset:0;background:rgba(2,6,6,.9);z-index:0;pointer-events:none}
+body.cinema #room{position:relative;z-index:1}
+body.cinema .fx{opacity:.25}
+
+@media(prefers-reduced-motion:reduce){.rl,.bigplay,.link.on,.spin,.cdown svg,.typing i,.fsm,#chLog .m{animation:none}.flt{animation-duration:.01s}}
+
+/* ================= پوستر خودکار ================= */
+.pxg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+@media(min-width:480px){.pxg{grid-template-columns:repeat(4,1fr)}}
+.pxg button{background:none;border:1px solid var(--line);border-radius:6px;padding:4px;text-align:center;font-size:11px;color:var(--mute);transition:border-color .15s,transform .15s}
+.pxg button:hover{border-color:var(--gold);transform:translateY(-2px)}
+.pxg img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:4px;display:block;margin-bottom:4px;background:var(--panel)}
+.pxg .none{grid-column:1/-1;color:var(--mute);font-size:13px;padding:6px 0}
+
+/* دکمهٔ افزودن همیشه روی محتوا */
+.fab{z-index:8}
+
+.pop{max-height:calc(100% - 64px);overflow:auto;white-space:nowrap}
+.pop button{padding:6px 10px}
+.stage:not(.fs) .pop{bottom:44px}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<!-- آیکون‌های خطی (ست اختصاصی Saleh Gharaie) -->
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7.5 5.8v12.4c0 .9 1 1.4 1.7.9l9.4-6.2c.6-.4.6-1.3 0-1.7L9.2 4.9c-.7-.5-1.7 0-1.7.9z" fill="currentColor"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4.2" height="14" rx="1.5" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.5" fill="currentColor"/></symbol>
+<symbol id="i-back10" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.42 9.2A7.6 7.6 0 1 0 12 5.4"/><path d="M14.4 3.1 11.7 5.4l2.7 2.3"/></g><text x="12" y="15.7" text-anchor="middle" font-size="7.6" font-weight="800" fill="currentColor" font-family="Vazirmatn,Tahoma,sans-serif">۱۰</text></symbol>
+<symbol id="i-fwd10" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="matrix(-1 0 0 1 24 0)"><path d="M5.42 9.2A7.6 7.6 0 1 0 12 5.4"/><path d="M14.4 3.1 11.7 5.4l2.7 2.3"/></g><text x="12" y="15.7" text-anchor="middle" font-size="7.6" font-weight="800" fill="currentColor" font-family="Vazirmatn,Tahoma,sans-serif">۱۰</text></symbol>
+<symbol id="i-vol" viewBox="0 0 24 24"><path d="M3.8 9.6v4.8h3.3l4.7 3.9V5.7L7.1 9.6z" fill="currentColor"/><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M15.4 9.2a4.2 4.2 0 0 1 0 5.6"/><path d="M18.1 6.6a7.8 7.8 0 0 1 0 10.8"/></g></symbol>
+<symbol id="i-mute" viewBox="0 0 24 24"><path d="M3.8 9.6v4.8h3.3l4.7 3.9V5.7L7.1 9.6z" fill="currentColor"/><path d="M15.6 9.6l5 4.8m0-4.8-5 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="i-full" viewBox="0 0 24 24"><path d="M4 9V5.8A1.8 1.8 0 0 1 5.8 4H9M15 4h3.2A1.8 1.8 0 0 1 20 5.8V9M20 15v3.2a1.8 1.8 0 0 1-1.8 1.8H15M9 20H5.8A1.8 1.8 0 0 1 4 18.2V15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-exitfull" viewBox="0 0 24 24"><path d="M9 4v3.2A1.8 1.8 0 0 1 7.2 9H4M20 9h-3.2A1.8 1.8 0 0 1 15 7.2V4M15 20v-3.2a1.8 1.8 0 0 1 1.8-1.8H20M4 15h3.2A1.8 1.8 0 0 1 9 16.8V20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-cc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3.4"/><path d="M10.6 10.3a2.1 2.1 0 1 0 0 3.4M17 10.3a2.1 2.1 0 1 0 0 3.4"/></g></symbol>
+<symbol id="i-speed" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 17a8.2 8.2 0 1 1 14.8 0"/><path d="M12 14.2l3.6-4.6"/></g><circle cx="12" cy="14.4" r="1.6" fill="currentColor"/></symbol>
+<symbol id="i-sync" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.2 9A7.6 7.6 0 0 0 5.8 7.2M5 3.8v3.6h3.6"/><path d="M4.8 15a7.6 7.6 0 0 0 13.4 1.8M19 20.2v-3.6h-3.6"/></g></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="3"/><path d="M15.5 8.5V6.6A2.6 2.6 0 0 0 12.9 4H6.6A2.6 2.6 0 0 0 4 6.6v6.3a2.6 2.6 0 0 0 2.6 2.6h1.9"/></g></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></g></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="12" r="2.6"/><circle cx="17.5" cy="6" r="2.6"/><circle cx="17.5" cy="18" r="2.6"/><path d="M8.8 10.8l6.4-3.6M8.8 13.2l6.4 3.6"/></g></symbol>
+<symbol id="i-leave" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H6.8A2.8 2.8 0 0 0 4 6.8v10.4A2.8 2.8 0 0 0 6.8 20H10"/><path d="M15 8l4 4-4 4M19 12H9.5"/></g></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10.2 13.8"/><path d="M21 3l-6.8 18-4-7.2L3 9.8z"/></g></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.4" r="3.3"/><path d="M2.8 19.2c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><circle cx="17.2" cy="9.4" r="2.5"/><path d="M16.6 14c.5-.1 1-.2 1.6-.2 2.4 0 3.9 1.6 3.9 4.4"/></g></symbol>
+<symbol id="i-film" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="2.6"/><path d="M8 4v16M16 4v16M3.5 9h4.5M3.5 15h4.5M16 9h4.5M16 15h4.5"/></g></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7.2L19 8.3V19a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M13.5 3v4.2a1 1 0 0 0 1 1H19"/></g><path d="M10 11.8v5l4-2.5z" fill="currentColor"/></symbol>
+<symbol id="i-clap" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="10" width="17" height="10" rx="2.2"/><path d="M3.9 10 3 6.6l15.3-3.3.9 3.3L3.9 10z"/><path d="M8 7.6l2.2 2.1M12.4 6.7l2.2 2.1M16.6 5.8l2.1 2"/></g></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M14.6 3.2a9 9 0 1 0 6.2 14.5A7.3 7.3 0 0 1 14.6 3.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17.6 5.4l.4 1.2 1.2.4-1.2.4-.4 1.2-.4-1.2-1.2-.4 1.2-.4z" fill="currentColor"/></symbol>
+<symbol id="i-dice" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.8" y="3.8" width="16.4" height="16.4" rx="4.2"/></g><g fill="currentColor"><circle cx="8.6" cy="8.6" r="1.4"/><circle cx="15.4" cy="8.6" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="8.6" cy="15.4" r="1.4"/><circle cx="15.4" cy="15.4" r="1.4"/></g></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="6.6"/><path d="M15.8 15.8 20.4 20.4"/></g></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M4 16.5l4.6-4.4a1.6 1.6 0 0 1 2.2 0l3 2.9 1.6-1.5a1.6 1.6 0 0 1 2.2 0l2.4 2.3"/></g><circle cx="15.8" cy="9.2" r="1.5" fill="currentColor"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.6l4.4 4.4L19 7.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+
+<!-- واکنش‌های رنگی -->
+<symbol id="r-heart" viewBox="0 0 32 32"><path d="M16 28.2C6.2 21.4 3 15.8 3 11.4 3 7.6 5.9 5 9.3 5c2.8 0 5 1.6 6.7 4.1C17.7 6.6 19.9 5 22.7 5 26.1 5 29 7.6 29 11.4c0 4.4-3.2 10-13 16.8z" fill="#E5736A"/><path d="M8.6 9.4c-1.7.4-2.7 1.8-2.7 3.5" fill="none" stroke="#F6B1AB" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="r-laugh" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#D9B36B"/><path d="M9.4 13.6q2.3-2.8 4.6 0M18 13.6q2.3-2.8 4.6 0" fill="none" stroke="#0D1B1A" stroke-width="1.9" stroke-linecap="round"/><path d="M8.8 18.2h14.4c0 4.5-3.2 7.3-7.2 7.3s-7.2-2.8-7.2-7.3z" fill="#0D1B1A"/><path d="M12 22.6c1-1.1 2.3-1.7 4-1.7s3 .6 4 1.7c-1 1.4-2.3 2.2-4 2.2s-3-.8-4-2.2z" fill="#E5736A"/></symbol>
+<symbol id="r-wow" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#D9B36B"/><circle cx="11.4" cy="13" r="2.1" fill="#0D1B1A"/><circle cx="20.6" cy="13" r="2.1" fill="#0D1B1A"/><path d="M8.6 8.8q2.6-1.6 5 0M18.4 8.8q2.4-1.6 5 0" fill="none" stroke="#0D1B1A" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="16" cy="21.6" rx="3.1" ry="3.9" fill="#0D1B1A"/></symbol>
+<symbol id="r-sad" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#D9B36B"/><circle cx="11.2" cy="13.4" r="1.9" fill="#0D1B1A"/><circle cx="20.8" cy="13.4" r="1.9" fill="#0D1B1A"/><path d="M10.4 23q5.6-5.2 11.2 0" fill="none" stroke="#0D1B1A" stroke-width="1.9" stroke-linecap="round"/><path d="M22.6 16.6c1.2 1.8 1.9 3.1 1.9 4.1a1.9 1.9 0 0 1-3.8 0c0-1 .7-2.3 1.9-4.1z" fill="#7CC4E8"/></symbol>
+<symbol id="r-flame" viewBox="0 0 32 32"><path d="M16.4 2.8c.9 4.8 6.6 7.6 6.6 14.5a7 7 0 0 1-14 0c0-3 1.4-4.9 3-6.3.3 2.1 1.2 3.2 2.3 3.6-.6-4.2-.2-8.7 2.1-11.8z" fill="#F08A3C"/><path d="M16 15.2c1.6 2.3 3.4 3.6 3.4 6.1a3.4 3.4 0 0 1-6.8 0c0-1.7 1.3-2.8 1.9-3.8.6.9 1 1.3 1.5 1.7z" fill="#F7D56B"/></symbol>
+<symbol id="r-star" viewBox="0 0 32 32"><path d="M16 3.4l3.8 7.7 8.4 1.2-6.1 6 1.4 8.4-7.5-4-7.5 4 1.4-8.4-6.1-6 8.4-1.2z" fill="#E7C47E" stroke="#C9A25A" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+</defs></svg>
 
 <div class="fx" aria-hidden="true">
   <svg class="obj o1" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2"><circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="8"/><g fill="currentColor"><circle cx="50" cy="22" r="9"/><circle cx="74" cy="36" r="9"/><circle cx="74" cy="64" r="9"/><circle cx="50" cy="78" r="9"/><circle cx="26" cy="64" r="9"/><circle cx="26" cy="36" r="9"/></g></svg>
@@ -260,7 +451,7 @@ main,.reel{position:relative;z-index:1}
       <option value="year">سال ساخت</option>
       <option value="title">نام فیلم</option>
     </select>
-    <div class="advrow"><button class="btn" id="advBtn" type="button">فیلتر پیشرفته ▾</button><button class="btn primary" id="rndBtn" type="button">🎲 پیشنهاد تصادفی از فهرست انتظار</button></div>
+    <div class="advrow"><button class="btn" id="advBtn" type="button">فیلتر پیشرفته ▾</button><button class="btn primary" id="rndBtn" type="button"><svg class="ic"><use href="#i-dice"/></svg>پیشنهاد تصادفی از فهرست انتظار</button></div>
     <div id="adv" class="advp" hidden>
       <input id="aDir" placeholder="کارگردان"><input id="aCast" placeholder="بازیگر">
       <select id="aCountry" aria-label="کشور"></select>
@@ -274,17 +465,97 @@ main,.reel{position:relative;z-index:1}
   <section id="dash" class="view"></section>
   <section id="diary" class="view" hidden></section>
   <section id="room" class="view" hidden>
-    <h2 class="sec">اتاق تماشای دونفره</h2>
-    <div class="stage"><video id="rv" controls playsinline preload="metadata"></video><div class="vph" id="vph">لینک مستقیم فیلم (mp4 یا webm) را وارد کن و «پخش» را بزن.</div></div>
-    <div class="rstat"><i id="dot"></i><span id="rst">آفلاین</span></div>
-    <div class="rrow"><input id="rName" placeholder="نام شما" maxlength="24" autocomplete="off"></div>
-    <div class="rrow"><input id="rUrl" dir="ltr" placeholder="https://…/movie.mp4" autocomplete="off"><button class="btn primary" id="rLoad" type="button">پخش</button></div>
-    <div class="rrow"><button class="btn" id="rHost" type="button">ساخت اتاق</button><input id="rCode" dir="ltr" placeholder="کد اتاق دوست" autocomplete="off"><button class="btn" id="rJoin" type="button">ورود</button><button class="btn danger" id="rLeave" type="button" hidden>خروج</button></div>
-    <div class="hint" id="rInfo" hidden></div>
-    <h2 class="sec">گفتگو</h2>
-    <div id="chLog" aria-live="polite"></div>
-    <div class="rrow"><input id="chIn" maxlength="300" placeholder="پیام…" autocomplete="off"><button class="btn" id="chSend" type="button">ارسال</button></div>
-    <p class="hint">یک نفر اتاق می‌سازد و کد را به دیگری می‌دهد. هر دو نفر می‌توانند پخش، توقف و جلو و عقب بردن را کنترل کنند و همگام می‌شود. ویدئو از هیچ سروری رد نمی‌شود؛ هر نفر مستقیم از لینک می‌بیند، پس لینک باید برای هر دو باز شود. لینک http روی صفحهٔ https یا لینکی که دانلودش محدود است پخش نمی‌شود. اتصال از سرویس رایگان PeerJS استفاده می‌کند و گاهی بدون فیلترشکن یا روی شبکه‌های سخت‌گیر برقرار نمی‌شود.</p>
+    <h2 class="sec"><svg class="ic"><use href="#i-users"/></svg> اتاق تماشای دونفره</h2>
+    <div class="rgrid">
+      <div class="rmain">
+        <div class="stage noSrc" id="stage">
+          <video id="rv" playsinline preload="metadata"></video>
+          <div class="vph" id="vph">
+            <svg viewBox="0 0 240 130" width="230" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M152 79 232 28v102z" fill="currentColor" opacity=".07" stroke="none"/>
+              <path d="M152 79 232 28M152 79l80 51" opacity=".4" stroke-dasharray="3 6"/>
+              <g class="rl"><circle cx="62" cy="34" r="22"/><circle cx="62" cy="34" r="4" fill="currentColor" stroke="none"/><g fill="currentColor" stroke="none"><circle cx="62" cy="21" r="4.2"/><circle cx="73.3" cy="27.5" r="4.2"/><circle cx="73.3" cy="40.5" r="4.2"/><circle cx="62" cy="47" r="4.2"/><circle cx="50.7" cy="40.5" r="4.2"/><circle cx="50.7" cy="27.5" r="4.2"/></g></g>
+              <g class="rl r2"><circle cx="108" cy="34" r="22"/><circle cx="108" cy="34" r="4" fill="currentColor" stroke="none"/><g fill="currentColor" stroke="none"><circle cx="108" cy="21" r="4.2"/><circle cx="119.3" cy="27.5" r="4.2"/><circle cx="119.3" cy="40.5" r="4.2"/><circle cx="108" cy="47" r="4.2"/><circle cx="96.7" cy="40.5" r="4.2"/><circle cx="96.7" cy="27.5" r="4.2"/></g></g>
+              <rect x="30" y="58" width="108" height="42" rx="9"/>
+              <circle cx="62" cy="79" r="8"/><circle cx="62" cy="79" r="2.2" fill="currentColor" stroke="none"/>
+              <path d="M92 72h30M92 80h22M92 88h26" opacity=".55"/>
+              <path d="M138 69h9a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5h-9"/>
+              <path d="M52 100v10M116 100v10M42 110h20M106 110h20"/>
+            </svg>
+            <b>سینمای خصوصی شما دو نفر</b>
+            <span>لینک مستقیم فیلم را بگذار، یا فایل را از دستگاه خودت انتخاب کن.</span>
+          </div>
+          <div class="reactLayer" id="reactLayer"></div>
+          <div class="fsmsg" id="fsmsg"></div>
+          <div class="cdown" id="cdown" hidden>
+            <svg viewBox="0 0 200 200" width="190" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="100" cy="100" r="84"/><circle cx="100" cy="100" r="66" stroke-width="1" opacity=".6"/><path d="M100 6v50M100 144v50M6 100h50M144 100h50" opacity=".7"/><text id="cdNum" x="100" y="128" text-anchor="middle" font-size="84" font-weight="900" fill="currentColor" stroke="none" font-family="Vazirmatn,Tahoma,sans-serif">۳</text></svg>
+          </div>
+          <div class="spin" id="spin" hidden></div>
+          <button class="bigplay" id="bigPlay" type="button" aria-label="پخش"><svg class="ic"><use href="#i-play"/></svg></button>
+          <div class="ctl" id="ctl">
+            <div class="seek" id="seek" role="slider" tabindex="0" aria-label="جلو و عقب بردن" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="buf" id="sBuf"></div><div class="played" id="sPlayed"></div><div class="knob" id="sKnob"></div><div class="tip" id="sTip">۰:۰۰</div>
+            </div>
+            <div class="crow">
+              <button class="cb" id="cPlay" type="button" aria-label="پخش / توقف"><svg class="ic"><use id="cPlayI" href="#i-play"/></svg></button>
+              <button class="cb" id="cBack" type="button" aria-label="۱۰ ثانیه عقب"><svg class="ic"><use href="#i-back10"/></svg></button>
+              <button class="cb" id="cFwd" type="button" aria-label="۱۰ ثانیه جلو"><svg class="ic"><use href="#i-fwd10"/></svg></button>
+              <div class="vol"><button class="cb" id="cMute" type="button" aria-label="قطع / وصل صدا"><svg class="ic"><use id="cMuteI" href="#i-vol"/></svg></button><input type="range" id="cVol" min="0" max="1" step="0.02" value="1" aria-label="میزان صدا"></div>
+              <span class="time" id="cTime">۰:۰۰ / ۰:۰۰</span>
+              <span class="sp"></span>
+              <div class="popw"><button class="cb txt" id="cSpd" type="button" aria-label="سرعت پخش">۱×</button><div class="pop" id="spdPop" hidden></div></div>
+              <div class="popw"><button class="cb" id="cCc" type="button" aria-label="زیرنویس"><svg class="ic"><use href="#i-cc"/></svg></button>
+                <div class="pop" id="ccPop" hidden>
+                  <button type="button" id="ccLoad">انتخاب فایل زیرنویس…</button>
+                  <button type="button" id="ccTog" role="menuitemcheckbox" aria-checked="false">نمایش زیرنویس</button>
+                  <button type="button" id="ccM">زیرنویس ۰٫۵ ثانیه زودتر</button>
+                  <button type="button" id="ccP">زیرنویس ۰٫۵ ثانیه دیرتر</button>
+                  <div class="ccs" id="ccShift"></div>
+                </div></div>
+              <button class="cb" id="cFull" type="button" aria-label="تمام‌صفحه"><svg class="ic"><use id="cFullI" href="#i-full"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="reacts" id="reacts" aria-label="واکنش سریع"></div>
+
+        <div class="rbox">
+          <div class="rrow"><input id="rUrl" dir="ltr" placeholder="https://…/movie.mp4" autocomplete="off"><button class="btn primary" id="rLoad" type="button"><svg class="ic"><use href="#i-play"/></svg>پخش</button></div>
+          <div class="rrow"><button class="btn" id="rFileBtn" type="button"><svg class="ic"><use href="#i-file"/></svg>انتخاب فایل از دستگاه</button><span class="chip" id="rFileName" hidden></span><input type="file" id="rFile" accept="video/*,.mkv,.mp4,.webm,.mov" hidden><input type="file" id="rSub" accept=".srt,.vtt,text/vtt" hidden></div>
+          <div class="rrow tools2">
+            <button class="btn" id="rCount" type="button"><svg class="ic"><use href="#i-clap"/></svg>شروع هم‌زمان ۳-۲-۱</button>
+            <button class="btn" id="rSync" type="button"><svg class="ic"><use href="#i-sync"/></svg>برو به نقطهٔ او</button>
+            <button class="btn" id="rCinema" type="button" aria-pressed="false"><svg class="ic"><use href="#i-moon"/></svg>حالت سینما</button>
+          </div>
+          <div class="hint">با فایل دستگاه، هر دو نفر باید <b>همان فایل</b> را انتخاب کنید؛ فقط زمان پخش همگام می‌شود، نه خود فیلم. میان‌برها: فاصله = پخش/توقف، ← → = ۱۰ ثانیه، ↑ ↓ = صدا، F = تمام‌صفحه، M = بی‌صدا. روی ویدئو دوبار بزن: کنار چپ/راست ۱۰ ثانیه، وسط تمام‌صفحه.</div>
+        </div>
+      </div>
+
+      <aside class="rside">
+        <div class="rbox">
+          <div class="pres">
+            <div class="pe me"><i id="peMeI">م</i><span id="peMeN">من</span></div>
+            <div class="link" id="peLink"></div>
+            <div class="pe you off" id="peYou"><i id="peYouI">؟</i><span id="peYouN">منتظر…</span></div>
+          </div>
+          <div class="rstat"><i id="dot"></i><span id="rst">آفلاین</span><span class="ping" id="ping" hidden></span></div>
+          <div class="rrow"><input id="rName" placeholder="نام شما" maxlength="24" autocomplete="off"></div>
+          <div class="rrow"><button class="btn primary" id="rHost" type="button" style="flex:1"><svg class="ic"><use href="#i-film"/></svg>ساخت اتاق</button><button class="btn danger" id="rLeave" type="button" hidden><svg class="ic"><use href="#i-leave"/></svg>خروج</button></div>
+          <div class="rrow"><input id="rCode" dir="ltr" placeholder="کد اتاق دوست" autocomplete="off"><button class="btn" id="rJoin" type="button">ورود</button></div>
+          <div class="invite" id="rInfo" hidden>
+            <span class="lbl">کد اتاق (برای دوستت بفرست)</span>
+            <div class="code" id="rCodeShow" dir="ltr"></div>
+            <div class="rrow"><button class="btn" id="rCopyCode" type="button"><svg class="ic"><use href="#i-copy"/></svg>کپی کد</button><button class="btn" id="rCopyLink" type="button"><svg class="ic"><use href="#i-link"/></svg>کپی لینک</button><button class="btn" id="rShare" type="button"><svg class="ic"><use href="#i-share"/></svg>ارسال</button></div>
+          </div>
+        </div>
+        <div class="rbox chatbox">
+          <div class="rbh">گفتگو <span class="typing" id="typing" hidden><i></i><i></i><i></i></span></div>
+          <div id="chLog" aria-live="polite"></div>
+          <div class="rrow"><input id="chIn" maxlength="300" placeholder="پیام…" autocomplete="off"><button class="btn primary" id="chSend" type="button" aria-label="ارسال"><svg class="ic flipx"><use href="#i-send"/></svg></button></div>
+        </div>
+      </aside>
+    </div>
+    <p class="hint">یک نفر اتاق می‌سازد و کد (یا لینک) را به دیگری می‌دهد. هر دو نفر می‌توانند پخش، توقف و جلو و عقب بردن را کنترل کنند و همگام می‌شود. ویدئو از هیچ سروری رد نمی‌شود؛ هر نفر مستقیم از لینک (یا فایل خودش) می‌بیند. لینک http روی صفحهٔ https یا لینکی که دانلودش محدود است پخش نمی‌شود. اتصال از سرویس رایگان PeerJS استفاده می‌کند و گاهی بدون فیلترشکن یا روی شبکه‌های سخت‌گیر برقرار نمی‌شود.</p>
   </section>
 
   <section class="backup">
@@ -305,7 +576,10 @@ main,.reel{position:relative;z-index:1}
       <input type="file" id="importFile" accept=".json,application/json" hidden>
     </div>
   </section>
-<section class="backup"><b>اتصال به TMDB (اطلاعات و پوستر خودکار)</b><br>کلید API رایگان را از themoviedb.org/settings/api بگیر. کلید فقط در مرورگر خودت ذخیره می‌شود؛ در فایل پشتیبان و کد سایت نیست.
+<section class="backup"><b>پوستر خودکار (بدون نیاز به کلید)</b><br>پوستر را از iTunes و ویکی‌پدیا پیدا می‌کند و برای همهٔ فیلم‌های بدون پوستر می‌گذارد؛ بعد از وارد کردن فیلم‌ها از Letterboxd یک‌بار بزن. حدود ۳ ثانیه برای هر فیلم طول می‌کشد (سرویس اپل در دقیقه حدود ۲۰ درخواست می‌پذیرد)، هر لحظه می‌توانی متوقفش کنی و صفحه را هم باز بگذار. اگر نشد، فیلترشکن روشن باشد.
+  <div class="row"><button class="btn primary" id="pxAll" type="button">پیدا کردن پوستر برای همهٔ فیلم‌ها</button><button class="btn" id="pxReset" type="button">امتحان دوبارهٔ پیدانشده‌ها</button></div>
+  <div class="hint" id="pxState"></div></section>
+<section class="backup"><b>اتصال به TMDB (اختیاری، فقط اگر کلید داری)</b><br>کلید API رایگان را از themoviedb.org/settings/api بگیر. کلید فقط در مرورگر خودت ذخیره می‌شود؛ در فایل پشتیبان و کد سایت نیست.
   <div class="row"><input id="tmKeyIn" type="password" dir="ltr" placeholder="API Key یا Read Access Token" autocomplete="off"><button class="btn primary" id="tmKeySave" type="button">ذخیره کلید</button><button class="btn" id="tmKeyDel" type="button">حذف کلید</button></div>
   <div class="hint" id="tmState"></div></section>
 <footer class="sig">© Saleh Gharaie — Personal Cinema Archive</footer>
@@ -324,7 +598,7 @@ main,.reel{position:relative;z-index:1}
       </div>
     </div>
 
-    <div class="field"><label for="fTitle">نام فیلم *</label><input id="fTitle" autocomplete="off"><button class="btn" id="tmSearch" type="button" style="margin-top:8px">🔎 پر کردن خودکار از TMDB</button><div id="tmRes"></div></div>
+    <div class="field"><label for="fTitle">نام فیلم *</label><input id="fTitle" autocomplete="off"><button class="btn" id="tmSearch" type="button" style="margin-top:8px"><svg class="ic"><use href="#i-search"/></svg>پر کردن از TMDB (اختیاری)</button><div id="tmRes"></div></div>
     <div class="field"><label for="fDirector">کارگردان</label><input id="fDirector" autocomplete="off"></div>
     <div class="two field"><div><label for="fTitleEn" class="lbl">عنوان اصلی / انگلیسی</label><input id="fTitleEn" dir="ltr" autocomplete="off"></div><div><label for="fCountry" class="lbl">کشور</label><input id="fCountry" autocomplete="off"></div></div>
     <div class="two field"><div><label for="fRuntime" class="lbl">مدت (دقیقه)</label><input id="fRuntime" type="number" inputmode="numeric" min="1" max="1000"></div><div><label for="fCast" class="lbl">بازیگران</label><input id="fCast" autocomplete="off"></div></div>
@@ -360,6 +634,9 @@ main,.reel{position:relative;z-index:1}
           <input type="file" id="posterFile" accept="image/*" hidden>
         </div>
       </div>
+      <div class="rrow"><button class="btn primary" id="pxFind" type="button"><svg class="ic"><use href="#i-search"/></svg>جستجوی خودکار پوستر (بدون کلید)</button></div>
+      <div class="rrow"><input id="pxUrl" dir="ltr" placeholder="یا لینک مستقیم عکس پوستر" autocomplete="off"><button class="btn" id="pxUrlOk" type="button">اعمال</button></div>
+      <div id="pxRes" class="pxg"></div>
       <a class="lbLink" id="lbLink" target="_blank" rel="noopener" hidden>باز کردن صفحه فیلم در Letterboxd</a>
     </div>
 
@@ -399,7 +676,7 @@ function entries(f){ if(f.logs&&f.logs.length) return f.logs; return f.status===
 function allEntries(){ return state.films.flatMap(f=>entries(f).map(e=>({...e,film:f}))).filter(e=>validD(e.date)).sort((a,b)=>b.date.localeCompare(a.date)); }
 function posterOf(f){
   const color = COLORS[[...f.title].reduce((a,c)=>a+c.charCodeAt(0),0) % COLORS.length];
-  return f.poster ? `<img src="${esc(f.poster)}" alt="پوستر ${esc(f.title)}" loading="lazy">` : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
+  return f.poster ? `<img src="${esc(f.poster)}" alt="پوستر ${esc(f.title)}" loading="lazy" referrerpolicy="no-referrer">` : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
 }
 function renderDash(){
   const F=state.films, seen=F.filter(f=>f.status==='seen'), rated=seen.filter(f=>f.rating>0);
@@ -520,7 +797,7 @@ function render(){
   $('grid').innerHTML = list.map((f,i)=>{
     const color = COLORS[[...f.title].reduce((a,c)=>a+c.charCodeAt(0),0) % COLORS.length];
     const poster = f.poster
-      ? `<img src="${esc(f.poster)}" alt="پوستر ${esc(f.title)}" loading="lazy">`
+      ? `<img src="${esc(f.poster)}" alt="پوستر ${esc(f.title)}" loading="lazy" referrerpolicy="no-referrer">`
       : `<div class="ph" style="background:${color}">${esc(f.title)}</div>`;
     const meta = [f.director, f.year ? fa(f.year) : ''].filter(Boolean).join(' - ');
     return `<button class="card" data-id="${f.id}" style="--i:${Math.min(i,20)}">
@@ -552,7 +829,7 @@ function paintStatus(){
 }
 function paintPoster(){
   const p = state.form.poster;
-  $('thumb').style.backgroundImage = p ? `url(${p})` : 'none';
+  $('thumb').style.backgroundImage = p ? `url("${String(p).replace(/"/g,'%22')}")` : 'none';
   $('clearPoster').hidden = !p;
 }
 
@@ -563,7 +840,7 @@ function openSheet(id){
   $('sheetTitle').textContent = f ? 'ویرایش فیلم' : 'فیلم جدید';
   $('fTitle').value = f?.title || '';
   $('fDirector').value = f?.director || '';
-  $('fTitleEn').value = f?.titleEn || ''; $('fCountry').value = f?.country || ''; $('fRuntime').value = f?.runtime || ''; $('fCast').value = f?.cast || ''; $('tmRes').innerHTML = '';
+  $('fTitleEn').value = f?.titleEn || ''; $('fCountry').value = f?.country || ''; $('fRuntime').value = f?.runtime || ''; $('fCast').value = f?.cast || ''; $('tmRes').innerHTML = ''; $('pxRes').innerHTML = ''; $('pxUrl').value = '';
   $('fYear').value = f?.year || '';
   $('fGenre').value = f?.genre || '';
   $('fDate').value = f ? (f.date || '') : todayISO();
@@ -601,14 +878,17 @@ async function submitSheet(){
     logs: seen ? state.form.logs : []
   };
   if(data.logs.length) data.date = data.logs[0].date;
-  if(state.editId){
-    const i = state.films.findIndex(x=>x.id===state.editId);
+  let fid = state.editId;
+  if(fid){
+    const i = state.films.findIndex(x=>x.id===fid);
     state.films[i] = {...state.films[i], ...data};
   }else{
-    state.films.push({ id: newId(), created: Date.now(), ...data });
+    fid = newId();
+    state.films.push({ id: fid, created: Date.now(), ...data });
   }
   closeSheet(); render();
   if(await saveFilms()) toast('ذخیره شد');
+  if(!data.poster) pxAutoOne(fid);
 }
 const newId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
@@ -759,7 +1039,7 @@ async function importLetterboxd(fileList){
       const t = (r.Review||'').replace(/<[^>]+>/g,'').trim();
       if(t && !(f.notes||'').includes(t)) f.notes = f.notes ? f.notes + '\n\n— — —\n\n' + t : t;
       if(r.Rating && !f.rating) f.rating=num(r.Rating); });
-    rows(csvs['likes/films.csv'] ? 'likes/films.csv' : 'films.csv').forEach(r=>{ const f=get(r,'want'); if(f) f.liked=true; });
+    rows(csvs['likes/films.csv'] ? 'likes/films.csv' : 'films.csv').forEach(r=>{ const f=get(r,'seen'); if(f) f.liked=true; });
     rows('watchlist.csv').forEach(r=>{ get(r,'want'); });
 
     state.films.forEach(f=>{
@@ -834,12 +1114,14 @@ function init(){
   $('lbBtn').addEventListener('click', ()=>$('lbFile').click());
   $('lbFile').addEventListener('change', e=>{ if(e.target.files.length) importLetterboxd([...e.target.files]); e.target.value=''; });
 
-  initRoom(); dust(); initPlus();
+  initRoom(); dust(); initPlus(); initPosters();
   kvGet(THEME_KEY).then(t=>{ if(THEMES.includes(t)) theme = t; applyTheme(); });
   loadFilms().then(async list=>{ state.films = list; await loadMeta(); render(); checkBackup(); startAccount(); });
 }
 /* ---------- اتاق تماشای دونفره (PeerJS؛ بارگذاری فقط هنگام نیاز) ---------- */
-const R = { peer:null, conn:null, host:false, mute:0, url:'', pl:null, timer:null };
+const RN_KEY = 'film-archive-rname';
+const R = { peer:null, conn:null, host:false, mute:0, url:'', pl:null, timer:null, ping:null, local:'', localSize:0, blob:'',
+  yourName:'', link:'', pDur:0, durWarn:false, cdT:null, typingT:0, hideT:0, idleT:0, subUrl:'', subOn:false, subShift:0, subLoaded:false, typeHide:0 };
 function loadPeer(){
   if(window.Peer) return Promise.resolve();
   if(R.pl) return R.pl;
@@ -853,56 +1135,256 @@ function loadPeer(){
 }
 const rv = () => $('rv');
 const nm = () => ($('rName').value.trim() || 'من').slice(0,24);
-function rst(t,on){ $('rst').textContent = t; $('dot').className = on ? 'on' : ''; }
+const pd = s => String(s).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const fmtT = t => {
+  if(!isFinite(t) || t < 0) t = 0; t = Math.floor(t);
+  const h = Math.floor(t/3600), m = Math.floor(t%3600/60), s = String(t%60).padStart(2,'0');
+  return pd(h ? `${h}:${String(m).padStart(2,'0')}:${s}` : `${m}:${s}`);
+};
+const ico = (id, name) => $(id).setAttribute('href', '#' + name);
+const inFs = () => (document.fullscreenElement || document.webkitFullscreenElement) === $('stage');
+function rst(t,on){
+  $('rst').textContent = t; $('dot').className = on ? 'on' : '';
+  $('peLink').classList.toggle('on', !!on); $('peYou').classList.toggle('off', !on);
+}
 function rsend(m){ if(R.conn && R.conn.open){ try{ R.conn.send(m); }catch(e){} } }
-function quiet(){ R.mute = Date.now() + 700; }
-function chat(text, cls, name){
-  const d = document.createElement('div'); if(cls) d.className = cls;
-  if(name){ const b = document.createElement('b'); b.textContent = name + ': '; d.appendChild(b); }
-  d.appendChild(document.createTextNode(text));
-  const l = $('chLog'); l.appendChild(d); l.scrollTop = l.scrollHeight;
+function quiet(){ R.mute = Date.now() + 900; }
+function paintPres(){
+  const me = nm(), you = R.yourName;
+  $('peMeI').textContent = [...me][0] || 'م'; $('peMeN').textContent = me;
+  $('peYouI').textContent = you ? [...you][0] : '؟'; $('peYouN').textContent = you || 'منتظر…';
+}
+function chat(text, kind, name){
+  const l = $('chLog'), d = document.createElement('div');
+  if(!kind || kind === 'sys'){ d.className = 'sys'; d.textContent = text; }
+  else{
+    d.className = 'm ' + kind;
+    if(kind === 'you' && name){ const b = document.createElement('b'); b.textContent = name; d.appendChild(b); }
+    const p = document.createElement('span'); p.textContent = text; d.appendChild(p);
+    const t = document.createElement('time'); t.textContent = pd(new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})); d.appendChild(t);
+  }
+  l.appendChild(d); l.scrollTop = l.scrollHeight;
+  if(kind === 'you' && inFs()){
+    const box = $('fsmsg'), f = document.createElement('div'); f.className = 'fsm';
+    const b = document.createElement('b'); b.textContent = name || '؟'; f.appendChild(b); f.appendChild(document.createTextNode(text));
+    box.appendChild(f); while(box.children.length > 3) box.firstChild.remove();
+    setTimeout(()=>f.remove(), 6000);
+  }
+}
+
+/* ----- منبع ویدئو ----- */
+function freeBlob(){ if(R.blob){ try{ URL.revokeObjectURL(R.blob); }catch(e){} R.blob = ''; } }
+function attach(src){
+  const el = rv(); R.durWarn = false; R.pDur = 0;
+  el.src = src; el.load();
+  $('vph').hidden = true; $('stage').classList.remove('noSrc'); uiAll();
 }
 function setSrc(url, fromPeer){
   if(!/^https?:\/\/\S+$/i.test(url)){ toast('لینک باید با http یا https شروع شود'); return; }
-  R.url = url; $('rUrl').value = url; $('vph').hidden = true;
-  const el = rv(); el.src = url; el.load();
+  freeBlob(); R.url = url; R.local = ''; $('rFileName').hidden = true; $('rUrl').value = url;
+  attach(url);
   if(!fromPeer) rsend({t:'src', url});
 }
+function setFile(file){
+  freeBlob(); R.blob = URL.createObjectURL(file); R.url = ''; R.local = file.name; R.localSize = file.size;
+  $('rFileName').textContent = file.name; $('rFileName').hidden = false;
+  attach(R.blob);
+  rsend({t:'file', name:file.name, size:file.size});
+}
+
+/* ----- زیرنویس ----- */
+function toVtt(t){
+  t = t.replace(/^\uFEFF/, '').replace(/\r+/g, '').replace(/\{\\an?\d\}/g, '');
+  if(/^WEBVTT/.test(t)) return t;
+  return 'WEBVTT\n\n' + t.replace(/(\d\d:\d\d:\d\d),(\d{3})/g, '$1.$2');
+}
+async function setSub(file){
+  try{
+    const buf = await file.arrayBuffer(); let txt;
+    try{ txt = new TextDecoder('utf-8', {fatal:true}).decode(buf); }
+    catch(e){ txt = new TextDecoder('windows-1256').decode(buf); }
+    const el = rv();
+    [...el.querySelectorAll('track')].forEach(x=>x.remove());
+    if(R.subUrl) URL.revokeObjectURL(R.subUrl);
+    R.subUrl = URL.createObjectURL(new Blob([toVtt(txt)], {type:'text/vtt'}));
+    const tr = document.createElement('track');
+    tr.kind = 'subtitles'; tr.label = 'زیرنویس'; tr.srclang = 'fa'; tr.src = R.subUrl; tr.default = true;
+    R.subShift = 0; R.subLoaded = false;
+    tr.addEventListener('load', ()=>{ R.subLoaded = true; if(R.subShift) shiftCues(R.subShift); });
+    el.appendChild(tr); tr.track.mode = 'showing'; R.subOn = true; paintCc();
+    toast('زیرنویس بارگذاری شد');
+  }catch(e){ toast('خواندن زیرنویس انجام نشد'); }
+}
+function shiftCues(d){
+  const tr = rv().querySelector('track'); if(!tr || !tr.track.cues) return;
+  for(const c of tr.track.cues){ c.startTime = Math.max(0, c.startTime + d); c.endTime = Math.max(0, c.endTime + d); }
+}
+function shiftSub(d){
+  if(!rv().querySelector('track')){ toast('اول فایل زیرنویس را انتخاب کن'); return; }
+  R.subShift += d; if(R.subLoaded) shiftCues(d); paintCc();
+}
+function paintCc(){
+  const has = !!rv().querySelector('track');
+  $('ccTog').setAttribute('aria-checked', has && R.subOn);
+  const s = R.subShift;
+  $('ccShift').textContent = has ? (s ? `جابه‌جایی فعلی: ${s > 0 ? 'دیرتر' : 'زودتر'} ${pd(Math.abs(s).toFixed(1).replace('.','٫'))} ثانیه` : 'زیرنویس بدون جابه‌جایی') : 'زیرنویسی انتخاب نشده';
+}
+
+/* ----- کنترل‌های سفارشی ----- */
+function uiAll(){ uiTime(); uiPlay(); uiBuf(); uiVol(); }
+function uiTime(){
+  const el = rv(), d = el.duration, t = el.currentTime || 0, pc = isFinite(d) && d > 0 ? Math.min(100, t / d * 100) : 0;
+  if(!$('seek').classList.contains('drag')){ $('sPlayed').style.width = pc + '%'; $('sKnob').style.left = pc + '%'; }
+  $('cTime').textContent = fmtT(t) + ' / ' + fmtT(isFinite(d) ? d : 0);
+  $('seek').setAttribute('aria-valuenow', Math.round(pc));
+}
+function uiPlay(){
+  const el = rv(), playing = !el.paused && !el.ended;
+  $('stage').classList.toggle('playing', playing);
+  ico('cPlayI', playing ? 'i-pause' : 'i-play');
+  $('cPlay').setAttribute('aria-label', playing ? 'توقف' : 'پخش');
+  if(!playing) showCtl(); else kickIdle();
+}
+function uiBuf(){
+  const el = rv(), d = el.duration; let e = 0;
+  try{ for(let i=0;i<el.buffered.length;i++){ if(el.buffered.start(i) <= el.currentTime + .5) e = Math.max(e, el.buffered.end(i)); } }catch(x){}
+  $('sBuf').style.width = isFinite(d) && d > 0 ? Math.min(100, e / d * 100) + '%' : '0';
+}
+function uiVol(){
+  const el = rv(); ico('cMuteI', el.muted || el.volume === 0 ? 'i-mute' : 'i-vol');
+  $('cVol').value = el.muted ? 0 : el.volume;
+}
+function showCtl(){ $('stage').classList.remove('idle'); clearTimeout(R.idleT); }
+function kickIdle(){
+  showCtl();
+  R.idleT = setTimeout(()=>{ const el = rv(); if(!el.paused && !document.querySelector('.pop:not([hidden])')) $('stage').classList.add('idle'); }, 2800);
+}
+function togglePlay(){
+  const el = rv(); if(!el.getAttribute('src')){ toast('اول لینک یا فایل فیلم را بگذار'); return; }
+  if(el.paused || el.ended) el.play().catch(()=>toast('پخش شروع نشد')); else el.pause();
+}
+function skip(d){
+  const el = rv(); if(!el.getAttribute('src')) return;
+  const max = isFinite(el.duration) ? el.duration : Infinity;
+  el.currentTime = Math.max(0, Math.min(max, el.currentTime + d));
+  const f = document.createElement('div'); f.className = 'skipfx'; f.style[d < 0 ? 'left' : 'right'] = '12%';
+  f.innerHTML = `<svg class="ic"><use href="#${d < 0 ? 'i-back10' : 'i-fwd10'}"/></svg>`;
+  $('stage').appendChild(f); setTimeout(()=>f.remove(), 650);
+}
+function toggleFull(){
+  const st = $('stage'), el = rv();
+  if(document.fullscreenElement || document.webkitFullscreenElement){ (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+  const f = st.requestFullscreen || st.webkitRequestFullscreen;
+  if(f) Promise.resolve(f.call(st)).catch(()=>{});
+  else if(el.webkitEnterFullscreen) el.webkitEnterFullscreen();
+}
+function closePops(except){ document.querySelectorAll('.pop').forEach(p=>{ if(p.id !== except) p.hidden = true; }); }
+function togglePop(id){ const p = $(id); const open = p.hidden; closePops(); p.hidden = !open; if(open) showCtl(); else kickIdle(); }
+function initSeek(){
+  const sk = $('seek'); let drag = false, last = 0;
+  const frac = e => { const r = sk.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); };
+  const paint = f => { $('sPlayed').style.width = f*100 + '%'; $('sKnob').style.left = f*100 + '%'; };
+  const hover = e => { const d = rv().duration, f = frac(e); if(!isFinite(d)) return; const t = $('sTip'); t.style.left = f*100 + '%'; t.textContent = fmtT(f * d); };
+  sk.addEventListener('pointermove', e=>{ hover(e); if(drag){ last = frac(e); paint(last); $('cTime').textContent = fmtT(last * rv().duration) + ' / ' + fmtT(rv().duration); } });
+  sk.addEventListener('pointerdown', e=>{ if(!isFinite(rv().duration)) return; drag = true; sk.classList.add('drag'); sk.setPointerCapture(e.pointerId); last = frac(e); paint(last); hover(e); });
+  const end = e=>{ if(!drag) return; drag = false; sk.classList.remove('drag'); rv().currentTime = last * rv().duration; };
+  sk.addEventListener('pointerup', end); sk.addEventListener('pointercancel', ()=>{ drag = false; sk.classList.remove('drag'); uiTime(); });
+  sk.addEventListener('keydown', e=>{ if(e.key === 'ArrowLeft'){ skip(-5); e.preventDefault(); e.stopPropagation(); } else if(e.key === 'ArrowRight'){ skip(5); e.preventDefault(); e.stopPropagation(); } });
+}
+
+/* ----- پیام‌های هم‌رسانی ----- */
 function onMsg(m){
   if(!m || typeof m !== 'object') return;
   const el = rv();
-  if(m.t==='src' && typeof m.url==='string') setSrc(m.url, true);
-  else if(m.t==='chat') chat(String(m.text||'').slice(0,300), '', String(m.name||'؟').slice(0,24));
-  else if(m.t==='hello'){ chat(String(m.name||'؟').slice(0,24) + ' وارد اتاق شد', 'sys'); rst('متصل با ' + String(m.name||'؟').slice(0,24), true); }
-  else if(['play','pause','seek','tick'].includes(m.t) && typeof m.time==='number' && el.readyState>0){
+  if(m.t === 'src' && typeof m.url === 'string') setSrc(m.url, true);
+  else if(m.t === 'file'){ chat(`${R.yourName || 'دوستت'} این فایل را انتخاب کرد: ${String(m.name||'').slice(0,80)} — همان فایل را از دستگاه خودت انتخاب کن.`, 'sys'); }
+  else if(m.t === 'chat'){ $('typing').hidden = true; chat(String(m.text||'').slice(0,300), 'you', String(m.name||'؟').slice(0,24)); }
+  else if(m.t === 'typing'){ $('typing').hidden = false; clearTimeout(R.typeHide); R.typeHide = setTimeout(()=>$('typing').hidden = true, 2500); }
+  else if(m.t === 'hello'){
+    const n = String(m.name||'؟').slice(0,24), first = !R.yourName || R.yourName !== n;
+    R.yourName = n; paintPres(); rst('متصل با ' + n, true);
+    if(!m.re && first) chat(n + ' وارد اتاق شد', 'sys');
+    else if(m.re && first) chat('نام او حالا «' + n + '» است', 'sys');
+  }
+  else if(m.t === 'react') spawnReact(String(m.k), String(m.name||'').slice(0,24));
+  else if(m.t === 'count') countdown(true);
+  else if(m.t === 'syncreq') rsend({t:'tick', time:el.currentTime, playing:!el.paused, force:1});
+  else if(m.t === 'rate' && typeof m.v === 'number' && m.v >= .25 && m.v <= 4){ quiet(); el.playbackRate = m.v; paintSpd(); }
+  else if(m.t === 'dur' && typeof m.d === 'number'){ R.pDur = m.d; checkDur(); }
+  else if(m.t === 'ping') rsend({t:'pong', ts:m.ts});
+  else if(m.t === 'pong' && typeof m.ts === 'number'){
+    const r = Date.now() - m.ts, p = $('ping'); p.hidden = false;
+    p.textContent = pd(r) + ' میلی‌ثانیه'; p.className = 'ping ' + (r < 150 ? 'g' : r < 400 ? 'm' : 'b');
+  }
+  else if(['play','pause','seek','tick'].includes(m.t) && typeof m.time === 'number' && el.readyState > 0){
     quiet();
-    if(Math.abs(el.currentTime - m.time) > (m.t==='tick' ? 1.5 : 0.5)) el.currentTime = m.time;
-    if(m.t==='play' || (m.t==='tick' && m.playing && el.paused)) el.play().catch(()=>toast('برای شروع پخش، روی دکمهٔ پلی بزن'));
-    else if(m.t==='pause' || (m.t==='tick' && !m.playing && !el.paused)) el.pause();
+    if(Math.abs(el.currentTime - m.time) > (m.t === 'tick' && !m.force ? 1.5 : 0.5)) el.currentTime = m.time;
+    if(m.t === 'play' || (m.t === 'tick' && m.playing && el.paused)) el.play().catch(()=>toast('برای شروع پخش، روی دکمهٔ پلی بزن'));
+    else if(m.t === 'pause' || (m.t === 'tick' && !m.playing && !el.paused)) el.pause();
   }
 }
+function checkDur(){
+  const d = rv().duration;
+  if(R.durWarn || !R.pDur || !isFinite(d)) return;
+  if(Math.abs(d - R.pDur) > 2){ R.durWarn = true; chat('هشدار: مدت فیلم تو با فیلم او فرق دارد؛ احتمالاً نسخه‌ها یکی نیست و همگامی دقیق نمی‌شود.', 'sys'); }
+}
+const RX = ['heart','laugh','wow','sad','flame','star'];
+function spawnReact(k, name){
+  if(!RX.includes(k)) return;
+  const L = $('reactLayer'); while(L.children.length > 24) L.firstChild.remove();
+  const d = document.createElement('div'); d.className = 'flt';
+  d.style.left = (6 + Math.random()*82) + '%'; d.style.setProperty('--dx', (Math.random()*90 - 45) + 'px');
+  d.innerHTML = `<svg class="ic"><use href="#r-${k}"/></svg>`;
+  if(name){ const s = document.createElement('small'); s.textContent = name; d.appendChild(s); }
+  L.appendChild(d); setTimeout(()=>d.remove(), 2900);
+}
+function react(k){ spawnReact(k, ''); rsend({t:'react', k, name:nm()}); }
+function countdown(fromPeer){
+  const el = rv(); if(!el.getAttribute('src')){ toast('اول فیلم را بارگذاری کن'); return; }
+  if(!fromPeer) rsend({t:'count'});
+  clearInterval(R.cdT); quiet(); el.pause();
+  let n = 3; const box = $('cdown'), num = $('cdNum'); box.hidden = false; num.textContent = pd(n);
+  R.cdT = setInterval(()=>{
+    n--;
+    if(n <= 0){ clearInterval(R.cdT); box.hidden = true; quiet(); el.play().catch(()=>toast('برای شروع پخش، روی دکمهٔ پلی بزن')); return; }
+    num.textContent = pd(n);
+    const s = num.ownerSVGElement; s.style.animation = 'none'; void s.getBoundingClientRect(); s.style.animation = '';
+  }, 1000);
+}
+function paintSpd(){
+  const v = rv().playbackRate; $('cSpd').textContent = pd(String(v).replace('.','٫')) + '×';
+  document.querySelectorAll('#spdPop button').forEach(b=>b.setAttribute('aria-checked', Number(b.dataset.v) === v));
+}
+
+/* ----- اتصال ----- */
+function startPing(){ stopPing(); rsend({t:'ping', ts:Date.now()}); R.ping = setInterval(()=>rsend({t:'ping', ts:Date.now()}), 4000); }
+function stopPing(){ clearInterval(R.ping); R.ping = null; $('ping').hidden = true; }
 function wire(c){
   R.conn = c;
   c.on('open', ()=>{
-    rst('متصل شد', true); rsend({t:'hello', name:nm()});
-    if(R.host && R.url){ rsend({t:'src', url:R.url}); setTimeout(()=>rsend({t:'tick', time:rv().currentTime, playing:!rv().paused}), 1500); }
+    rst('متصل شد', true); rsend({t:'hello', name:nm()}); startPing();
+    const el = rv(); if(isFinite(el.duration)) rsend({t:'dur', d:el.duration});
+    if(R.host){
+      if(R.url) rsend({t:'src', url:R.url}); else if(R.local) rsend({t:'file', name:R.local, size:R.localSize});
+      setTimeout(()=>rsend({t:'tick', time:rv().currentTime, playing:!rv().paused}), 1500);
+    }
   });
   c.on('data', onMsg);
-  c.on('close', ()=>{ R.conn = null; rst(R.host ? 'منتظر ورود نفر دوم' : 'اتصال قطع شد', false); chat('ارتباط قطع شد', 'sys'); });
+  c.on('close', ()=>{ stopPing(); R.conn = null; R.yourName = ''; paintPres(); rst(R.host ? 'منتظر ورود نفر دوم' : 'اتصال قطع شد', false); chat('ارتباط قطع شد', 'sys'); });
   c.on('error', ()=>toast('خطا در اتصال'));
 }
 function peerErr(e){
   const t = e && e.type;
-  toast(t==='peer-unavailable' ? 'اتاقی با این کد پیدا نشد'
+  toast(t === 'peer-unavailable' ? 'اتاقی با این کد پیدا نشد'
     : ['network','server-error','socket-error','socket-closed'].includes(t) ? 'به سرور اتصال وصل نشد؛ اینترنت یا فیلترشکن را بررسی کن'
     : 'اتصال برقرار نشد');
   rst('آفلاین', false);
 }
 function leaveRoom(){
-  clearInterval(R.timer);
+  clearInterval(R.timer); stopPing(); clearInterval(R.cdT); $('cdown').hidden = true;
   try{ R.conn && R.conn.close(); }catch(e){}
   try{ R.peer && R.peer.destroy(); }catch(e){}
-  R.peer = R.conn = null; R.host = false;
+  R.peer = R.conn = null; R.host = false; R.yourName = ''; R.link = ''; paintPres();
   $('rLeave').hidden = true; $('rInfo').hidden = true; rst('آفلاین', false);
 }
 async function startRoom(host){
@@ -910,18 +1392,18 @@ async function startRoom(host){
   if(!host && !/^[\w-]{4,40}$/.test(code)){ toast('کد اتاق را وارد کن'); return; }
   rst('در حال اتصال…', false);
   try{ await loadPeer(); }catch(e){ rst('آفلاین', false); toast('کتابخانهٔ اتصال بارگذاری نشد؛ اینترنت را بررسی کن'); return; }
-  leaveRoom(); R.host = host; $('rLeave').hidden = false;
+  leaveRoom(); R.host = host; $('rLeave').hidden = false; paintPres();
   if(host){
     const id = 'film-' + Math.random().toString(36).slice(2,8);
     R.peer = new Peer(id);
     R.peer.on('open', pid=>{
-      let info = 'کد اتاق: ' + pid + ' (برای دوستت بفرست)';
-      if(/^https?:$/.test(location.protocol)) info += '\nلینک: ' + location.origin + location.pathname + '#join=' + pid;
-      $('rInfo').textContent = info; $('rInfo').style.whiteSpace = 'pre-line'; $('rInfo').hidden = false;
+      $('rCodeShow').textContent = pid;
+      R.link = /^https?:$/.test(location.protocol) ? location.origin + location.pathname + '#join=' + pid : '';
+      $('rCopyLink').hidden = !R.link; $('rInfo').hidden = false;
       rst('منتظر ورود نفر دوم', false);
     });
     R.peer.on('connection', c=>{ if(R.conn && R.conn.open){ c.on('open', ()=>c.close()); return; } wire(c); });
-    R.timer = setInterval(()=>{ if(R.conn && R.conn.open && R.url && rv().readyState>0) rsend({t:'tick', time:rv().currentTime, playing:!rv().paused}); }, 5000);
+    R.timer = setInterval(()=>{ if(R.conn && R.conn.open && (R.url || R.local) && rv().readyState > 0) rsend({t:'tick', time:rv().currentTime, playing:!rv().paused}); }, 5000);
   }else{
     R.peer = new Peer();
     R.peer.on('open', ()=>wire(R.peer.connect(code, {reliable:true})));
@@ -930,31 +1412,281 @@ async function startRoom(host){
   R.peer.on('error', peerErr);
   R.peer.on('disconnected', ()=>{ try{ R.peer.reconnect(); }catch(e){} });
 }
+async function copyText(t, okMsg){
+  try{ await navigator.clipboard.writeText(t); }
+  catch(e){
+    const a = document.createElement('textarea'); a.value = t; a.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(a); a.select();
+    try{ document.execCommand('copy'); }catch(_){} a.remove();
+  }
+  toast(okMsg || 'کپی شد');
+}
+
 function initRoom(){
-  const el = rv();
+  const el = rv(), st = $('stage');
+  /* آیکون‌های واکنش */
+  $('reacts').innerHTML = RX.map(k=>`<button class="rx" type="button" data-k="${k}" aria-label="واکنش ${k}"><svg class="ic"><use href="#r-${k}"/></svg></button>`).join('');
+  $('reacts').addEventListener('click', e=>{ const b = e.target.closest('.rx'); if(b) react(b.dataset.k); });
+  /* منوی سرعت */
+  $('spdPop').innerHTML = [0.5,0.75,1,1.25,1.5,2].map(v=>`<button type="button" role="menuitemradio" data-v="${v}" aria-checked="${v===1}">${pd(String(v).replace('.','٫'))}×</button>`).join('');
+  $('spdPop').addEventListener('click', e=>{ const b = e.target.closest('button'); if(!b) return; el.playbackRate = Number(b.dataset.v); closePops(); kickIdle(); });
+  $('cSpd').addEventListener('click', ()=>togglePop('spdPop'));
+  $('cCc').addEventListener('click', ()=>{ paintCc(); togglePop('ccPop'); });
+  $('ccLoad').addEventListener('click', ()=>{ closePops(); $('rSub').click(); });
+  $('ccTog').addEventListener('click', ()=>{
+    const tr = el.querySelector('track'); if(!tr){ toast('اول فایل زیرنویس را انتخاب کن'); return; }
+    R.subOn = !R.subOn; tr.track.mode = R.subOn ? 'showing' : 'hidden'; paintCc();
+  });
+  $('ccM').addEventListener('click', ()=>shiftSub(-0.5));
+  $('ccP').addEventListener('click', ()=>shiftSub(0.5));
+  $('rSub').addEventListener('change', e=>{ if(e.target.files[0]) setSub(e.target.files[0]); e.target.value = ''; });
+  document.addEventListener('click', e=>{ if(!e.target.closest('.popw')) closePops(); });
+  paintCc(); paintSpd();
+
+  /* دکمه‌ها */
+  $('cPlay').addEventListener('click', togglePlay);
+  $('bigPlay').addEventListener('click', togglePlay);
+  $('cBack').addEventListener('click', ()=>skip(-10));
+  $('cFwd').addEventListener('click', ()=>skip(10));
+  $('cFull').addEventListener('click', toggleFull);
+  $('cMute').addEventListener('click', ()=>{ el.muted = !el.muted; if(!el.muted && el.volume === 0) el.volume = .6; });
+  $('cVol').addEventListener('input', e=>{ el.volume = Number(e.target.value); el.muted = el.volume === 0; });
+  initSeek();
+  const fsch = ()=>{ const on = inFs(); ico('cFullI', on ? 'i-exitfull' : 'i-full'); st.classList.toggle('fs', on);
+    try{ if(on && screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); else if(!on && screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(e){} };
+  document.addEventListener('fullscreenchange', fsch); document.addEventListener('webkitfullscreenchange', fsch);
+
+  /* لمس/ماوس روی صحنه */
+  let clk = 0, clkT = 0;
+  st.addEventListener('pointermove', kickIdle);
+  st.addEventListener('pointerdown', kickIdle);
+  st.addEventListener('click', e=>{
+    if(e.target.closest('.ctl, .bigplay, .pop') || !el.getAttribute('src')) return;
+    const now = Date.now();
+    if(now - clk < 300){
+      clearTimeout(clkT); clk = 0;
+      const r = st.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
+      if(x < .33) skip(-10); else if(x > .67) skip(10); else toggleFull();
+      return;
+    }
+    clk = now; clkT = setTimeout(togglePlay, 260);
+  });
+
+  /* رویدادهای ویدئو: نمایش + همگام‌سازی */
+  ['timeupdate','durationchange','loadedmetadata','seeked','emptied'].forEach(ev=>el.addEventListener(ev, uiTime));
+  ['play','pause','ended','playing'].forEach(ev=>el.addEventListener(ev, uiPlay));
+  ['progress','loadeddata','canplay','timeupdate'].forEach(ev=>el.addEventListener(ev, uiBuf));
+  el.addEventListener('volumechange', uiVol);
+  el.addEventListener('waiting', ()=>{ if(el.getAttribute('src')) $('spin').hidden = false; });
+  ['playing','canplay','pause','error','seeked'].forEach(ev=>el.addEventListener(ev, ()=>{ $('spin').hidden = true; }));
+  el.addEventListener('loadedmetadata', ()=>{ rsend({t:'dur', d:el.duration}); checkDur(); });
   ['play','pause','seeked'].forEach(ev=>el.addEventListener(ev, ()=>{
     if(Date.now() < R.mute) return;
-    rsend({t: ev==='seeked' ? 'seek' : ev, time: el.currentTime});
+    rsend({t: ev === 'seeked' ? 'seek' : ev, time: el.currentTime});
   }));
-  el.addEventListener('error', ()=>{ if(el.getAttribute('src')) toast('ویدئو باز نشد: لینک مستقیم mp4/webm نیست، دسترسی ندارد، یا http روی صفحهٔ https است'); });
+  el.addEventListener('ratechange', ()=>{ paintSpd(); if(Date.now() < R.mute) return; rsend({t:'rate', v:el.playbackRate}); });
+  el.addEventListener('error', ()=>{ $('spin').hidden = true; if(el.getAttribute('src')) toast('ویدئو باز نشد: لینک مستقیم mp4/webm نیست، دسترسی ندارد، فرمت را مرورگر نمی‌شناسد، یا http روی صفحهٔ https است'); });
+
+  /* منبع و اتاق */
   $('rLoad').addEventListener('click', ()=>setSrc($('rUrl').value.trim(), false));
+  $('rUrl').addEventListener('keydown', e=>{ if(e.key === 'Enter') setSrc($('rUrl').value.trim(), false); });
+  $('rFileBtn').addEventListener('click', ()=>$('rFile').click());
+  $('rFile').addEventListener('change', e=>{ if(e.target.files[0]) setFile(e.target.files[0]); e.target.value = ''; });
   $('rHost').addEventListener('click', ()=>startRoom(true));
   $('rJoin').addEventListener('click', ()=>startRoom(false));
+  $('rCode').addEventListener('keydown', e=>{ if(e.key === 'Enter') startRoom(false); });
   $('rLeave').addEventListener('click', ()=>{ leaveRoom(); chat('از اتاق خارج شدی', 'sys'); });
-  const send = ()=>{ const t = $('chIn').value.trim(); if(!t) return; if(!(R.conn && R.conn.open)){ toast('هنوز کسی متصل نیست'); return; } rsend({t:'chat', name:nm(), text:t}); chat(t, '', nm()); $('chIn').value = ''; };
+  $('rCopyCode').addEventListener('click', ()=>copyText($('rCodeShow').textContent, 'کد کپی شد'));
+  $('rCopyLink').addEventListener('click', ()=>copyText(R.link, 'لینک کپی شد'));
+  $('rShare').addEventListener('click', async ()=>{
+    const code = $('rCodeShow').textContent, url = R.link || '';
+    const text = 'بیا با هم فیلم ببینیم! کد اتاق: ' + code;
+    if(navigator.share){ try{ await navigator.share({title:'تماشای دونفره', text, url: url || undefined}); return; }catch(e){ if(e && e.name === 'AbortError') return; } }
+    copyText(url || text, url ? 'لینک کپی شد' : 'کد کپی شد');
+  });
+  $('rCount').addEventListener('click', ()=>countdown(false));
+  $('rSync').addEventListener('click', ()=>{ if(!(R.conn && R.conn.open)){ toast('هنوز کسی متصل نیست'); return; } rsend({t:'syncreq'}); toast('درخواست همگام‌سازی فرستاده شد'); });
+  $('rCinema').addEventListener('click', ()=>{ const on = document.body.classList.toggle('cinema'); $('rCinema').setAttribute('aria-pressed', on); });
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', ()=>{ if(t.dataset.tab !== 'room'){ document.body.classList.remove('cinema'); $('rCinema').setAttribute('aria-pressed','false'); } }));
+
+  /* گفتگو */
+  const send = ()=>{ const t = $('chIn').value.trim(); if(!t) return; if(!(R.conn && R.conn.open)){ toast('هنوز کسی متصل نیست'); return; } rsend({t:'chat', name:nm(), text:t}); chat(t, 'me'); $('chIn').value = ''; };
   $('chSend').addEventListener('click', send);
-  $('chIn').addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
+  $('chIn').addEventListener('keydown', e=>{ if(e.key === 'Enter') send(); });
+  $('chIn').addEventListener('input', ()=>{ const n = Date.now(); if(n - R.typingT > 2000){ R.typingT = n; rsend({t:'typing'}); } });
+
+  /* نام */
+  kvGet(RN_KEY).then(v=>{ if(v && !$('rName').value) $('rName').value = v; paintPres(); });
+  let nameT = 0;
+  $('rName').addEventListener('input', ()=>{ paintPres(); clearTimeout(nameT); nameT = setTimeout(()=>{ kvSet(RN_KEY, $('rName').value.trim()); rsend({t:'hello', name:nm(), re:1}); }, 700); });
+
+  /* میان‌برهای صفحه‌کلید */
+  document.addEventListener('keydown', e=>{
+    if(state.tab !== 'room' || e.ctrlKey || e.metaKey || e.altKey) return;
+    if(document.querySelector('.overlay.open')) return;
+    const tg = e.target && e.target.tagName;
+    if(['INPUT','TEXTAREA','SELECT'].includes(tg) || (tg === 'BUTTON' && e.key === ' ')) return;
+    if(e.target && e.target.id === 'seek') return;
+    const k = e.key;
+    if(k === ' ' || k === 'k' || k === 'K'){ e.preventDefault(); togglePlay(); }
+    else if(k === 'ArrowLeft'){ e.preventDefault(); skip(-10); }
+    else if(k === 'ArrowRight'){ e.preventDefault(); skip(10); }
+    else if(k === 'ArrowUp'){ e.preventDefault(); el.muted = false; el.volume = Math.min(1, el.volume + .1); }
+    else if(k === 'ArrowDown'){ e.preventDefault(); el.volume = Math.max(0, el.volume - .1); }
+    else if(k === 'm' || k === 'M') el.muted = !el.muted;
+    else if(k === 'f' || k === 'F') toggleFull();
+    else if(k === 'c' || k === 'C') $('ccTog').click();
+    else return;
+    kickIdle();
+  });
+
+  uiAll();
   const h = location.hash.match(/^#join=([\w-]{4,40})$/);
-  if(h){ state.tab = 'room'; document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab==='room')); $('rCode').value = h[1]; }
+  if(h){ state.tab = 'room'; document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab === 'room')); $('rCode').value = h[1]; setTimeout(()=>toast('کد اتاق وارد شد؛ نامت را بنویس و «ورود» را بزن'), 1200); }
 }
 function dust(){
   const f = document.querySelector('.fx');
   for(let i=0;i<16;i++){ const d = document.createElement('i'); d.className = 'dust';
     d.style.cssText = `--x:${Math.random()*100}%;--s:${2+Math.random()*3}px;--d:${14+Math.random()*16}s;--w:-${Math.random()*20}s`; f.appendChild(d); }
 }
+/* ---------- پوستر خودکار بدون کلید (iTunes + ویکی‌پدیا) ---------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pnorm = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+async function jget(url, ms){
+  const c = new AbortController(), t = setTimeout(()=>c.abort(), ms || 10000);
+  try{ const r = await fetch(url, {signal:c.signal}); if(!r.ok) throw new Error('http ' + r.status); return await r.json(); }
+  finally{ clearTimeout(t); }
+}
+async function pxItunes(q){
+  const d = await jget('https://itunes.apple.com/search?media=movie&entity=movie&limit=10&country=us&term=' + encodeURIComponent(q));
+  return (d.results || []).filter(r=>r.artworkUrl100 && r.trackName).map(r=>({
+    src:'iTunes', title:r.trackName, year:+String(r.releaseDate || '').slice(0,4) || 0,
+    url:r.artworkUrl100.replace(/\d+x\d+bb\.(jpg|png)$/i, '400x600bb.jpg'),
+    thumb:r.artworkUrl100.replace(/\d+x\d+bb\.(jpg|png)$/i, '200x300bb.jpg')
+  }));
+}
+async function pxWiki(q, year, lang){
+  const term = q + (year ? ' ' + year : '') + (lang === 'fa' ? ' فیلم' : ' film');
+  const u = `https://${lang}.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&generator=search&gsrlimit=6&gsrsearch=${encodeURIComponent(term)}&prop=pageimages&piprop=thumbnail&pithumbsize=400`;
+  const d = await jget(u);
+  return Object.values((d.query || {}).pages || {}).sort((a,b)=>(a.index||0)-(b.index||0)).filter(p=>p.thumbnail && p.thumbnail.source).map(p=>{
+    const y = (p.title.match(/\((\d{4}) (?:film|فیلم)\)/) || [])[1];
+    return { src:'ویکی‌پدیا', title:p.title, year:+y || 0, url:p.thumbnail.source, thumb:p.thumbnail.source };
+  });
+}
+async function pxCandidates(title, titleEn, year){
+  const en = (titleEn || '').trim(), t = (title || '').trim(), y = +year || 0, faT = /[؀-ۿ]/.test(t);
+  const jobs = [ pxItunes(en || t) ];
+  if(en) jobs.push(pxWiki(en, y, 'en'));
+  if(faT) jobs.push(pxWiki(t, y, 'fa')); else if(!en && t) jobs.push(pxWiki(t, y, 'en'));
+  const res = await Promise.allSettled(jobs);
+  if(res.every(r=>r.status === 'rejected')) throw new Error('net');
+  const want = [pnorm(en), pnorm(t)].filter(Boolean);
+  const score = c => {
+    let s = c.src === 'iTunes' ? 1 : 0;
+    if(y && c.year){ const d = Math.abs(c.year - y); s += d === 0 ? 4 : d === 1 ? 2 : -2; }
+    const n = pnorm(c.title.replace(/\s*\(.*?\)\s*$/, ''));
+    if(want.includes(n)) s += 3;
+    return s;
+  };
+  const out = res.flatMap(r=>r.status === 'fulfilled' ? r.value : []);
+  const seen = new Set();
+  const list = out.map(c=>({c, s:score(c)})).sort((a,b)=>b.s - a.s).map(x=>x.c).filter(c=>!seen.has(c.url) && seen.add(c.url));
+  list.itunesFailed = res[0].status === 'rejected';
+  return list;
+}
+function pxPick(list, f){
+  const t = [pnorm(f.titleEn), pnorm(f.title)].filter(Boolean), y = +f.year || 0;
+  const ok = c => {
+    const n = pnorm(c.title.replace(/\s*\(.*?\)\s*$/, ''));
+    return t.some(x => n === x || (x.length > 5 && n.length > 5 && (n.includes(x) || x.includes(n))));
+  };
+  return list.find(c => ok(c) && (!y || !c.year || Math.abs(c.year - y) <= 1)) || null;
+}
+
+/* پوستر خودکار برای یک فیلم تازه (بی‌صدا، در پس‌زمینه) */
+async function pxAutoOne(id){
+  try{
+    const f = state.films.find(x=>x.id === id);
+    if(!f || f.poster || f.pxMiss) return;
+    const list = await pxCandidates(f.title, f.titleEn, f.year), c = pxPick(list, f);
+    const g = state.films.find(x=>x.id === id); if(!g || g.poster) return;
+    if(c){ g.poster = c.url; render(); await saveFilms(); toast('پوستر خودکار پیدا شد'); }
+    else if(!list.itunesFailed){ g.pxMiss = 1; await saveFilms(); }
+  }catch(e){}
+}
+
+/* پوستر برای همهٔ فیلم‌های بدون پوستر */
+let pxRun = false, pxStop = false;
+async function pxBulk(){
+  const btn = $('pxAll'), stt = $('pxState');
+  if(pxRun){ pxStop = true; btn.textContent = 'در حال توقف…'; return; }
+  const todo = state.films.filter(f=>!f.poster && !f.pxMiss);
+  if(!todo.length){ toast(state.films.some(f=>f.pxMiss && !f.poster) ? 'برای بقیه چیزی پیدا نشد؛ «امتحان دوبارهٔ پیدانشده‌ها» را بزن' : 'همهٔ فیلم‌ها پوستر دارند'); return; }
+  pxRun = true; pxStop = false;
+  let done = 0, found = 0, bad = 0;
+  for(const f0 of todo){
+    if(pxStop) break;
+    btn.textContent = `در حال جستجو… ${fa(done)} از ${fa(todo.length)} — برای توقف بزن`;
+    let list = null;
+    for(let a = 0; a < 3 && !list && !pxStop; a++){
+      try{ list = await pxCandidates(f0.title, f0.titleEn, f0.year); }
+      catch(e){ await sleep(a ? 20000 : 6000); }
+    }
+    if(!list){ if(++bad >= 3){ toast('اتصال برقرار نیست؛ اینترنت یا فیلترشکن را بررسی کن'); break; } continue; }
+    bad = 0;
+    const f = state.films.find(x=>x.id === f0.id) || f0, c = pxPick(list, f);
+    if(c){ f.poster = c.url; found++; }
+    else if(!list.itunesFailed) f.pxMiss = 1;
+    done++;
+    stt.textContent = `${fa(found)} پوستر پیدا شد`;
+    if(done % 8 === 0){ render(); await saveFilms(); }
+    await sleep(3300); /* iTunes حدود ۲۰ درخواست در دقیقه اجازه می‌دهد */
+  }
+  render(); await saveFilms();
+  pxRun = false; btn.textContent = 'پیدا کردن پوستر برای همهٔ فیلم‌ها';
+  stt.textContent = `${fa(found)} پوستر از ${fa(done)} فیلم پیدا شد` + (pxStop ? ' (متوقف شد)' : '');
+  toast(pxStop ? 'متوقف شد' : 'تمام شد');
+}
+
+function initPosters(){
+  /* پوستر خراب نشود: اگر عکس باز نشد، همان کارت رنگی با نام فیلم نشان داده شود */
+  document.addEventListener('error', e=>{
+    const i = e.target; if(!i || i.tagName !== 'IMG' || !i.closest('.poster')) return;
+    const d = document.createElement('div'); d.className = 'ph'; d.style.background = COLORS[0];
+    d.textContent = (i.alt || '').replace(/^پوستر /, ''); i.replaceWith(d);
+  }, true);
+
+  $('pxFind').addEventListener('click', async ()=>{
+    const t = $('fTitle').value.trim(), en = $('fTitleEn').value.trim();
+    if(!t && !en){ toast('نام فیلم را بنویس'); return; }
+    const box = $('pxRes'); box.innerHTML = '<div class="none">در حال جستجو…</div>';
+    try{
+      const list = (await pxCandidates(t, en, $('fYear').value)).slice(0, 8);
+      box.innerHTML = list.length
+        ? list.map((c,i)=>`<button type="button" data-i="${i}"><img src="${esc(c.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span>${esc(c.title.slice(0,26))}${c.year ? ' • ' + fa(c.year) : ''}</span><br><span>${esc(c.src)}</span></button>`).join('')
+        : '<div class="none">پوستری پیدا نشد؛ نام انگلیسی فیلم را در «عنوان اصلی» بنویس و دوباره بزن.</div>';
+      box._list = list;
+    }catch(e){ box.innerHTML = ''; toast('ارتباط برقرار نشد (اینترنت یا فیلترشکن)'); }
+  });
+  $('pxRes').addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    const c = ($('pxRes')._list || [])[+b.dataset.i]; if(!c) return;
+    state.form.poster = c.url; paintPoster(); $('pxRes').innerHTML = ''; toast('پوستر انتخاب شد');
+  });
+  $('pxUrlOk').addEventListener('click', ()=>{
+    const u = $('pxUrl').value.trim();
+    if(!/^https?:\/\/\S+$/i.test(u)){ toast('لینک عکس باید با http یا https شروع شود'); return; }
+    state.form.poster = u; paintPoster(); $('pxUrl').value = ''; toast('پوستر گذاشته شد');
+  });
+  $('pxAll').addEventListener('click', pxBulk);
+  $('pxReset').addEventListener('click', async ()=>{
+    let n = 0; state.films.forEach(f=>{ if(f.pxMiss){ delete f.pxMiss; n++; } });
+    await saveFilms(); toast(n ? `${fa(n)} فیلم دوباره در صف جستجو قرار گرفت` : 'چیزی برای امتحان دوباره نبود');
+  });
+}
 /* ---------- TMDB، فیلتر پیشرفته، صفحهٔ فیلم، پیشنهاد تصادفی ---------- */
 let tmKey = '';
-const TMG = {18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'جنایی و معمایی',53:'جنایی و معمایی',27:'ترسناک',878:'علمی‌تخیلی',28:'اکشن',12:'اکشن',10749:'عاشقانه',99:'مستند',16:'انیمیشن',36:'تاریخی و جنگی',10752:'تاریخی و جنگی'};
+const TMG = {18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'جنایی و معمایی',53:'جنایی و معمایی',27:'ترسناک',878:'علمی‌تخیلی',14:'علمی‌تخیلی',28:'اکشن',12:'اکشن',10749:'عاشقانه',99:'مستند',16:'انیمیشن',36:'تاریخی و جنگی',10752:'تاریخی و جنگی'};
 async function tm(path, params){
   const u = new URL('https://api.themoviedb.org/3' + path);
   Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
@@ -998,7 +1730,7 @@ function openDetail(id, rnd){
     ${f.notes ? `<h3 class="sec">یادداشت و نقد</h3><p style="white-space:pre-wrap">${esc(f.notes)}</p>` : ''}
     <h3 class="sec">تاریخچهٔ تماشا</h3>
     ${logs.length ? logs.map(e=>`<div class="drw"><span>${fdate(e.date)}</span>${e.rating ? `<b class="stars">${starsText(e.rating)}</b>` : ''}${e.note ? `<i>${esc(e.note)}</i>` : ''}</div>`).join('') : '<div class="hint">هنوز تماشایی ثبت نشده.</div>'}
-    ${f.lb ? `<a class="lbLink" href="${esc(f.lb)}" target="_blank" rel="noopener">صفحهٔ فیلم در Letterboxd</a>` : ''}
+    ${f.lb && /^https?:\/\//i.test(f.lb) ? `<a class="lbLink" href="${esc(f.lb)}" target="_blank" rel="noopener">صفحهٔ فیلم در Letterboxd</a>` : ''}
     <div class="actions"><button class="btn" id="dClose" type="button">بستن</button>${f.status==='want' ? '<button class="btn" id="dSeen" type="button">دیدمش ✓</button>' : ''}${rnd ? '<button class="btn" id="dAgain" type="button">یکی دیگر</button>' : ''}<button class="btn primary" id="dEdit" type="button">ویرایش</button></div>`;
   $('dOv').classList.add('open');
   $('dClose').onclick = () => $('dOv').classList.remove('open');
@@ -1038,7 +1770,7 @@ function initPlus(){
   $('tmSearch').addEventListener('click', async ()=>{
     const q = $('fTitle').value.trim();
     if(!q){ toast('نام فیلم را بنویس'); return; }
-    if(!tmKey){ toast('اول کلید TMDB را پایین صفحه ذخیره کن'); return; }
+    if(!tmKey){ toast('کلید TMDB نداری؟ از «جستجوی خودکار پوستر» پایین‌تر استفاده کن'); return; }
     $('tmRes').innerHTML = '<div class="hint">در حال جستجو…</div>';
     try{
       const d = await tm('/search/movie', {query:q, language:'fa-IR'});
