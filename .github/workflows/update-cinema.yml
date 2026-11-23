@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - 'scripts/update_cinema.py'
+      - 'scripts/build_catalog.py'
       - '.github/workflows/update-cinema.yml'
 
 permissions:
@@ -38,9 +39,14 @@ jobs:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: python scripts/update_cinema.py
+      - name: Build searchable TMDB film index with local poster art
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: python scripts/build_catalog.py
       - name: Commit updated data and cached posters
         run: |
-          git add data/home-feed.json assets/posters/ assets/news/
+          git add data/home-feed.json data/tmdb-catalog.json assets/posters/ assets/news/ assets/catalog/
           if git diff --cached --quiet; then
             echo "No data changes to publish"
             exit 0
