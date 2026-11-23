@@ -1,0 +1,52 @@
+name: Expand official TMDB poster coverage
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 4 * * 4'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/enrich_tmdb_posters.py'
+      - '.github/workflows/enrich-tmdb-posters.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tmdb-poster-enrichment
+  cancel-in-progress: false
+
+jobs:
+  extend-posters:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - name: Checkout latest published index
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Install Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install verified imaging dependencies
+        run: python -m pip install --disable-pip-version-check --quiet requests==2.32.5 Pillow==11.3.0 feedparser==6.0.12
+      - name: Expand official poster cache with popular movie details
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: python scripts/enrich_tmdb_posters.py --batch-size 450
+      - name: Commit enriched film metadata and authentic TMDB poster files
+        run: |
+          git add data/tmdb-extra.json assets/catalog/
+          if git diff --cached --quiet; then
+            echo 'No new verified poster files'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'data: cache additional TMDB original movie posters'
+          git pull --rebase origin main
+          git push origin HEAD:main
