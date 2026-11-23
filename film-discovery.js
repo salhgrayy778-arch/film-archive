@@ -228,7 +228,15 @@ function detailStructure(id){
   catch(error){window.prompt(L('نام فیلم','Movie title'),t);}
  };
  list.appendChild(copyTitle);watch.appendChild(list);hero.appendChild(watch);
- toggle.onclick=()=>{watchOpen=!watchOpen;list.hidden=!watchOpen;toggle.setAttribute('aria-expanded',String(watchOpen));};
+ toggle.onclick=()=>{
+  // Both provider selection and external navigation require a loaded account.
+  if(!requireCloud()){watchOpen=false;list.hidden=true;toggle.setAttribute('aria-expanded','false');return;}
+  watchOpen=!watchOpen;list.hidden=!watchOpen;toggle.setAttribute('aria-expanded',String(watchOpen));
+ };
+ list.addEventListener('click',event=>{
+  const destination=event.target.closest('a.filmProviderCard');
+  if(destination&&!requireCloud())event.preventDefault();
+ });
  const tmdb=node('p','filmDetailSource');const link=node('a','',L('اطلاعات فیلم در TMDB','Movie info on TMDB'));
  link.href='https://www.themoviedb.org/movie/'+id;link.target='_blank';link.rel='noopener noreferrer';
  tmdb.appendChild(link);hero.appendChild(tmdb);root.appendChild(hero);
@@ -254,6 +262,16 @@ function accountEntry(){
 }
 function updateAccountButtons(){
  if(!current||state.tab!=='film')return;
+ const ready=Boolean(ses&&cloudReady&&!cloudLoading);
+ const watchToggle=$('filmWatchToggle'),chooser=$('filmProviderChooser');
+ if(watchToggle){
+  watchToggle.textContent=ready?L('سایت‌های تماشا','Watch sites'):
+   L('ورود برای تماشای فیلم','Sign in to watch');
+  if(!ready){
+   watchOpen=false;chooser.hidden=true;
+   watchToggle.setAttribute('aria-expanded','false');
+  }
+ }
  const entry=accountEntry(),seen=$('filmMarkSeen'),want=$('filmMarkWant');
  if(!seen||!want)return;
  seen.setAttribute('aria-pressed',String(entry?.status==='seen'));
