@@ -5,7 +5,7 @@
 const $=id=>document.getElementById(id),L=(fa,en)=>LX(fa,en);
 const BASE=new URL('.',document.currentScript?.src||document.baseURI);
 const GENRES={18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'جنایی و معمایی',53:'جنایی و معمایی',27:'ترسناک',878:'علمی‌تخیلی',14:'علمی‌تخیلی',28:'اکشن',12:'اکشن',10749:'عاشقانه',99:'مستند',16:'انیمیشن',36:'تاریخی و جنگی',10752:'تاریخی و جنگی'};
-let catalog=[],catalogPromise=null,catalogFailed=false,featuredPromise=null,featured=new Map(),extra=new Map();
+let catalog=[],catalogPromise=null,catalogFailed=false,catalogLoaded=false,featuredPromise=null,featured=new Map(),extra=new Map();
 let query='',limit=30,current=null,showFa=false,watchOpen=false,loadSerial=0,remoteBusy=false,searchTimer=0,quickTimer=0;
 let returnTab='search';
 const idNumber=value=>/^[1-9]\d{0,11}$/.test(String(value||''))?Number(value):null;
@@ -42,8 +42,8 @@ async function loadCatalog(){
   if(!r.ok)throw Error('Catalog HTTP '+r.status);
   const d=await r.json();if(!Array.isArray(d.movies))throw Error('Invalid catalog');
   catalog=d.movies.filter(m=>idNumber(m?.id)).map(m=>({...m,_source:'catalog'}));
-  return catalog;
- })().catch(error=>{catalogFailed=true;console.warn('Film index unavailable',error);return [];});
+  catalogLoaded=true;return catalog;
+ })().catch(error=>{catalogLoaded=true;catalogFailed=true;console.warn('Film index unavailable',error);return [];});
  return catalogPromise;
 }
 async function loadFeatured(){
@@ -99,9 +99,9 @@ function filmCard(m){
 function renderSearch(){
  if(state.tab!=='search')return;
  const host=$('filmSearchResults'),term=$('filmSearchInput').value.trim();
- if(!catalogPromise){
+ if(!catalogLoaded){
   empty(host,L('در حال بارگذاری فیلم‌ها…','Loading films…'));
-  loadCatalog().then(renderSearch);return;
+  loadCatalog().then(()=>{if(state.tab==='search')renderSearch();});return;
  }
  if(!catalog.length){
   empty(host,L('فهرست فیلم‌های TMDB فعلاً در دسترس نیست.','TMDB local catalog is unavailable.'));
@@ -120,7 +120,8 @@ function clearSuggestions(){const el=$('filmQuickSuggestions');el.replaceChildre
 function quickSuggestions(){
  const q=$('filmQuickInput').value.trim();clearSuggestions();
  if(q.length<2)return;
- if(!catalog.length){loadCatalog().then(()=>{if($('filmQuickInput').value.trim()===q)quickSuggestions();});return;}
+ if(!catalogLoaded){loadCatalog().then(()=>{if($('filmQuickInput').value.trim()===q)quickSuggestions();});return;}
+ if(!catalog.length)return;
  const box=$('filmQuickSuggestions');
  for(const m of rankedMovies(q).slice(0,6)){
   const a=node('a','filmSuggestRow');a.href=permalink(m.id);a.dataset.filmId=String(m.id);
