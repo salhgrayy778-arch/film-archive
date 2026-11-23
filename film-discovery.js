@@ -84,6 +84,9 @@ async function loadUniverseBucket(term){
    return entries;
   }).catch(error=>{
    console.warn('Movie title search shard unavailable',key,error);
+   // Remember a failure for this page load; otherwise the UI can enter an
+   // infinite fetch -> render -> fetch loop when one shard is unavailable.
+   cacheIndex(universeBuckets,key,[]);
    return [];
   }).finally(()=>universeTasks.delete(key));
  universeTasks.set(key,task);
@@ -111,7 +114,7 @@ async function lookupUniverseMovie(id){
      const entries=rows.map(compactMovie).filter(Boolean);
      cacheIndex(universeIds,key,entries);
      return entries;
-    }).catch(error=>{console.warn('Movie ID shard unavailable',error);return [];})
+    }).catch(error=>{console.warn('Movie ID shard unavailable',error);cacheIndex(universeIds,key,[]);return [];})
      .finally(()=>universeIdTasks.delete(key));
    universeIdTasks.set(key,pending);
   }
