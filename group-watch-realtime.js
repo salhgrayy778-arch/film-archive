@@ -38,8 +38,10 @@ function handle(payload){
  if(payload.to!==clientId)return;
  if(payload.message.t==='welcome'){
   if(payload.message.host!==roomId)return;
+  clearTimeout(joinTimer);
   R.conn=connection(roomId,true);
   R.members.set(roomId,String(payload.message.name||label('میزبان','Host')).slice(0,24));
+  sendTo(roomId,{t:'syncreq'});
   displayMembers();status();
   return;
  }
@@ -125,6 +127,11 @@ startRoom=async function(host){
      R.link=location.origin+location.pathname+'#join='+roomId;
      $('rCopyLink').hidden=!R.link;$('rInfo').hidden=false;
      $('rHost').disabled=false;$('rJoin').disabled=false;
+     R.timer=setInterval(()=>{
+      const video=rv();
+      if(R.host&&R.conns.size&&R.source&&video.readyState>0)
+       rsend({t:'tick',time:video.currentTime,playing:!video.paused});
+     },4000);
      status();displayMembers();
     }else{
      R.conn=connection(roomId,false);
