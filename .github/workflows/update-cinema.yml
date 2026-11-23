@@ -10,6 +10,7 @@ on:
       - 'scripts/update_cinema.py'
       - 'scripts/build_catalog.py'
       - 'scripts/translate_news.py'
+      - 'scripts/translate_movie_details.py'
       - '.github/workflows/update-cinema.yml'
 
 permissions:
@@ -56,6 +57,12 @@ jobs:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: python scripts/build_catalog.py
+      - name: Build Persian movie synopsis cache for every homepage film
+        env:
+          ARGOS_DEVICE_TYPE: cpu
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: python scripts/translate_movie_details.py
       - name: Commit updated data and cached posters
         run: |
           git add data/home-feed.json data/tmdb-catalog.json assets/posters/ assets/news/ assets/catalog/
