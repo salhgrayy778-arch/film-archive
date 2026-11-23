@@ -29,7 +29,9 @@ function updateWatchAccess() {
   main.classList.toggle('watchLocked',!ready);
   notice.hidden=ready;
   const opening=R.peer && !ready && !R.roomError && navigator.onLine!==false;
-  notice.textContent=opening
+  notice.textContent=R.roomError
+    ? localLabel('اتصال برقرار نشد. کد را دوباره بررسی کن و مطمئن شو میزبان آنلاین است. اگر مشکل ادامه داشت، ممکن است شبکه اتصال همتا‌به‌همتا را مسدود کرده باشد.','Could not connect. Verify the code and that the host is online. Your network may block peer-to-peer traffic.')
+    :opening
     ? localLabel('در حال اتصال به اتاق… پس از برقراری ارتباط، امکان واردکردن لینک و تماشای فیلم فعال می‌شود.','Connecting to room… Movie links and playback will unlock once connected.')
     : localLabel('برای واردکردن لینک، انتخاب فیلم و شروع تماشا، ابتدا اتاق بساز یا با کد به یک اتاق بپیوند.','Create a room or join one using a code to unlock movie links, file selection and playback.');
   const controls=['rUrl','rLoad','rFileBtn','rFile','rSub','rCount','rSync','rCinema','cPlay','bigPlay','cBack','cFwd','cMute','cVol','cSpd','cCc','cFull','seek','chIn','chSend'];
@@ -60,7 +62,15 @@ const status = () => {
   const ready=roomReady(), n=activeConnections().length;
   let text;
   if(navigator.onLine===false) text=localLabel('اینترنت قطع است','No internet connection');
-  else if(R.roomError) text=localLabel('خطا در اتصال اتاق','Room connection failed');
+  else if(R.roomError) {
+    const network=['network','server-error','socket-error','socket-closed'].includes(R.roomError);
+    const missing=['peer-unavailable','join-failed'].includes(R.roomError);
+    text=network
+      ? localLabel('سرور اتصال در دسترس نیست؛ شبکه یا VPN را بررسی کن','Signaling server unreachable; check network/VPN')
+      :missing
+      ? localLabel('اتاق پیدا نشد یا میزبان در دسترس نیست','Room not found or host unreachable')
+      :localLabel('اتصال اتاق برقرار نشد؛ دوباره تلاش کن','Room connection failed; try again');
+  }
   else if(!R.peer) text=localLabel('اتاقی فعال نیست','No active room');
   else if(!ready) text=localLabel('در حال اتصال به اتاق…','Connecting to room…');
   else if(R.host) text=n ? localLabel('اتاق آنلاین · ','Room online · ')+toFaNumber(n+1)+memberLabel()
