@@ -47,14 +47,14 @@ function makeBrowser(){
   onMsg(message,conn){
    if(message.t==='hello'){
     R.members.set(conn.peer,message.name||'Guest');
-    if(R.host)broadcastRoster();
+    if(R.host)ctx.broadcastRoster();
    }else if(message.t==='members'){
     R.receivedRoster=message.list;
    }else if(message.t==='chat'){
     R.receivedChat=message.text;
    }
   },
-  startRoom(){},rsend(){},oldLeaveCalls:0,leaveRoom(){this.oldLeaveCalls++;},
+  startRoom(){},rsend(){},oldLeaveCalls:0,leaveRoom(){R.oldLeaveCalls=(R.oldLeaveCalls||0)+1;},
  };
  ctx.globalThis=ctx;vm.createContext(ctx);
  new vm.Script(source,{filename:'group-watch-realtime.js'}).runInContext(ctx);
