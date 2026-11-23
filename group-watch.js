@@ -307,9 +307,32 @@ startRoom = async function (host) {
     R.peer.on('connection',wire);
   } else {
     R.peer=new Peer();
-    R.peer.on('open',()=>wire(R.peer.connect(code,{reliable:true})));
-    const owner=R.peer;
-    setTimeout(()=>{if(R.peer===owner&&!isConnected())toast(localLabel('اتصال طول کشید؛ کد را بررسی کن','Connection is taking long; check the room code'));},15000);
+    const guestPeer=R.peer;
+    let joined=false;
+    const joinFailed=(fa,en)=>{
+      if(R.peer!==guestPeer||joined)return;
+      R.roomError='join-failed';
+      status();
+      toast(localLabel(fa,en));
+    };
+    guestPeer.on('open',()=>{
+      if(R.peer!==guestPeer)return;
+      try {
+        const connection=guestPeer.connect(code,{reliable:true});
+        if(!connection){joinFailed('امکان اتصال با این کد وجود ندارد','Unable to connect with this code');return;}
+        connection.on('open',()=>{joined=true;R.roomError=null;status();});
+        connection.on('error',()=>joinFailed('اتصال به اتاق ناموفق بود؛ کد و اینترنت هر دو نفر را بررسی کن','Could not join the room; check the code and both connections'));
+        wire(connection);
+      } catch(error) {
+        console.warn('Group watch connection failed',error);
+        joinFailed('امکان ورود به اتاق وجود ندارد؛ دوباره تلاش کن','Unable to join the room; please retry');
+      }
+    });
+    setTimeout(()=>{
+      if(R.peer===guestPeer&&!joined){
+        joinFailed('اتاق پیدا نشد یا میزبان در دسترس نیست؛ کد را بررسی کن و مطمئن شو میزبان آنلاین است','Room not found or host unreachable; check the code and make sure the host is online');
+      }
+    },15000);
   }
   const owner=R.peer;
   R.timer=setInterval(()=>{
