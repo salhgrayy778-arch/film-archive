@@ -263,10 +263,11 @@ main .dashNavBtn{border-radius:11px}
 /* The theme picker opens under the controls on the physical LEFT in either language. */
 .themePanel,html[dir="rtl"] .themePanel,html[dir="ltr"] .themePanel{
   top:90px;left:clamp(10px,calc((100vw - 1160px)/2),60px);right:auto;
-  inset-inline-start:auto;inset-inline-end:auto;
   border-radius:17px;
   box-shadow:0 22px 65px rgba(0,0,0,.28);
 }
+html[dir="rtl"] .themePanel{inset-inline-start:auto;inset-inline-end:clamp(10px,calc((100vw - 1160px)/2),60px)}
+html[dir="ltr"] .themePanel{inset-inline-start:clamp(10px,calc((100vw - 1160px)/2),60px);inset-inline-end:auto}
 .drawer .dhead{border-color:color-mix(in srgb,var(--gold) 30%,var(--line))}
 .drawer .drawerGroup{box-shadow:0 5px 14px rgba(0,0,0,.035)}
 .drawer .drawerGroup > summary:hover{background:color-mix(in srgb,var(--gold) 7%,var(--panel))}
@@ -278,7 +279,8 @@ main .dashNavBtn{border-radius:11px}
   box-shadow:0 12px 35px rgba(0,0,0,.27),0 0 0 5px color-mix(in srgb,var(--gold) 9%,transparent);
   min-height:50px;
 }
-.fab:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,.30),0 0 0 5px color-mix(in srgb,var(--gold) 13%,transparent)}
+.fab:hover{transform:translateX(-50%) translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,.30),0 0 0 5px color-mix(in srgb,var(--gold) 13%,transparent)}
+@media(max-width:560px){.fab:hover{transform:translateY(-2px)}}
 @media(max-width:900px){
   .reel .hbar .hbarEdition{display:none}
   .reel .hbar{grid-template-columns:1fr 1fr}
