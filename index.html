@@ -576,6 +576,7 @@ body{overflow-x:clip;padding-bottom:145px}
 <link rel="stylesheet" href="sidebar.css">
 <link rel="stylesheet" href="add-film.css">
 <link rel="stylesheet" href="cinematic-shell.css">
+<link rel="stylesheet" href="account-profile.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -817,7 +818,12 @@ body{overflow-x:clip;padding-bottom:145px}
     <p class="hint">یک نفر اتاق می‌سازد و کد (یا لینک) را به دیگری می‌دهد. هر دو نفر می‌توانند پخش، توقف و جلو و عقب بردن را کنترل کنند و همگام می‌شود. ویدئو از هیچ سروری رد نمی‌شود؛ هر نفر مستقیم از لینک (یا فایل خودش) می‌بیند. لینک http روی صفحهٔ https یا لینکی که دانلودش محدود است پخش نمی‌شود. اتصال از سرویس رایگان PeerJS استفاده می‌کند و گاهی بدون فیلترشکن یا روی شبکه‌های سخت‌گیر برقرار نمی‌شود.</p>
   </section>
 
-<footer class="sig">© My Film Archive — Personal Cinema Archive</footer>
+<footer class="siteCinemaFooter" aria-label="My Film Archive footer">
+  <div class="siteCinemaFooterInner">
+    <p class="siteCinemaFooterLove"><span class="langFa">این سایت با عشق به سینما ساخته شده</span><span class="langEn">Made with love for cinema</span></p>
+    <p class="siteCinemaFooterContact"><span class="langFa">ارتباط: </span><span class="langEn">Contact: </span><a href="mailto:salehgharaie48@gmail.com" dir="ltr">salehgharaie48@gmail.com</a></p>
+  </div>
+</footer>
 </main>
 
 <div class="dbg" id="dBg" hidden></div>
@@ -2836,7 +2842,16 @@ async function importLegacyBrowserArchive(){
 
 /* ---------- نمایش ---------- */
 function updateAcct(){
-  $('acctBtn').textContent = ses ? ses.email.split('@')[0].slice(0,14) : 'ورود / ثبت‌نام';
+  const button=$('acctBtn');button.replaceChildren();
+  button.classList.toggle('has-avatar',Boolean(ses&&accountProfile.avatar));
+  if(ses&&accountProfile.avatar){
+    const pic=document.createElement('img');
+    pic.className='acctBadgePhoto';pic.src=accountProfile.avatar;pic.alt='';
+    button.appendChild(pic);
+  }
+  const label=document.createElement('span');label.className='acctBadgeLabel';
+  label.textContent=ses?(accountProfile.name||ses.email.split('@')[0]).slice(0,19):LX('ورود / ثبت‌نام','Sign in / Sign up');
+  button.appendChild(label);
   $('syncLine').textContent=ses?('حساب: '+ses.email+(syncMsg?' • '+syncMsg:'')):LX('آرشیو شخصی با ورود به حساب فعال می‌شود','Sign in to access your personal movie archive');
 }
 function setSync(m){ syncMsg = m; updateAcct(); if($('auOv').classList.contains('open') && auView==='me') paintAuth(); }
@@ -2866,11 +2881,14 @@ function paintAuth(){
       sb = { url, key }; await kvSet(SB_CFG_KEY, JSON.stringify(sb)); openAuth('login');
     });
   } else if(v==='me'){
-    B.innerHTML = `<h2>حساب من</h2><p><b>${esc(ses.email)}</b></p>
-      <p>${esc(syncMsg || '—')}${acMeta.synced ? ' • آخرین همگام‌سازی: ' + new Date(acMeta.synced).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'}) : ''}</p>
-      <p>فیلم‌ها و یادداشت‌های تو در حساب ابری نگهداری می‌شوند؛ برای دیدنشان در دستگاه دیگر فقط با همین حساب وارد شو.</p>${msg}
-      <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn" id="auSync" type="button">به‌روزرسانی حساب</button><button class="btn danger" id="auOut" type="button">خروج</button></div>
-      <div class="actions"><button class="btn" id="auLegacyImport" type="button">انتقال آرشیو قدیمی این مرورگر به حساب</button></div>`;
+    B.innerHTML = `<h2>${LX('حساب من','My Account')}</h2><p><b>${esc(ses.email)}</b></p>
+      <div class="accountProfileTeaser"><strong>${esc(accountProfile.name||LX('پروفایل سینمایی من','My cinema profile'))}</strong><span>${LX('عکس پروفایل، بیو و ۱۰ فیلم محبوب','Avatar, bio and top 10 films')}</span></div>
+      <div class="actions"><button class="btn primary" id="auProfile" type="button">${LX('مشاهده و شخصی‌سازی پروفایل','View & customize profile')}</button></div>
+      <p>${esc(syncMsg || '—')}${acMeta.synced ? ' • '+LX('آخرین همگام‌سازی: ','Last synced: ') + new Date(acMeta.synced).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'}) : ''}</p>
+      <p>${LX('فیلم‌ها و یادداشت‌ها روی حساب شخصی تو ذخیره می‌شوند.','Your films and notes are stored in your private account.')}</p>${msg}
+      <div class="actions"><button class="btn" id="auClose" type="button">${LX('بستن','Close')}</button><button class="btn" id="auSync" type="button">${LX('به‌روزرسانی حساب','Refresh account')}</button><button class="btn danger" id="auOut" type="button">${LX('خروج','Sign out')}</button></div>
+      <div class="actions"><button class="btn" id="auLegacyImport" type="button">${LX('انتقال آرشیو قدیمی این مرورگر به حساب','Import this browser’s old archive')}</button></div>`;
+    on('auProfile',()=>window.filmAccountProfile?.open());
     on('auSync',()=>cloudReady?syncNow(true,false):loadAccountArchive());
     on('auLegacyImport',importLegacyBrowserArchive);
     on('auOut', async ()=>{
@@ -2958,5 +2976,6 @@ init();
 <script src="cinema-translation.js"></script>
 <script src="sidebar-ui.js"></script>
 <script src="add-film-ui.js"></script>
+<script src="account-profile.js"></script>
 </body>
 </html>
