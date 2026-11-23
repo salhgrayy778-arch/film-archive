@@ -9,9 +9,9 @@ if(!$f('fTitle')||!$f('tmRes')||typeof openSheet!=='function')return;
 const L=(fa,en)=>EN?en:fa;
 const SITE=new URL('.',document.currentScript?.src||document.baseURI);
 const normalized=value=>String(value||'').normalize('NFKD').toLocaleLowerCase()
-  .replace(/[\u064b-\u065f\u0670]/g,'').replace(/ي/g,'ی').replace(/ك/g,'ک')
+  .replace(/\p{M}/gu,'').replace(/ي/g,'ی').replace(/ك/g,'ک')
   .replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim();
-const canonicalMoviePoster=p=>/^assets\/catalog\/\d+-[a-f0-9]{12}\.webp$/i.test(String(p||''))
+const canonicalMoviePoster=p=>/^assets\/(?:catalog|posters)\/\d+-[a-f0-9]{12}\.webp$/i.test(String(p||''))
   ?new URL(p,SITE).href:'';
 const genres={18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'جنایی و معمایی',
  53:'جنایی و معمایی',27:'ترسناک',878:'علمی‌تخیلی',14:'علمی‌تخیلی',
@@ -29,7 +29,7 @@ $f('fTitle').setAttribute('spellcheck','false');
 const sourceText=document.createElement('p');
 sourceText.id='tmSuggestHelp';
 sourceText.className='tmSuggestHelp';
-sourceText.textContent=L('پیشنهادها از فهرست به‌روزشونده TMDB می‌آیند. انتخاب فیلم، مشخصات را پر می‌کند؛ ورود دستی هم آزاد است.','Suggestions come from a regularly updated TMDB catalog. Select a title to auto-fill details, or enter everything manually.');
+sourceText.textContent=L('جستجو میان بیش از یک میلیون عنوان TMDB انجام می‌شود. برای برخی فیلم‌ها پوستر یا مشخصات کامل هنوز ذخیره نشده؛ تکمیل دستی ممکن است.','Search over one million TMDB titles. Some films do not yet have cached posters or full details; manual editing remains available.');
 field.insertBefore(sourceText,$f('fTitle').nextSibling);
 // Replace result container to avoid the legacy TMDB click handler, which
 // requests the blocked TMDB API and image server from every visitor.
@@ -83,7 +83,12 @@ async function loadCatalog(){
   const data=await response.json();
   if(data.schema_version!==1||!Array.isArray(data.movies))throw Error('invalid catalog');
   catalog=data.movies.filter(m=>Number.isSafeInteger(m?.id)&&m.id>0);
-  status.textContent=L('پیشنهاد از '+catalog.length.toLocaleString('fa-IR')+' فیلم TMDB','Suggestions from '+catalog.length.toLocaleString('en-US')+' TMDB films');
+  status.textContent=L('جستجوی کامل TMDB در حال آماده‌سازی…','Preparing the full TMDB index…');
+  window.filmDiscovery?.fullIndexInfo().then(info=>{
+    if(!sectionIsOpen()||!info)return;
+    status.textContent=L('جستجو میان '+info.movie_count.toLocaleString('fa-IR')+' فیلم TMDB',
+      'Search '+info.movie_count.toLocaleString('en-US')+' TMDB films');
+  }).catch(()=>{});
   return catalog;
  })().catch(err=>{
   catalogLoad=null;
@@ -133,14 +138,24 @@ async function suggest(){
  const query=normalized($f('fTitle').value);
  if(!sectionIsOpen()||selectedId && !query){hideOptions();return;}
  if(query.length<2){hideOptions();return;}
- let records;
- try{records=await loadCatalog();}catch(err){records=[];}
+ let rankedMovies=[];
+ try{
+   if(window.filmDiscovery?.searchAllMovies){
+     rankedMovies=await window.filmDiscovery.searchAllMovies(query,10);
+   }else{
+     const records=await loadCatalog();
+     rankedMovies=records.map(movie=>({movie,rank:ranked(query,movie)}))
+       .filter(x=>x.rank>=0).sort((a,b)=>b.rank-a.rank).slice(0,10).map(x=>x.movie);
+   }
+ }catch(error){
+   console.warn('Full TMDB title search failed',error);
+   const records=await loadCatalog();
+   rankedMovies=records.map(movie=>({movie,rank:ranked(query,movie)}))
+     .filter(x=>x.rank>=0).sort((a,b)=>b.rank-a.rank).slice(0,10).map(x=>x.movie);
+ }
  if(token!==requestVersion||!sectionIsOpen()||query!==normalized($f('fTitle').value))return;
- if(!records.length){showMessage(L('فهرست TMDB در دسترس نیست؛ می‌توانی اطلاعات را دستی وارد کنی.','TMDB index unavailable. You can still add your film manually.'));return;}
- const rankedMovies=records.map(movie=>({movie,rank:ranked(query,movie)}))
-  .filter(x=>x.rank>=0).sort((a,b)=>b.rank-a.rank).slice(0,7).map(x=>x.movie);
  if(!rankedMovies.length){
-  showMessage(L('در فهرست فعلی پیدا نشد. می‌توانی دستی ثبت کنی یا جستجوی مستقیم TMDB را امتحان کنی.','Not in the cached catalog. Add manually or try direct TMDB search.'));
+  showMessage(L('عنوانی با این عبارت پیدا نشد؛ می‌توانی دستی ثبت کنی.','No matching titles found; manual entry remains available.'));
   return;
  }
  drawOptions(rankedMovies);
@@ -164,10 +179,13 @@ function setFilm(movie){
  paintPoster();
  selectedId=movie.id;usedCatalog=true;
  const fields=[movie.director,movie.cast,movie.runtime,movie.country,poster].filter(Boolean).length;
+ const isTitleOnly=movie._source==='universe'||(!movie.details_ok&&!fields);
  selected.hidden=false;
  selected.innerHTML='<span class="tmSelectedPoster">'+(poster?'<img src="'+escapeHTML(poster)+'" alt="" loading="lazy">':'🎬')+'</span>'
   +'<span class="tmSelectedCopy"><strong dir="auto">'+escapeHTML(title)+'</strong><small>'
-  +escapeHTML(L('✓ '+fields+' مورد از اطلاعات تکمیل شد؛ می‌توانی جزئیات را ویرایش کنی.','✓ '+fields+' details filled; you can still edit everything.'))
+  +escapeHTML(isTitleOnly
+    ?L('✓ عنوان فیلم پیدا شد. پوستر و اطلاعات تکمیلی این عنوان هنوز ذخیره نشده‌اند؛ ممکن است از TMDB دریافت شوند یا می‌توانی دستی وارد کنی.','✓ Title found. Poster and full details are not cached; we will try TMDB if reachable, or you can fill them manually.')
+    :L('✓ '+fields+' مورد از اطلاعات تکمیل شد؛ می‌توانی جزئیات را ویرایش کنی.','✓ '+fields+' details filled; you can still edit everything.'))
   +'</small></span>';
  hideOptions();
  $f('fTitle').focus({preventScroll:true});
@@ -238,7 +256,8 @@ async function hydrateLive(movie){
 }
 function chooseFilm(movie){
  setFilm(movie);
- if(movie && movie.details_ok===false && !movie.poster_url)hydrateLive(movie);
+ if(movie && !canonicalMoviePoster(movie.poster_url) &&
+    (movie.details_ok===false||movie._source==='universe'||movie._source==='live'))hydrateLive(movie);
 }
 const oldOpenSheet=openSheet;
 openSheet=function(id){
@@ -250,8 +269,13 @@ openSheet=function(id){
     selected.hidden=true;
     status.textContent=L('برای تغییر عنوان، نام فیلم را تایپ کن.','Type a new title to search again.');
   }else{
-    status.textContent=L('حداقل دو حرف برای نمایش پیشنهادها بنویس.','Type at least two letters for suggestions.');
+    status.textContent=L('حداقل دو حرف برای جستجوی فهرست کامل فیلم‌ها بنویس.','Type at least two letters to search the complete movie index.');
     loadCatalog();
+    window.filmDiscovery?.fullIndexInfo().then(info=>{
+      if(info&&sectionIsOpen()&&!state.editId)
+        status.textContent=L('جستجو میان '+info.movie_count.toLocaleString('fa-IR')+' فیلم TMDB',
+          'Search '+info.movie_count.toLocaleString('en-US')+' TMDB films');
+    });
   }
 };
 })();
