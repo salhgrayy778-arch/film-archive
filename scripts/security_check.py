@@ -25,7 +25,7 @@ check('src="cinema-translation.js"' in index,"Translation script not linked")
 check('crypto.getRandomValues' in files["group-watch.js"],"Weak watch-room IDs")
 check("new URL('data/home-feed.json',base)" in files["cinema-translation.js"],
       "Translation UI should fetch only same-site data")
-check("textContent=translated?" in files["cinema-translation.js"],
+check("title.textContent=nextTitle" in files["cinema-translation.js"] or "title.textContent=translated?" in files["cinema-translation.js"],
       "Translated text should use textContent")
 check("new URL('data/home-feed.json',SITE_BASE)" in files["cinema-news.js"],
       "Cinema homepage should fetch same-origin snapshot")
