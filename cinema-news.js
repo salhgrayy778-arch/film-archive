@@ -4,6 +4,11 @@
 'use strict';
 if(!document.getElementById('cinemaNews')||typeof tm!=='function')return;
 const root=document.getElementById('cinemaNews'),el=id=>document.getElementById(id);
+// Resolve all assets from this script's actual deployed location, not the address bar.
+// This works on custom domains and GitHub Pages subpaths, with or without a trailing slash.
+const SITE_BASE=new URL('.',document.currentScript?.src||document.baseURI);
+const localAsset=(p,pattern)=>pattern.test(String(p||''))?new URL(p,SITE_BASE).href:'';
+
 const L=(fa,en)=>EN?en:fa;
 const escHtml=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const validURL=x=>{try{const v=new URL(String(x||''));return ['https:','http:'].includes(v.protocol)?v.href:'';}catch(e){return '';}};
@@ -14,7 +19,7 @@ const movieDetails=new Map();
 async function serverSnapshot(){
  if(snapshotTask&&Date.now()-snapshotTime<8*60000)return snapshotTask;
  snapshotTime=Date.now();
- const url=new URL('data/home-feed.json',location.href);url.searchParams.set('v',String(Date.now()));
+ const url=new URL('data/home-feed.json',SITE_BASE);url.searchParams.set('v',String(Date.now()));
  snapshotTask=fetch(url,{cache:'no-store'}).then(async r=>{
   if(!r.ok)throw Error('Cinema data HTTP '+r.status);
   const data=await r.json();
@@ -41,7 +46,8 @@ const seenTime=s=>{
  const d=/^\d{8}T\d{6}Z$/.test(v)?new Date(v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+'T'+v.slice(9,11)+':'+v.slice(11,13)+':'+v.slice(13,15)+'Z'):new Date(v);
  return Number.isNaN(d.getTime())?'':d.toLocaleString(EN?'en-US':'fa-IR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 };
-const posterPath=p=>/^assets\/posters\/\d+-[a-f0-9]{12}\.webp$/i.test(String(p||''))?p:'';
+const posterPath=p=>localAsset(p,/^assets\/posters\/\d+-[a-f0-9]{12}\.webp$/i);
+const newsPath=p=>localAsset(p,/^assets\/news\/[a-f0-9]{16}\.webp$/i);
 function renderFilm(items,id){
  const host=el(id);
  if(!Array.isArray(items)||!items.length){host.innerHTML=placeholder(L('فیلمی برای نمایش پیدا نشد. دوباره تازه‌سازی کن.','No movies found. Try refreshing.'));return;}
@@ -50,7 +56,7 @@ function renderFilm(items,id){
   const title=String(m.title||m.original_title||'').trim(),cover=posterPath(m.poster_url);
   const rating=Number(m.vote_average)||0,release=formattedDay(m.release_date);
   return '<article class="cn-film-card"><button type="button" class="cn-film-open" data-film-id="'+Number(m.id)+'" aria-label="'+escHtml(L('جزئیات فیلم ','Details of ')+title)+'"><div class="cn-film-poster">'
-   +(cover?'<img src="'+cover+'" loading="lazy" alt="'+escHtml(L('پوستر ','Poster ')+title)+'">':escHtml(L('بدون پوستر','No poster')))
+   +(cover?'<img src="'+escHtml(cover)+'" loading="lazy" decoding="async" alt="'+escHtml(L('پوستر رسمی ','Official poster of ')+title)+'">':escHtml(L('پوستر موجود نیست','Poster unavailable')))
    +'</div><div class="cn-film-details"><h4 dir="auto">'+escHtml(title)+'</h4><p>'+escHtml(release||L('تاریخ نامشخص','Release date unavailable'))+'</p>'
    +(rating>0?'<p class="cn-rating">★ '+escHtml(rating.toFixed(1))+' / 10</p>':'')+'</div></button></article>';
  }).join('');
@@ -58,11 +64,11 @@ function renderFilm(items,id){
 function renderNews(items){
  if(!Array.isArray(items)||!items.length){el('cnNewsFeed').innerHTML=placeholder(L('از سرویس خبر، گزارشی دریافت نشد. خبرهای واقعی را از رسانه‌های پایین دنبال کن.','No current stories were returned. Browse the publisher links below.'),true);return;}
  el('cnNewsFeed').innerHTML=items.slice(0,12).map(a=>{
-  const url=validURL(a.url),image='',title=String(a.title||'').trim();
+  const url=validURL(a.url),image=newsPath(a.socialimage),title=String(a.title||'').trim();
   if(!url||!title)return '';
   const source=String(a.source||a.domain||'').replace(/^www\./,'').slice(0,65),time=seenTime(a.seendate);
   return '<article class="cn-news-card"><a target="_blank" rel="noopener noreferrer" href="'+escHtml(url)+'" aria-label="'+escHtml(title)+'">'
-   +'<div class="cn-news-thumb">WORLD CINEMA'+(image?'<img src="'+escHtml(image)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'')+'</div>'
+   +'<div class="cn-news-thumb">'+(image?'<img src="'+escHtml(image)+'" alt="" loading="lazy" decoding="async">':'<span class="cn-news-empty" aria-hidden="true">◈ CINEMA</span>')+'</div>'
    +'<div class="cn-news-info"><h4 dir="auto">'+escHtml(title)+'</h4><div class="cn-news-meta"><span class="cn-source">'+escHtml(source||L('رسانه اصلی','Original publisher'))+'</span>'
    +(time?'<time>'+escHtml(L('رصد: ','Seen: ')+time)+'</time>':'')+'</div></div></a></article>';
  }).join('');
@@ -186,7 +192,19 @@ el('cnAttribution').innerHTML=L('داده‌های فیلم و پوستر از '
 for(const id of ['cnNowPlaying','cnUpcoming','cnTrending'])el(id).innerHTML=placeholder(L('در حال دریافت فیلم‌ها…','Loading movies…'));
 el('cnNewsFeed').innerHTML=placeholder(L('در حال دریافت خبرهای واقعی…','Loading real news…'));
 el('cnRefresh').addEventListener('click',()=>refresh(true));
-root.addEventListener('error',e=>{if(e.target instanceof HTMLImageElement)e.target.remove();},true);
+root.addEventListener('error',e=>{
+ if(e.target instanceof HTMLImageElement){
+  const img=e.target;
+  console.warn('Image did not load:',img.src);
+  const parent=img.parentElement;img.remove();
+  if(parent){
+   const fall=document.createElement('span');
+   fall.className='cn-image-fallback';fall.setAttribute('aria-hidden','true');
+   fall.textContent=parent.classList.contains('cn-film-poster')?'🎞':'✦';
+   parent.appendChild(fall);
+  }
+ }
+},true);
 initLocalMovieDetails();
 const visible=()=>state.tab==='news'&&!document.hidden;
 document.getElementById('tab-news')?.addEventListener('click',()=>{if(Date.now()-lastCheck>N_TTL)refresh(false);});
