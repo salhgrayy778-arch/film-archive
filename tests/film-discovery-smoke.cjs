@@ -6,6 +6,7 @@ const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const {readFileSync}=require('node:fs');
 const {URL}=require('node:url');
+const {gzipSync}=require('node:zlib');
 
 class FakeElement{
  constructor(tagName='div'){
@@ -21,6 +22,7 @@ class FakeElement{
  append(child){this.children.push(child);}
  setAttribute(key,value){this.attributes[key]=String(value);}
  addEventListener(type,cb){this.listeners[type]=cb;}
+ querySelector(){return null;}
 }
 function fakeBrowser(startUrl){
  const registry=Object.create(null);
@@ -55,17 +57,25 @@ function fakeBrowser(startUrl){
    release_date:'2010-07-16',poster_url:'assets/catalog/20-abcdefabcdef.webp',
    overview:'A world of dreams.',vote_average:8.3,popularity:90,genre_ids:[28]}
  ];
- const fetch=async url=>({
-  ok:true,
-  json:async()=>String(url).includes('tmdb-catalog')
+ const manifest={schema_version:1,movie_count:1278230,id_shards:64,unicode_shards:24,search_buckets:{g:1}};
+ const fetch=async url=>{
+  const path=new URL(String(url)).pathname;
+  if(path.endsWith('tmdb-universe/manifest.json'))
+   return {ok:true,json:async()=>manifest};
+  if(path.endsWith('tmdb-universe/search/g.json.gz')||
+     path.endsWith('tmdb-universe/by-id/39.json.gz'))
+   return new Response(gzipSync(JSON.stringify([[999,'The Great Movie',22]])),{status:200});
+  if(path.includes('tmdb-universe/')&&path.endsWith('.gz'))
+   return new Response(gzipSync('[]'),{status:200});
+  return {ok:true,json:async()=>path.includes('tmdb-catalog')
    ?{movies}:{movies:{now:[{
      id:10,overview:'Space exploration.',overview_fa:'کاوش در فضا.',
      overview_source_for_fa:'Space exploration.',poster_url:movies[0].poster_url
-   }]}}
- });
+   }]}}};
+ };
  const state={tab:'news',films:[]};
  const context={
-  document,window,location,history,URL,fetch,state,
+  document,window,location,history,URL,fetch,Response,DecompressionStream,state,
   ses:{id:'owner-account'},cloudReady:true,cloudLoading:false,EN:false,
   LX:(fa,en)=>fa,
   render:()=>window.filmDiscovery?.onTabRendered(state.tab),
@@ -121,6 +131,15 @@ async function main(){
  assert.equal(context.saveCalls,2);
 
  context.ses=null;
+ registry.filmWatchToggle.onclick();
+ assert.equal(registry.filmProviderChooser.hidden,true,'Guest cannot reveal watch providers');
+ assert.equal(registry.filmWatchToggle.attributes['aria-expanded'],'false');
+ let prevented=false;
+ registry.filmProviderChooser.listeners.click({
+  target:{closest:selector=>selector==='a.filmProviderCard'?providers[0]:null},
+  preventDefault(){prevented=true;}
+ });
+ assert.equal(prevented,true,'Guest external watch navigation must be blocked');
  await registry.filmMarkWant.onclick();
  assert.equal(context.saveCalls,2,'Guests cannot save movie lists');
  assert.equal(state.films[0].status,'seen');
@@ -129,12 +148,26 @@ async function main(){
  window.listeners.popstate({state:{tab:'news'}});
  assert.equal(state.tab,'news','Back navigation restores prior page');
 
+ window.filmDiscovery.openSearch('Great');
+ await settle();
+ assert.equal(registry.filmSearchResults.children.length,1,'Universe search result');
+ assert.equal(registry.filmSearchResults.children[0].dataset.filmId,'999');
+ window.filmDiscovery.openFilm(999);
+ await settle();
+ assert.equal(registry.filmDetailTitle.textContent,'The Great Movie','Title-only movie page');
+ assert.equal(registry.filmDetailSynopsis.textContent,'خلاصه این فیلم موجود نیست.','Do not invent plot');
+ const directFull=fakeBrowser('https://archive.example/film-archive/index.html?film=999');
+ vm.createContext(directFull.context);compiled.runInContext(directFull.context);
+ await settle();
+ assert.equal(directFull.state.tab,'film');
+ assert.equal(directFull.registry.filmDetailTitle.textContent,'The Great Movie','Direct long-tail ID page');
+
  const direct=fakeBrowser('https://archive.example/film-archive/index.html?film=20');
  vm.createContext(direct.context);compiled.runInContext(direct.context);
  await settle();
  assert.equal(direct.state.tab,'film','Direct links must open the film page');
  assert.equal(direct.registry.filmDetailTitle.textContent,'تلقین');
 
- process.stdout.write('PASS: search, deep links, direct navigation, Persian synopsis, provider links, cloud list states and guest access checks\n');
+ process.stdout.write('PASS: comprehensive gzip title shards, long-tail deep links, Persian plot, guest watch gating, account lists\n');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
