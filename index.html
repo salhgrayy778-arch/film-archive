@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>try{if(localStorage.getItem("film-archive-lang")==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr";}}catch(e){}</script>
+<script>try{if(localStorage.getItem("film-archive-lang")==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr";}const savedTheme=localStorage.getItem("film-archive-theme");if(savedTheme&&savedTheme!=="auto")document.documentElement.setAttribute("data-theme",savedTheme);}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='%230D1B1A' stroke='%23C9A25A' stroke-width='2'/%3E%3Ctext x='24' y='31' text-anchor='middle' font-family='serif' font-style='italic' font-size='19' fill='%23C9A25A'%3ESG%3C/text%3E%3C/svg%3E">
 <title>آرشیو فیلم‌های من</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){
+  :root:not([data-theme]){
     --bg:#EFE8D6; --panel:#F8F3E6; --ink:#10272A; --mute:#58645F; --gold:#7E5E1C;
     --on-gold:#F8F3E6; --line:#D3C9AE; --strip:#10272A; --hole:#EFE8D6; --danger:#B3261E;
     color-scheme: light;
@@ -473,6 +473,71 @@ body{overflow-x:clip;padding-bottom:145px}
  .advrow .btn{font-size:12.5px}
 }
 @media(max-width:340px){.reel .hg{gap:2px}.reel .hbar .themeBtn{font-size:11.5px;padding:4px 6px}.reel .brand svg{width:32px;height:32px}.reel .brand span{font-size:18px}}
+
+/* Theme collection: paired complementary accents, contrast-aware surfaces */
+:root{--accent2:#8AB9BA;--hero-ink:#F0E4D2;--hero-sub:#CDB9A6}
+:root[data-theme="light"]{--accent2:#396E93;--hero-ink:#F0E4D2;--hero-sub:#CDB9A6}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme]){--accent2:#396E93;--hero-ink:#F0E4D2;--hero-sub:#CDB9A6}
+}
+:root[data-theme="ocean"]{
+  --bg:#071A23; --panel:#102936; --ink:#F3FAFC; --mute:#ACC3CB;
+  --gold:#FFAB8B; --on-gold:#16232B; --line:#2C4E5D; --strip:#06121B;
+  --hole:#123541; --danger:#FF8585; --accent2:#53CED4;
+  --hero-ink:#FFF9EF; --hero-sub:#C6E3E9; color-scheme:dark;
+}
+:root[data-theme="violet"]{
+  --bg:#1B1227; --panel:#2B1D3C; --ink:#F8F3FF; --mute:#C6B6D4;
+  --gold:#D9FF89; --on-gold:#172118; --line:#4E3768; --strip:#160D22;
+  --hole:#392047; --danger:#FF8A9A; --accent2:#B39CFF;
+  --hero-ink:#F9F5FF; --hero-sub:#D2C2EF; color-scheme:dark;
+}
+:root[data-theme="midnight"]{
+  --bg:#0B1630; --panel:#162444; --ink:#F0F5FF; --mute:#AEC1DA;
+  --gold:#FFBA73; --on-gold:#201925; --line:#344968; --strip:#070F23;
+  --hole:#1D2C51; --danger:#FF8C8C; --accent2:#68B1FF;
+  --hero-ink:#FFF4E5; --hero-sub:#CADAF1; color-scheme:dark;
+}
+:root[data-theme="forest"]{
+  --bg:#EFF7F0; --panel:#FFFFFF; --ink:#15352E; --mute:#536A63;
+  --gold:#126345; --on-gold:#FFFFFF; --line:#C6DCD0; --strip:#12382E;
+  --hole:#2A6150; --danger:#A6304E; --accent2:#C5486B;
+  --hero-ink:#F8FFF9; --hero-sub:#CEE6DC; color-scheme:light;
+}
+:root[data-theme="desert"]{
+  --bg:#FFF4E7; --panel:#FFFCF7; --ink:#332A39; --mute:#685F69;
+  --gold:#A44414; --on-gold:#FFFFFF; --line:#E8D5C9; --strip:#2F2B57;
+  --hole:#544C82; --danger:#B32E3C; --accent2:#506CC5;
+  --hero-ink:#FFF8EE; --hero-sub:#D7D2F0; color-scheme:light;
+}
+:root[data-theme="berry"]{
+  --bg:#241525; --panel:#382239; --ink:#FFF5FC; --mute:#D2BBCE;
+  --gold:#90EDC2; --on-gold:#14291F; --line:#65405E; --strip:#1B101F;
+  --hole:#3F2341; --danger:#FF8FA1; --accent2:#FF91C0;
+  --hero-ink:#FFF4FB; --hero-sub:#F0C8DE; color-scheme:dark;
+}
+.reel h1{color:var(--hero-ink)}
+.reel p{color:var(--hero-sub)}
+.reel .themeBtn{color:var(--hero-ink);border-color:color-mix(in srgb,var(--hero-ink) 30%,transparent);background:color-mix(in srgb,var(--hero-ink) 12%,transparent)}
+.reel .brand{color:var(--gold)}
+.reel .beam{background:linear-gradient(180deg,color-mix(in srgb,var(--accent2) 23%,transparent),transparent 85%)}
+.reel::after{content:"";position:absolute;inset-inline:0;bottom:0;height:3px;pointer-events:none;background:linear-gradient(90deg,var(--gold),var(--accent2),var(--gold));opacity:.8}
+.themePanel{position:fixed;top:60px;inset-inline-start:clamp(10px,3vw,28px);z-index:22;width:min(365px,calc(100vw - 20px));max-height:min(75dvh,580px);overflow-y:auto;padding:16px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 16px 60px rgba(0,0,0,.38);text-align:start}
+.themePanelHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+.themePanelHead strong{font-size:17px}
+.themePanelHead button{width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:23px;line-height:1}
+.themePanel p{font-size:12px;color:var(--mute);margin-bottom:12px}
+.themeOptions{display:grid;grid-template-columns:1fr;gap:7px}
+.themeOption{display:flex;align-items:center;gap:11px;width:100%;min-height:58px;padding:8px 11px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);text-align:start}
+.themeOption:hover,.themeOption[aria-pressed="true"]{border-color:var(--gold)}
+.themeOption[aria-pressed="true"]{box-shadow:inset 3px 0 0 var(--gold)}
+.themeSwatch{width:42px;height:42px;border-radius:11px;border:1px solid rgba(127,127,127,.35);flex:none;background:linear-gradient(135deg,var(--swatch-bg) 0 49%,var(--swatch-a) 49% 74%,var(--swatch-b) 74% 100%)}
+.themeCopy{flex:1;min-width:0}
+.themeCopy strong{display:block;font-size:13.5px;line-height:1.5}
+.themeCopy small{display:block;font-size:11px;color:var(--mute);line-height:1.4}
+.themeCheck{min-width:18px;font-size:18px;font-weight:900;color:var(--gold)}
+@media(max-width:560px){.themePanel{top:64px;inset-inline-start:10px;max-height:calc(100dvh - 84px)}}
+
 </style>
 </head>
 <body>
@@ -525,13 +590,19 @@ body{overflow-x:clip;padding-bottom:145px}
   <div class="beam"></div>
   <div class="hbar">
     <div class="hg"><button class="themeBtn" id="acctBtn" type="button" aria-label="حساب کاربری"></button><button class="themeBtn ib" id="menuBtn" type="button" aria-label="ابزارها و داده‌ها" aria-controls="drawer" aria-expanded="false"><svg class="ic"><use href="#i-menu"/></svg><span>ابزارها</span></button></div>
-    <div class="hg"><button class="themeBtn" id="themeBtn" aria-label="تغییر تم"></button><button class="themeBtn" id="langBtn" type="button" aria-label="Language">English</button></div>
+    <div class="hg"><button class="themeBtn" id="themeBtn" type="button" aria-label="انتخاب تم" aria-controls="themePanel" aria-expanded="false">🎨 تم‌ها</button><button class="themeBtn" id="langBtn" type="button" aria-label="Language">English</button></div>
   </div>
   <div class="brand" dir="ltr"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor"><circle cx="24" cy="24" r="22" stroke-width="2"/><circle cx="24" cy="24" r="17" stroke-width=".8"/><g fill="currentColor" stroke="none"><circle cx="24" cy="7.5" r="2.2"/><circle cx="24" cy="40.5" r="2.2"/><circle cx="7.5" cy="24" r="2.2"/><circle cx="40.5" cy="24" r="2.2"/></g><text x="24" y="30" text-anchor="middle" font-family="Cormorant Garamond,Georgia,serif" font-style="italic" font-size="17" fill="currentColor" stroke="none">SG</text></svg><span>Saleh Gharaie</span></div>
   <h1>آرشیو فیلم‌های من</h1>
   <p id="stats">در حال بارگذاری…</p>
   <p id="syncLine" class="syncLine"></p>
 </header>
+
+<div id="themePanel" class="themePanel" role="dialog" aria-label="انتخاب تم" hidden>
+  <div class="themePanelHead"><strong id="themePanelTitle">انتخاب تم و رنگ‌بندی</strong><button id="themeClose" type="button" aria-label="بستن">×</button></div>
+  <p id="themePanelDesc">رنگ‌های مکمل، با کنتراست مناسب برای خوانایی</p>
+  <div id="themeOptions" class="themeOptions" role="group" aria-label="تم‌های موجود"></div>
+</div>
 
 <main>
   <div class="ban" id="bkBan" hidden><span>مدتی است پشتیبان نگرفته‌ای؛ اطلاعات فقط روی همین مرورگر ذخیره می‌شود.</span><button class="btn primary" id="bkNow" type="button">ذخیره پشتیبان</button></div>
@@ -953,19 +1024,62 @@ function toast(msg){
   clearTimeout(toast.t); toast.t = setTimeout(()=>t.classList.remove('show'), 2600);
 }
 
-/* ---------- تم: خودکار / تیره / روشن ---------- */
-const THEMES = ['auto','dark','light'];
-const THEME_LABEL = { auto:'تم: خودکار', dark:'تم: تیره', light:'تم: روشن' };
+/* ---------- پالت‌های رنگی با رنگ‌های مکمل ---------- */
+const THEME_OPTIONS = [
+  {id:'auto',fa:'خودکار',en:'Auto',noteFa:'هماهنگ با سیستم',noteEn:'Follows system appearance',swatches:['#0D1B1A','#C9A25A','#EFE8D6']},
+  {id:'dark',fa:'تیره کلاسیک',en:'Classic Dark',noteFa:'سبز تیره و طلایی',noteEn:'Deep teal × Gold',swatches:['#0D1B1A','#C9A25A','#8AB9BA']},
+  {id:'light',fa:'روشن کلاسیک',en:'Classic Light',noteFa:'کرم و آبی',noteEn:'Cream × Blue',swatches:['#EFE8D6','#7E5E1C','#396E93']},
+  ...[{"id":"ocean","fa":"اقیانوس مرجانی","en":"Coral Ocean","noteFa":"فیروزه‌ای و مرجانی","noteEn":"Teal × Coral","swatches":["#071A23","#FFAB8B","#53CED4"]},{"id":"violet","fa":"بنفش و لیمویی","en":"Violet Lime","noteFa":"بنفش و سبز لیمویی","noteEn":"Violet × Lime","swatches":["#1B1227","#D9FF89","#B39CFF"]},{"id":"midnight","fa":"نیمه‌شب سینمایی","en":"Midnight Cinema","noteFa":"آبی و کهربایی","noteEn":"Blue × Amber","swatches":["#0B1630","#FFBA73","#68B1FF"]},{"id":"forest","fa":"جنگل و رز","en":"Forest Rose","noteFa":"سبز جنگلی و صورتی","noteEn":"Forest × Rose","swatches":["#EFF7F0","#126345","#C5486B"]},{"id":"desert","fa":"کویر و نیلی","en":"Desert Indigo","noteFa":"نارنجی و نیلی","noteEn":"Orange × Indigo","swatches":["#FFF4E7","#A44414","#506CC5"]},{"id":"berry","fa":"تمشکی و نعنایی","en":"Berry Mint","noteFa":"صورتی و نعنایی","noteEn":"Pink × Mint","swatches":["#241525","#90EDC2","#FF91C0"]}]
+];
+const THEMES = THEME_OPTIONS.map(o => o.id);
 let theme = 'auto';
+function paintThemePicker(){
+  const active = THEME_OPTIONS.find(o => o.id === theme) || THEME_OPTIONS[0];
+  const btn = $('themeBtn');
+  btn.textContent = LX('🎨 ' + active.fa,'🎨 ' + active.en);
+  btn.setAttribute('aria-label',LX('تم فعلی: ' + active.fa + '، تغییر تم','Current theme: ' + active.en + ', change theme'));
+  $('themePanel').setAttribute('aria-label',LX('انتخاب تم','Choose theme'));
+  $('themePanelTitle').textContent = LX('انتخاب تم و رنگ‌بندی','Choose a color theme');
+  $('themePanelDesc').textContent = LX('پالت‌های هماهنگ با رنگ‌های مکمل','Coordinated palettes with complementary colors');
+  $('themeClose').setAttribute('aria-label',LX('بستن','Close'));
+  $('themeOptions').setAttribute('aria-label',LX('تم‌های موجود','Available themes'));
+  $('themeOptions').innerHTML = THEME_OPTIONS.map(o => `
+    <button type="button" class="themeOption" data-theme-option="${o.id}" aria-pressed="${o.id===theme}">
+      <span class="themeSwatch" aria-hidden="true" style="--swatch-bg:${o.swatches[0]};--swatch-a:${o.swatches[1]};--swatch-b:${o.swatches[2]}"></span>
+      <span class="themeCopy"><strong>${LX(o.fa,o.en)}</strong><small>${LX(o.noteFa,o.noteEn)}</small></span>
+      <span class="themeCheck" aria-hidden="true">${o.id===theme?'✓':''}</span>
+    </button>`).join('');
+}
 function applyTheme(){
-  if(theme==='auto') document.documentElement.removeAttribute('data-theme');
-  else document.documentElement.setAttribute('data-theme', theme);
-  $('themeBtn').textContent = THEME_LABEL[theme];
+  if(theme === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',theme);
+  paintThemePicker();
 }
-async function cycleTheme(){
-  theme = THEMES[(THEMES.indexOf(theme)+1) % THEMES.length];
-  applyTheme(); await kvSet(THEME_KEY, theme);
+function showThemePicker(open,restoreFocus=false){
+  const panel = $('themePanel');
+  panel.hidden = !open;
+  $('themeBtn').setAttribute('aria-expanded',String(open));
+  if(open) (panel.querySelector('[aria-pressed="true"]') || panel.querySelector('button'))?.focus();
+  else if(restoreFocus) $('themeBtn').focus();
 }
+function initThemePicker(){
+  $('themeBtn').addEventListener('click', () => showThemePicker($('themePanel').hidden));
+  $('themeClose').addEventListener('click', () => showThemePicker(false,true));
+  $('themeOptions').addEventListener('click',async e=>{
+    const b = e.target.closest('[data-theme-option]'); if(!b)return;
+    if(!THEMES.includes(b.dataset.themeOption))return;
+    theme = b.dataset.themeOption; applyTheme(); showThemePicker(false,true);
+    await kvSet(THEME_KEY,theme);
+  });
+  document.addEventListener('pointerdown',e=>{
+    const panel=$('themePanel'),btn=$('themeBtn');
+    if(!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target))showThemePicker(false);
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && !$('themePanel').hidden){e.preventDefault();showThemePicker(false,true);}
+  });
+}
+
 
 /* ---------- نمایش ---------- */
 function starsText(n){
@@ -1421,7 +1535,7 @@ function init(){
     const c = e.target.closest('.card'); if(c) openDetail(c.dataset.id);
   });
 
-  $('themeBtn').addEventListener('click', cycleTheme);
+  initThemePicker();
   $('addBtn').addEventListener('click', ()=>openSheet(null));
   $('cancelBtn').addEventListener('click', requestSheetDismiss);
   $('saveBtn').addEventListener('click', submitSheet);
