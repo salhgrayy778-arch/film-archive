@@ -162,29 +162,88 @@ async function refresh(force){
 }
 
 function initLocalMovieDetails(){
+ // Native dialogs belong to the document top layer, outside the animated
+ // news view. Otherwise on desktop the backdrop can appear while the panel
+ // is positioned below the visible viewport.
  const dialog=document.createElement('dialog');
- dialog.className='cnMovieDialog';dialog.id='cnMovieDialog';dialog.setAttribute('aria-labelledby','cnModalTitle');
- dialog.innerHTML='<div class="cnModalHead"><h3 id="cnModalTitle" dir="auto"></h3><button type="button" class="btn" id="cnModalClose" aria-label="'+L('بستن','Close')+'">✕</button></div>'
-   +'<div class="cnModalContent"><div id="cnModalPoster" class="cnModalPoster"></div><div class="cnModalData"><p id="cnModalMeta"></p><p id="cnModalOverview" dir="auto"></p><a id="cnModalSource" target="_blank" rel="noopener noreferrer">'
-   +L('مشاهده در TMDB (ممکن است VPN بخواهد)','View on TMDB (may need VPN)')+'</a></div></div>';
- root.appendChild(dialog);
+ dialog.className='cnMovieDialog';dialog.id='cnMovieDialog';
+ dialog.setAttribute('aria-labelledby','cnModalTitle');
+ dialog.setAttribute('aria-describedby','cnModalOverview');
+ dialog.innerHTML='<div class="cnModalHead">'
+  +'<div class="cnModalHeading"><span class="cnModalEyebrow">'+L('پرونده فیلم','MOVIE DETAILS')+'</span><h3 id="cnModalTitle" dir="auto"></h3></div>'
+  +'<div class="cnModalButtons"><button type="button" class="cnModalTranslateBtn" id="cnModalTranslate" aria-pressed="false"></button>'
+  +'<button type="button" class="cnModalCloseBtn" id="cnModalClose" aria-label="'+L('بستن جزئیات فیلم','Close movie details')+'">✕</button></div></div>'
+  +'<div class="cnModalContent"><div id="cnModalPoster" class="cnModalPoster"></div>'
+  +'<div class="cnModalData"><p id="cnModalMeta"></p>'
+  +'<h4 class="cnModalSectionTitle">'+L('داستان فیلم','Synopsis')+'</h4>'
+  +'<p id="cnModalOverview" dir="auto"></p><p id="cnModalTranslationNote" class="cnModalTranslationNote" role="status" aria-live="polite"></p>'
+  +'<a id="cnModalSource" target="_blank" rel="noopener noreferrer">'+L('مشاهده منبع در TMDB (ممکن است VPN بخواهد)','Original TMDB page (may require VPN)')+'</a></div></div>';
+ document.body.appendChild(dialog);
+ let current=null,showPersian=false,opening=0;
+ const translateButton=el('cnModalTranslate');
+ const hasPersian=text=>/[\u0600-\u06ff]/.test(String(text||''));
+ function applyMovieLanguage(){
+  if(!current)return;
+  const original=String(current.title||current.original_title||'');
+  const enOverview=String(current.overview||'');
+  const faOverview=String(current.overview_fa||'');
+  const correctTranslation=hasPersian(faOverview)&&
+     current.overview_source_for_fa===current.overview;
+  const localizedTitle=hasPersian(current.fa_title)?String(current.fa_title):'';
+  el('cnModalTitle').textContent=showPersian&&localizedTitle?localizedTitle:original;
+  el('cnModalTitle').dir=showPersian&&localizedTitle?'rtl':'auto';
+  el('cnModalOverview').textContent=showPersian&&correctTranslation
+    ?faOverview:(enOverview||L('خلاصه رسمی این فیلم موجود نیست.','Official synopsis unavailable.'));
+  el('cnModalOverview').dir=showPersian&&correctTranslation?'rtl':'auto';
+  translateButton.setAttribute('aria-pressed',String(showPersian));
+  translateButton.textContent=showPersian?L('↩ متن اصلی','↩ Original'):L('ترجمه فارسی','Persian translation');
+  el('cnModalTranslationNote').textContent=showPersian
+    ?correctTranslation
+      ?L('ترجمه ماشینی خلاصه فیلم؛ برای بررسی دقیق‌تر به متن اصلی مراجعه کن.','Machine-translated synopsis; check the original for accuracy.')
+      :L('ترجمه فارسی این فیلم هنوز منتشر نشده است؛ متن اصلی نمایش داده می‌شود.','Persian translation is not yet published; showing the original text.')
+    :'';
+ }
+ translateButton.addEventListener('click',()=>{
+   if(!current)return;
+   showPersian=!showPersian;
+   applyMovieLanguage();
+ });
  el('cnModalClose').addEventListener('click',()=>dialog.close());
  dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
+ dialog.addEventListener('close',()=>{current=null;showPersian=false;opening++;});
  root.addEventListener('click',event=>{
   const button=event.target.closest('button[data-film-id]');
   if(!button)return;
-  const m=movieDetails.get(Number(button.dataset.filmId));if(!m)return;
-  const title=String(m.title||m.original_title||'');
-  el('cnModalTitle').textContent=title;
-  el('cnModalMeta').textContent=[formattedDay(m.release_date),m.vote_average?'★ '+Number(m.vote_average).toFixed(1)+'/10':''].filter(Boolean).join(' • ');
-  el('cnModalOverview').textContent=m.overview||L('خلاصه رسمی این فیلم در دسترس نیست.','Official synopsis is unavailable.');
-  const poster=posterPath(m.poster_url),holder=el('cnModalPoster');holder.replaceChildren();
-  if(poster){const img=document.createElement('img');img.src=poster;img.alt=L('پوستر رسمی ','Original official poster of ')+title;holder.appendChild(img);}
-  else holder.textContent=L('پوستر موجود نیست','No poster available');
-  el('cnModalSource').href='https://www.themoviedb.org/movie/'+Number(m.id);
-  if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');
+  const id=Number(button.dataset.filmId);
+  const m=movieDetails.get(id);
+  if(!m)return;
+  current=m;showPersian=false;
+  const requested=++opening;
+  applyMovieLanguage();
+  const vote=Number(m.vote_average);
+  el('cnModalMeta').textContent=[formattedDay(m.release_date),
+    Number.isFinite(vote)&&vote>0?'★ '+vote.toFixed(1)+'/10':''].filter(Boolean).join(' • ');
+  const poster=posterPath(m.poster_url),holder=el('cnModalPoster');
+  holder.replaceChildren();
+  if(poster){
+    const img=document.createElement('img');
+    img.src=poster;img.alt=L('پوستر اصلی ','Official poster of ')+String(m.title||m.original_title||'');
+    img.loading='eager';holder.appendChild(img);
+  }else holder.textContent=L('پوستر موجود نیست','No poster available');
+  el('cnModalSource').href='https://www.themoviedb.org/movie/'+id;
+  if(typeof dialog.showModal==='function'){
+    if(!dialog.open)dialog.showModal();
+  }else dialog.setAttribute('open','');
+  // Refresh translated synopsis from the published same-origin snapshot.
+  // This works with older movie cards cached in the user's browser.
+  serverSnapshot().then(data=>{
+    if(requested!==opening||!dialog.open||!current||current.id!==id)return;
+    const fresh=Object.values(data.movies||{}).flat().find(x=>x?.id===id);
+    if(fresh){current={...current,...fresh};movieDetails.set(id,current);applyMovieLanguage();}
+  }).catch(error=>console.warn('Movie translation snapshot unavailable',error));
  });
 }
+
 root.innerHTML="\n<div class=\"cn-hero\">\n <div class=\"cn-eyebrow\"><span class=\"cn-live-dot\"></span> WORLD CINEMA · LIVE EDITION</div>\n <h2 data-en=\"From the big screen to the latest film news\">از پردهٔ سینما تا تازه‌ترین خبرهای جهان</h2>\n <p data-en=\"Real news from multiple publishers, new releases and official posters. Server-side updates every three hours; no direct TMDB connection required for visitors.\">خبرهای واقعی از رسانه‌های معتبر، تازه‌ترین اکران‌ها، فیلم‌های در راه و ترندهای این هفته؛ همراه با به‌روزرسانی خودکار.</p>\n <div class=\"cn-hero-foot\"><button type=\"button\" class=\"btn primary cn-refresh\" id=\"cnRefresh\" data-en=\"↻ Refresh cinema news and movies\">↻ تازه‌سازی اخبار و فیلم‌ها</button>\n <span class=\"cn-updated\" id=\"cnUpdated\" role=\"status\" aria-live=\"polite\"></span></div>\n</div>\n<section class=\"cn-block\" aria-labelledby=\"cnNewsHeading\">\n <div class=\"cn-heading\"><div><h3 id=\"cnNewsHeading\" data-en=\"Latest world cinema news\">آخرین اخبار سینمای جهان</h3><p data-en=\"Original headlines, publisher, and first-seen time\">عنوان واقعی خبر، رسانه و زمان رصد خبر</p></div>\n <a href=\"https://www.google.com/search?tbm=nws&amp;q=international+cinema+news\" rel=\"noopener noreferrer\" target=\"_blank\" data-en=\"More news\">خبرهای بیشتر</a></div>\n <div class=\"cn-news-grid\" id=\"cnNewsFeed\" aria-live=\"polite\"></div>\n <div class=\"cn-source-strip\" id=\"cnSources\"></div>\n</section>\n<section class=\"cn-block\" aria-labelledby=\"cnNowHeading\">\n <div class=\"cn-heading\"><div><h3 id=\"cnNowHeading\" data-en=\"Now playing in cinemas\">تازه روی پردهٔ سینما</h3><p data-en=\"Current US theatrical releases according to TMDB\">فیلم‌های در حال اکران در منطقهٔ آمریکا بر اساس TMDB</p></div>\n <a href=\"https://www.themoviedb.org/movie/now-playing\" rel=\"noopener noreferrer\" target=\"_blank\" data-en=\"All releases\">همه اکران‌ها</a></div>\n <div class=\"cn-film-grid\" id=\"cnNowPlaying\" aria-live=\"polite\"></div>\n</section>\n<section class=\"cn-block\" aria-labelledby=\"cnUpcomingHeading\">\n <div class=\"cn-heading\"><div><h3 id=\"cnUpcomingHeading\" data-en=\"Coming soon\">به‌زودی روی پرده</h3><p data-en=\"Upcoming release dates in the US region\">فیلم‌های با تاریخ اکران آینده در منطقه آمریکا</p></div></div>\n <div class=\"cn-film-grid\" id=\"cnUpcoming\" aria-live=\"polite\"></div>\n</section>\n<section class=\"cn-block\" aria-labelledby=\"cnTrendHeading\">\n <div class=\"cn-heading\"><div><h3 id=\"cnTrendHeading\" data-en=\"Trending this week\">محبوب‌های این هفته</h3><p data-en=\"TMDB weekly trends — these are not necessarily new releases\">ترندهای هفتگی TMDB؛ لزوماً اکران تازه نیستند</p></div></div>\n <div class=\"cn-film-grid\" id=\"cnTrending\" aria-live=\"polite\"></div>\n</section>\n<div class=\"cn-footnote\" id=\"cnAttribution\"></div>\n";
 if(EN)root.querySelectorAll('[data-en]').forEach(node=>{node.textContent=node.getAttribute('data-en');});
 el('cnSources').innerHTML=L('خبرگزاری‌ها: ','News publishers: ')+srcList.map(x=>'<a href="'+x[1]+'" target="_blank" rel="noopener noreferrer">'+x[0]+'</a>').join(' · ');
