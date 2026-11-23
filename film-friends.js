@@ -17,7 +17,7 @@ async function json(path){return (await request(path,{cache:'no-store'})).json()
 async function publicProfile(id){
  const path='/film_public_profiles?select=user_id,display_name,bio,avatar,favorites&user_id=eq.'+encodeURIComponent(id)+'&limit=1';
  if(ready())return (await json(path))[0]||null;
- const response=await fetch(sb.url.replace(/\\/$/,'')+'/rest/v1'+path,
+ const response=await fetch((sb.url.endsWith('/')?sb.url.slice(0,-1):sb.url)+'/rest/v1'+path,
   {headers:{apikey:sb.key},cache:'no-store'});
  if(!response.ok)throw Error('Public profile HTTP '+response.status);
  return (await response.json())[0]||null;
