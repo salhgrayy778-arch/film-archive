@@ -109,11 +109,27 @@ startPing = function () {
 stopPing = function () {
   clearInterval(R.ping);R.ping=null;$room('ping').hidden=true;
 };
+// Block mixed-content and private-network requests delivered in shared rooms.
+const safeSharedVideoUrl = value => {
+  if(typeof value!=='string'||value.length>4096)return '';
+  try{
+    const u=new URL(value);
+    const host=u.hostname.toLowerCase().replace(/^\[|\]$/g,'');
+    if(u.protocol!=='https:'||u.username||u.password)return '';
+    if(host==='localhost'||host.endsWith('.local')||host.endsWith('.internal')
+      ||/^127\./.test(host)||/^10\./.test(host)||/^192\.168\./.test(host)
+      ||/^169\.254\./.test(host)||/^172\.(1[6-9]|2\d|3[01])\./.test(host)
+      ||host==='::1')return '';
+    return u.href;
+  }catch(error){return '';}
+};
 // Keep the original source selection behavior but remember it for late joiners.
 const originalSetSrc=setSrc, originalSetFile=setFile;
 setSrc = function(url,fromPeer) {
-  if (typeof url==='string' && /^https?:\/\/\S+$/i.test(url)) R.source={t:'src',url};
-  return originalSetSrc(url,fromPeer);
+  const safe=safeSharedVideoUrl(url);
+  if(!safe){if(!fromPeer)toast(localLabel('فقط لینک امن HTTPS عمومی برای فیلم مجاز است','Use a public HTTPS movie URL'));return;}
+  R.source={t:'src',url:safe};
+  return originalSetSrc(safe,fromPeer);
 };
 setFile = function(file) {
   if (file) R.source={t:'file',name:file.name,size:file.size};
@@ -160,8 +176,10 @@ onMsg = function(message,c) {
   if (!permitted.has(m.t)) return;
   let forwarded=m;
   if (m.t==='src') {
-    if (typeof m.url!=='string' || m.url.length>4096 || !/^https?:\/\/\S+$/i.test(m.url)) return;
-    setSrc(m.url,true);
+    const safe=safeSharedVideoUrl(m.url);
+    if(!safe)return;
+    setSrc(safe,true);
+    forwarded={t:'src',url:safe};
   } else if (m.t==='file') {
     if (typeof m.name!=='string'||m.name.length>180||!Number.isFinite(m.size)||m.size<0) return;
     R.source={t:'file',name:m.name,size:m.size};
