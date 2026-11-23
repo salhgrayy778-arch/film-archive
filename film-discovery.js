@@ -8,6 +8,118 @@ const GENRES={18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'
 let catalog=[],catalogPromise=null,catalogFailed=false,catalogLoaded=false,featuredPromise=null,featured=new Map(),extra=new Map();
 let query='',limit=30,current=null,showFa=false,watchOpen=false,loadSerial=0,remoteBusy=false,searchTimer=0,quickTimer=0;
 let returnTab='search';
+
+/* Sharded, VPN-free complete-title layer from TMDB's official daily export.
+ * The source has IDs, original titles and popularity only. Detail metadata
+ * and original posters are still served from the curated local movie cache.
+ * No live TMDB request is required to search or view a title-only movie.
+ */
+let universeManifest=null,universeManifestTask=null;
+const universeBuckets=new Map(),universeTasks=new Map();
+const universeIds=new Map(),universeIdTasks=new Map();
+const UNIVERSE_CACHE_LIMIT=3;
+function universeBucket(text){
+ const word=normalize(text).split(' ').find(Boolean);
+ if(!word)return '';
+ const cp=word.codePointAt(0);
+ const ch=word[0];
+ if(/[a-z0-9]/.test(ch)&&ch.length===1)return ch;
+ const count=universeManifest?.unicode_shards||24;
+ return 'u-'+String(cp%count).padStart(2,'0');
+}
+async function getUniverseManifest(){
+ if(universeManifestTask)return universeManifestTask;
+ universeManifestTask=(async()=>{
+  const response=await fetch(new URL('data/tmdb-universe/manifest.json',BASE),{cache:'default'});
+  if(!response.ok)throw Error('Full movie index not built yet');
+  const manifest=await response.json();
+  if(manifest.schema_version!==1||!Number.isSafeInteger(manifest.movie_count)
+     ||!Number.isSafeInteger(manifest.id_shards)||manifest.movie_count<100000)
+    throw Error('Unrecognized TMDB full index manifest');
+  universeManifest=manifest;
+  const hero=$('filmSearchView').querySelector('.filmSearchHero p');
+  if(hero){
+   hero.textContent=L(
+    'جستجو میان '+manifest.movie_count.toLocaleString('fa-IR')+' عنوان فیلم از TMDB. پوستر و اطلاعات کامل برای فیلم‌های منتخب ذخیره شده‌اند.',
+    'Search '+manifest.movie_count.toLocaleString('en-US')+' TMDB movie titles. Posters and full details are cached for selected films.');
+  }
+  return manifest;
+ })().catch(error=>{
+  console.warn('Comprehensive TMDB title index unavailable',error);
+  return null;
+ });
+ return universeManifestTask;
+}
+async function readGzippedIndex(relative){
+ if(typeof DecompressionStream!=='function')throw Error('Browser does not support gzip decompression');
+ const response=await fetch(new URL('data/tmdb-universe/'+relative,BASE),{cache:'default'});
+ if(!response.ok||!response.body)throw Error('Movie title shard HTTP '+response.status);
+ const decoded=new Response(response.body.pipeThrough(new DecompressionStream('gzip')));
+ const result=await decoded.json();
+ if(!Array.isArray(result))throw Error('Unexpected TMDB title shard');
+ return result;
+}
+function compactMovie(row){
+ if(!Array.isArray(row)||!idNumber(row[0])||typeof row[1]!=='string')return null;
+ const name=row[1].slice(0,240);
+ if(!name)return null;
+ return {id:Number(row[0]),title:name,original_title:name,popularity:Number(row[2])||0,
+  poster_url:'',overview:'',genre_ids:[],_source:'universe'};
+}
+function cacheIndex(map,key,value){
+ if(map.size>=UNIVERSE_CACHE_LIMIT)map.delete(map.keys().next().value);
+ map.set(key,value);
+}
+async function loadUniverseBucket(term){
+ const manifest=await getUniverseManifest();
+ if(!manifest)return [];
+ const key=universeBucket(term);
+ if(!key||!Object.prototype.hasOwnProperty.call(manifest.search_buckets||{},key))return [];
+ if(universeBuckets.has(key))return universeBuckets.get(key);
+ if(universeTasks.has(key))return universeTasks.get(key);
+ const task=readGzippedIndex('search/'+key+'.json.gz')
+  .then(rows=>{
+   const entries=rows.map(compactMovie).filter(Boolean);
+   cacheIndex(universeBuckets,key,entries);
+   return entries;
+  }).catch(error=>{
+   console.warn('Movie title search shard unavailable',key,error);
+   return [];
+  }).finally(()=>universeTasks.delete(key));
+ universeTasks.set(key,task);
+ return task;
+}
+function startUniverseSearch(term,quick=false){
+ if(normalize(term).length<2)return;
+ const key=universeBucket(term);
+ if(!key||universeBuckets.has(key))return;
+ loadUniverseBucket(term).then(()=>{
+  const value=quick?$('filmQuickInput').value.trim():$('filmSearchInput').value.trim();
+  if(normalize(value)!==normalize(term))return;
+  if(quick)quickSuggestions();
+  else if(state.tab==='search')renderSearch();
+ });
+}
+async function lookupUniverseMovie(id){
+ const manifest=await getUniverseManifest();
+ if(!manifest)return null;
+ const slot=id%manifest.id_shards,key=String(slot).padStart(2,'0');
+ if(!universeIds.has(key)){
+  if(!universeIdTasks.has(key)){
+   const pending=readGzippedIndex('by-id/'+key+'.json.gz')
+    .then(rows=>{
+     const entries=rows.map(compactMovie).filter(Boolean);
+     cacheIndex(universeIds,key,entries);
+     return entries;
+    }).catch(error=>{console.warn('Movie ID shard unavailable',error);return [];})
+     .finally(()=>universeIdTasks.delete(key));
+   universeIdTasks.set(key,pending);
+  }
+  await universeIdTasks.get(key);
+ }
+ return universeIds.get(key)?.find(m=>m.id===id)||null;
+}
+
 const idNumber=value=>/^[1-9]\d{0,11}$/.test(String(value||''))?Number(value):null;
 const faValue=value=>/[\u0600-\u06ff]/.test(String(value||''));
 const normalize=value=>String(value||'').normalize('NFKD').toLocaleLowerCase()
@@ -72,6 +184,11 @@ function permalink(id){
 function rankedMovies(term){
  const q=normalize(term);
  const rows=[...catalog,...[...extra.values()].filter(m=>!catalog.some(c=>c.id===m.id))];
+ if(q.length>=2){
+  const shard=universeBuckets.get(universeBucket(q))||[];
+  const known=new Set(rows.map(m=>m.id));
+  for(const m of shard){if(!known.has(m.id)){known.add(m.id);rows.push(m);}}
+ }
  if(q.length<2)return rows.sort((a,b)=>(b.popularity||0)-(a.popularity||0));
  return rows.map(m=>{
   let score=-1;
@@ -99,12 +216,13 @@ function filmCard(m){
 function renderSearch(){
  if(state.tab!=='search')return;
  const host=$('filmSearchResults'),term=$('filmSearchInput').value.trim();
+ if(term.length>=2)startUniverseSearch(term);
  if(!catalogLoaded){
   empty(host,L('در حال بارگذاری فیلم‌ها…','Loading films…'));
   loadCatalog().then(()=>{if(state.tab==='search')renderSearch();});return;
  }
- if(!catalog.length){
-  empty(host,L('فهرست فیلم‌های TMDB فعلاً در دسترس نیست.','TMDB local catalog is unavailable.'));
+ if(!catalog.length&&!(term.length>=2&&universeBuckets.has(universeBucket(term)))){
+  empty(host,L('در حال دریافت فهرست کامل یا بررسی اتصال سایت…','Loading comprehensive index or checking the site connection…'));
   $('filmSearchCount').textContent='';
   $('filmSearchRemote').hidden=term.length<2;return;
  }
@@ -120,8 +238,9 @@ function clearSuggestions(){const el=$('filmQuickSuggestions');el.replaceChildre
 function quickSuggestions(){
  const q=$('filmQuickInput').value.trim();clearSuggestions();
  if(q.length<2)return;
+ startUniverseSearch(q,true);
  if(!catalogLoaded){loadCatalog().then(()=>{if($('filmQuickInput').value.trim()===q)quickSuggestions();});return;}
- if(!catalog.length)return;
+ if(!catalog.length&&!(universeBuckets.get(universeBucket(q))||[]).length)return;
  const box=$('filmQuickSuggestions');
  for(const m of rankedMovies(q).slice(0,6)){
   const a=node('a','filmSuggestRow');a.href=permalink(m.id);a.dataset.filmId=String(m.id);
@@ -327,7 +446,8 @@ async function showDetail(id){
  if(!movie){
   $('filmDetailTitle').textContent=L('این فیلم در فهرست ذخیره‌شده نیست.','Film unavailable in the local index.');
   $('filmDetailSynopsis').textContent=L('برای مشاهده این فیلم ممکن است دسترسی مستقیم TMDB لازم باشد.','Direct TMDB access may be needed.');
-  movie=await fetchLiveDetail(id);
+  movie=await lookupUniverseMovie(id);
+  if(!movie)movie=await fetchLiveDetail(id);
  }
  if(seq===loadSerial&&state.tab==='film'&&movie)showFilm(movie);
 }
@@ -419,6 +539,7 @@ function init(){
  });
  window.addEventListener('film-account-profile-updated',updateAccountButtons);
  loadCatalog();
+ getUniverseManifest();
  const id=idNumber(new URL(location.href).searchParams.get('film'));
  if(id)openFilm(id,false);
 }
