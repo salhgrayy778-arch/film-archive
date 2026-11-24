@@ -614,6 +614,7 @@ body{overflow-x:clip;padding-bottom:145px}
 <link rel="stylesheet" href="cinematic-shell.css">
 <link rel="stylesheet" href="account-profile.css">
 <link rel="stylesheet" href="film-discovery.css">
+<link rel="stylesheet" href="room-experience.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -2918,8 +2919,7 @@ async function freshToken(){
 
 /* ---------- حساب کاربری: Supabase تنها منبع آرشیو ---------- */
 function clearPersonalView(){
-  // End any live peer session immediately when its owner signs out.
-  try{if(typeof R!=='undefined'){if(typeof rv==='function'&&!rv().paused)rv().pause();leaveRoom();}}catch(error){}
+  // Group-watch rooms are invitation based and independent of the account: signing in/out or a refreshed session must not drop the room.
   cloudEpoch++;cloudReady=false;cloudLoading=false;cloudError='';
   state.films=[];acMeta={snap:{},deleted:{},owner:'',synced:0};syncMsg='';
   accountProfile=blankAccountProfile();profileDirty=false;
@@ -3213,6 +3213,7 @@ init();
 <script src="group-watch.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="group-watch-realtime.js"></script>
+<script src="room-experience.js"></script>
 <script src="mkv-support.js"></script>
 <script src="cinema-news.js"></script>
 <script src="cinema-translation.js"></script>
