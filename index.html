@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+/* گوشی‌ها (صفحهٔ کوچک و لمسی) همان چیدمان دسکتاپ را نشان می‌دهند؛ کامپیوتر و تبلت بزرگ بدون تغییر می‌مانند. */
+try{
+  var _sw=Math.min(screen.width||0,screen.height||0);
+  if(_sw&&_sw<820&&window.matchMedia&&matchMedia('(pointer:coarse)').matches){
+    document.querySelector('meta[name=viewport]').setAttribute('content','width=1100, viewport-fit=cover');
+    document.documentElement.classList.add('deskView');
+  }
+}catch(e){}
+</script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' https://api.themoviedb.org https://itunes.apple.com https://en.wikipedia.org https://fa.wikipedia.org https://*.supabase.co wss://*.supabase.co https://0.peerjs.com wss://0.peerjs.com https://*.peerjs.com wss://*.peerjs.com https://cdn.jsdelivr.net; media-src 'self' https: blob:; worker-src 'self' blob:; upgrade-insecure-requests">
 <script>try{if(localStorage.getItem("film-archive-lang")==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr";}const savedTheme=localStorage.getItem("film-archive-theme");if(savedTheme&&savedTheme!=="auto")document.documentElement.setAttribute("data-theme",savedTheme);}catch(e){}</script>
@@ -28,6 +38,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&family=Cormorant+Garamond:ital,wght@1,600&display=swap" rel="stylesheet">
 <style>
+html.deskView{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
   --bg:#0D1B1A; --panel:#14282A; --ink:#EFE6D2; --mute:#A9B3A5; --gold:#C9A25A;
   --on-gold:#0D1B1A; --line:#27413F; --strip:#071211; --hole:#0D1B1A; --danger:#E5736A;
@@ -301,6 +312,31 @@ main,.reel{position:relative;z-index:1}
 .vol input[type=range]{width:0;opacity:0;padding:0;border:0;background:none;height:20px;accent-color:#C9A25A;transition:width .2s,opacity .2s,margin .2s;margin:0}
 .vol:hover input[type=range],.vol:focus-within input[type=range]{width:78px;opacity:1;margin:0 8px 0 2px}
 @media(max-width:600px){.bigplay{width:64px;height:64px;margin:-32px 0 0 -32px;font-size:28px}.vol input[type=range]{display:none}.cb{width:36px;height:36px;font-size:20px}.time{margin:0 4px;font-size:11.5px}}
+
+/* ----- زیرنویس: روکش و پنل ----- */
+.subov{position:absolute;left:4%;right:4%;bottom:calc(var(--sub-lift,0px) + 14px);z-index:2;text-align:center;pointer-events:none;font-family:'Vazirmatn',Tahoma,sans-serif;font-size:var(--sub-fs,16px);line-height:1.75;color:var(--sub-color,#fff);transition:bottom .25s}
+.stage:not(.idle):not(.noSrc) .subov{bottom:calc(var(--sub-lift,0px) + 66px)}
+.subov[hidden]{display:none}
+.subov>div{display:block;width:fit-content;max-width:100%;margin:2px auto;padding:1px 10px;border-radius:5px;background:rgba(0,0,0,var(--sub-bg,.6));white-space:pre-line;unicode-bidi:plaintext;text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 2px rgba(0,0,0,.9);-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.pop.subp{width:318px;max-width:calc(100vw - 28px);padding:10px 12px 8px;white-space:normal;overflow-y:auto;overscroll-behavior:contain}
+.subp .sph{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.subp .sph b{color:#E7C47E;font-size:14px}
+.subp .sfn{font-size:11.5px;color:#A9B3A5;direction:ltr;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
+.subp .sg{border-top:1px solid #27413F;padding-top:8px;margin-top:8px}
+.subp .sl{font-size:11.5px;color:#A9B3A5;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.subp .srow{display:flex;gap:5px;align-items:stretch;margin-bottom:5px}
+.subp .srow>button{flex:1;width:auto;justify-content:center;text-align:center;padding:7px 4px;border:1px solid #27413F;border-radius:8px;font-size:12px;min-height:34px}
+.subp .srow.l{direction:ltr}
+.subp .srow>button:hover:not(:disabled){border-color:#C9A25A}
+.subp .srow>button:disabled{opacity:.4}
+.subp .srow>button[aria-pressed="true"]{border-color:#C9A25A;background:rgba(201,162,90,.25);color:#E7C47E;font-weight:700}
+.subp .sval{flex:0 0 74px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#F0E4D2;direction:ltr;font-variant-numeric:tabular-nums}
+.subp .shift{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:7px}
+.subp .shift .big{font-size:22px;font-weight:900;color:#E7C47E;direction:ltr;min-width:104px;text-align:center;font-variant-numeric:tabular-nums}
+.subp .shift input{width:70px;background:#0D1B1A;border:1px solid #27413F;border-radius:8px;color:#F0E4D2;padding:6px;text-align:center;direction:ltr;font:inherit;font-size:13px}
+.subp .shift input:focus{outline:2px solid #C9A25A;outline-offset:1px}
+.subp .sw{width:10px;height:10px;border-radius:50%;display:inline-block;margin-inline-end:6px;border:1px solid #0008}
+.subp .shint{font-size:11px;color:#8C968B;line-height:1.6;margin-top:2px}
 
 .seek{position:relative;height:20px;cursor:pointer;touch-action:none;display:block;margin-bottom:2px}
 .seek::before,.buf,.played{content:"";position:absolute;left:0;top:50%;height:4px;margin-top:-2px;border-radius:3px;pointer-events:none;transition:height .15s,margin .15s}
@@ -784,6 +820,7 @@ body{overflow-x:clip;padding-bottom:145px}
           <div class="cdown" id="cdown" hidden>
             <svg viewBox="0 0 200 200" width="190" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="100" cy="100" r="84"/><circle cx="100" cy="100" r="66" stroke-width="1" opacity=".6"/><path d="M100 6v50M100 144v50M6 100h50M144 100h50" opacity=".7"/><text id="cdNum" x="100" y="128" text-anchor="middle" font-size="84" font-weight="900" fill="currentColor" stroke="none" font-family="Vazirmatn,Tahoma,sans-serif">۳</text></svg>
           </div>
+          <div class="subov" id="subOv" hidden aria-live="off"></div>
           <div class="spin" id="spin" hidden></div>
           <button class="bigplay" id="bigPlay" type="button" aria-label="پخش"><svg class="ic"><use href="#i-play"/></svg></button>
           <div class="ctl" id="ctl">
@@ -799,13 +836,7 @@ body{overflow-x:clip;padding-bottom:145px}
               <span class="sp"></span>
               <div class="popw"><button class="cb txt" id="cSpd" type="button" aria-label="سرعت پخش">۱×</button><div class="pop" id="spdPop" hidden></div></div>
               <div class="popw"><button class="cb" id="cCc" type="button" aria-label="زیرنویس"><svg class="ic"><use href="#i-cc"/></svg></button>
-                <div class="pop" id="ccPop" hidden>
-                  <button type="button" id="ccLoad">انتخاب فایل زیرنویس…</button>
-                  <button type="button" id="ccTog" role="menuitemcheckbox" aria-checked="false">نمایش زیرنویس</button>
-                  <button type="button" id="ccM">زیرنویس ۰٫۵ ثانیه زودتر</button>
-                  <button type="button" id="ccP">زیرنویس ۰٫۵ ثانیه دیرتر</button>
-                  <div class="ccs" id="ccShift"></div>
-                </div></div>
+                <div class="pop subp" id="ccPop" hidden></div></div>
               <button class="cb" id="cFull" type="button" aria-label="تمام‌صفحه"><svg class="ic"><use id="cFullI" href="#i-full"/></svg></button>
             </div>
           </div>
@@ -815,7 +846,7 @@ body{overflow-x:clip;padding-bottom:145px}
 
         <div class="rbox">
           <div class="rrow"><input id="rUrl" dir="ltr" placeholder="https://…/movie.mp4" autocomplete="off"><button class="btn primary" id="rLoad" type="button"><svg class="ic"><use href="#i-play"/></svg>پخش</button></div>
-          <div class="rrow"><button class="btn" id="rFileBtn" type="button"><svg class="ic"><use href="#i-file"/></svg>انتخاب فایل از دستگاه</button><span class="chip" id="rFileName" hidden></span><input type="file" id="rFile" accept="video/*,.mkv,.mp4,.webm,.mov" hidden><input type="file" id="rSub" accept=".srt,.vtt,text/vtt" hidden></div>
+          <div class="rrow"><button class="btn" id="rFileBtn" type="button"><svg class="ic"><use href="#i-file"/></svg>انتخاب فایل از دستگاه</button><span class="chip" id="rFileName" hidden></span><input type="file" id="rFile" accept="video/*,.mkv,.mp4,.webm,.mov" hidden><input type="file" id="rSub" hidden></div>
           <div class="rrow tools2">
             <button class="btn" id="rCount" type="button"><svg class="ic"><use href="#i-clap"/></svg>شروع هم‌زمان ۳-۲-۱</button>
             <button class="btn" id="rSync" type="button"><svg class="ic"><use href="#i-sync"/></svg>برو به نقطهٔ او</button>
@@ -1981,41 +2012,181 @@ function setFile(file){
 }
 
 /* ----- زیرنویس ----- */
+const SUB_KEY = 'film-sub-prefs';
+const SP = (()=>{
+  let v = {}; try{ v = JSON.parse(localStorage.getItem(SUB_KEY) || '{}') || {}; }catch(e){}
+  const n = (x, lo, hi, d) => Number.isFinite(+x) ? Math.min(hi, Math.max(lo, +x)) : d;
+  return { size:n(v.size, 60, 220, 100), lift:n(v.lift, 0, 40, 0), bg:n(v.bg, 0, 100, 60), color:/^#[0-9a-f]{6}$/i.test(v.color) ? v.color : '#ffffff' };
+})();
+const saveSP = () => { try{ localStorage.setItem(SUB_KEY, JSON.stringify(SP)); }catch(e){} };
+const subOverlay = () => { const st = $('stage'); return !!(st.requestFullscreen || st.webkitRequestFullscreen); };
+const subTrack = () => rv().querySelector('track');
+const toEnDigits = t => String(t).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٫,]/g, '.').replace(/[−–—]/g, '-');
+function decodeSub(buf){
+  const u = new Uint8Array(buf);
+  if(u[0] === 0xFF && u[1] === 0xFE) return new TextDecoder('utf-16le').decode(u.subarray(2));
+  if(u[0] === 0xFE && u[1] === 0xFF) return new TextDecoder('utf-16be').decode(u.subarray(2));
+  try{ return new TextDecoder('utf-8', {fatal:true}).decode(u); }
+  catch(e){ return new TextDecoder('windows-1256').decode(u); }
+}
 function toVtt(t){
-  t = t.replace(/^\uFEFF/, '').replace(/\r+/g, '').replace(/\{\\an?\d\}/g, '');
-  if(/^WEBVTT/.test(t)) return t;
-  return 'WEBVTT\n\n' + t.replace(/(\d\d:\d\d:\d\d),(\d{3})/g, '$1.$2');
+  t = t.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  if(/^\s*WEBVTT/.test(t)) return t.replace(/^\s+/, '');
+  const tc = '(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{1,2})[,.](\\d{1,3})';
+  const re = new RegExp('^\\s*' + tc + '\\s*-->\\s*' + tc);
+  const fmt = (h, m, sec, ms) => `${String(h || 0).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}.${(ms + '00').slice(0,3)}`;
+  const out = [];
+  for(const block of t.split(/\n{2,}/)){
+    const lines = block.split('\n'); let k = lines.findIndex(l => re.test(l)); if(k < 0) continue;
+    const m = lines[k].match(re);
+    const text = lines.slice(k + 1).join('\n').replace(/\{\\[^}]*\}/g, '').replace(/&(?!(?:amp|lt|gt|nbsp|lrm|rlm);)/g, '&amp;').trim();
+    if(!text) continue;
+    out.push(`${fmt(m[1], m[2], m[3], m[4])} --> ${fmt(m[5], m[6], m[7], m[8])}\n${text}`);
+  }
+  return out.length ? 'WEBVTT\n\n' + out.join('\n\n') + '\n' : '';
+}
+function clearSub(silent){
+  const tr = subTrack(); if(tr){ try{ tr.track.mode = 'disabled'; }catch(e){} tr.remove(); }
+  if(R.subUrl){ try{ URL.revokeObjectURL(R.subUrl); }catch(e){} R.subUrl = ''; }
+  R.subName = ''; R.subBase = null; R.subShift = 0; R.subLoaded = false; R.subOn = false;
+  paintCue(); paintCc(); if(!silent) toast(LX('زیرنویس حذف شد', 'Subtitles removed'));
 }
 async function setSub(file){
   try{
-    const buf = await file.arrayBuffer(); let txt;
-    try{ txt = new TextDecoder('utf-8', {fatal:true}).decode(buf); }
-    catch(e){ txt = new TextDecoder('windows-1256').decode(buf); }
-    const el = rv();
-    [...el.querySelectorAll('track')].forEach(x=>x.remove());
-    if(R.subUrl) URL.revokeObjectURL(R.subUrl);
-    R.subUrl = URL.createObjectURL(new Blob([toVtt(txt)], {type:'text/vtt'}));
+    const vtt = toVtt(decodeSub(await file.arrayBuffer()));
+    if(!vtt){ toast(LX('قالب زیرنویس شناخته نشد؛ فایل srt یا vtt بده', 'Unrecognised subtitle format; use an srt or vtt file')); return; }
+    const el = rv(); clearSub(true);
+    R.subUrl = URL.createObjectURL(new Blob([vtt], {type:'text/vtt'}));
     const tr = document.createElement('track');
-    tr.kind = 'subtitles'; tr.label = 'زیرنویس'; tr.srclang = 'fa'; tr.src = R.subUrl; tr.default = true;
-    R.subShift = 0; R.subLoaded = false;
-    tr.addEventListener('load', ()=>{ R.subLoaded = true; if(R.subShift) shiftCues(R.subShift); });
-    el.appendChild(tr); tr.track.mode = 'showing'; R.subOn = true; paintCc();
-    toast('زیرنویس بارگذاری شد');
-  }catch(e){ toast('خواندن زیرنویس انجام نشد'); }
+    tr.kind = 'subtitles'; tr.label = LX('زیرنویس', 'Subtitles'); tr.srclang = EN ? 'en' : 'fa'; tr.src = R.subUrl; tr.default = true;
+    R.subName = file.name; R.subShift = 0; R.subBase = null; R.subOn = true;
+    const ready = ()=>{
+      if(R.subBase || subTrack() !== tr || !tr.track.cues) return;
+      R.subBase = Array.from(tr.track.cues, c => [c.startTime, c.endTime]); R.subLoaded = true;
+      tr.track.addEventListener('cuechange', paintCue); applyShift(0); paintCc();
+      toast(LX(`زیرنویس بارگذاری شد (${pd(R.subBase.length)} خط)`, `Subtitles loaded (${R.subBase.length} lines)`));
+    };
+    tr.addEventListener('load', ready); setTimeout(ready, 900);
+    el.appendChild(tr); tr.track.mode = subOverlay() ? 'hidden' : 'showing';
+    paintCc();
+  }catch(e){ toast(LX('خواندن زیرنویس انجام نشد', 'Couldn\'t read the subtitles')); }
 }
-function shiftCues(d){
-  const tr = rv().querySelector('track'); if(!tr || !tr.track.cues) return;
-  for(const c of tr.track.cues){ c.startTime = Math.max(0, c.startTime + d); c.endTime = Math.max(0, c.endTime + d); }
+function applyShift(v){
+  v = Math.max(-300, Math.min(300, Math.round((Number(v) || 0) * 1000) / 1000));
+  R.subShift = v; const tr = subTrack();
+  if(tr && R.subBase && tr.track.cues){
+    const cs = tr.track.cues, n = Math.min(cs.length, R.subBase.length);
+    for(let i = 0; i < n; i++){ const c = cs[i], b = R.subBase[i]; c.startTime = Math.max(0, b[0] + v); c.endTime = Math.max(0, b[1] + v); }
+  }
+  paintCue(); paintCc();
 }
 function shiftSub(d){
-  if(!rv().querySelector('track')){ toast('اول فایل زیرنویس را انتخاب کن'); return; }
-  R.subShift += d; if(R.subLoaded) shiftCues(d); paintCc();
+  if(!subTrack()){ toast(LX('اول فایل زیرنویس را انتخاب کن', 'Choose a subtitle file first')); return; }
+  applyShift(R.subShift + d);
+}
+function subCueAt(dir){
+  const tr = subTrack(); if(!tr || !tr.track.cues || !tr.track.cues.length) return null;
+  const cs = Array.from(tr.track.cues), t = rv().currentTime;
+  if(dir === 'prev'){ for(let i = cs.length - 1; i >= 0; i--) if(cs[i].startTime < t - 1.2) return i; return null; }
+  if(dir === 'next'){ for(let i = 0; i < cs.length; i++) if(cs[i].startTime > t + .05) return i; return null; }
+  const i = cs.findIndex(c => c.endTime > t); return i < 0 ? null : i;
+}
+function subJump(dir){
+  if(!subTrack()){ toast(LX('اول فایل زیرنویس را انتخاب کن', 'Choose a subtitle file first')); return; }
+  const i = subCueAt(dir); if(i === null){ toast(LX('خطی پیدا نشد', 'No line found')); return; }
+  rv().currentTime = Math.max(0, subTrack().track.cues[i].startTime);
+}
+function subAlign(){
+  if(!subTrack() || !R.subBase){ toast(LX('اول فایل زیرنویس را انتخاب کن', 'Choose a subtitle file first')); return; }
+  const i = subCueAt('here'); if(i === null){ toast(LX('خطی پیدا نشد', 'No line found')); return; }
+  applyShift(rv().currentTime - R.subBase[i][0]);
+}
+function paintCue(){
+  const ov = $('subOv'), tr = subTrack();
+  ov.replaceChildren();
+  const act = (subOverlay() && R.subOn && tr && tr.track.activeCues) ? Array.from(tr.track.activeCues) : [];
+  if(!act.length){ ov.hidden = true; return; }
+  for(const c of act){ const d = document.createElement('div'); d.appendChild(c.getCueAsHTML()); ov.appendChild(d); }
+  ov.hidden = false;
+}
+function applySubStyle(){
+  const st = $('stage'), w = st.clientWidth || 640, h = st.clientHeight || 360;
+  st.style.setProperty('--sub-fs', Math.max(11, w * .032 * SP.size / 100) + 'px');
+  st.style.setProperty('--sub-lift', (h * SP.lift / 100) + 'px');
+  st.style.setProperty('--sub-bg', SP.bg / 100);
+  st.style.setProperty('--sub-color', SP.color);
+}
+const fmtShift = v => { const a = Math.round(Math.abs(v) * 100) / 100, t = Number.isInteger(Math.round(a * 10) / 10 * 10) && Math.abs(a * 10 - Math.round(a * 10)) < 1e-9 ? a.toFixed(1) : String(a); return (v > 0 ? '+' : v < 0 ? '−' : '') + pd(t.replace('.', EN ? '.' : '٫')); };
+function buildSubPanel(){
+  const pop = $('ccPop'); pop.replaceChildren();
+  const mk = (tag, cls, text, attrs) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; if(attrs) for(const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  const btn = (id, text, label) => mk('button', '', text, {type:'button', id, 'aria-label': label || text});
+  const num = (id, text) => { const b = btn(id, text); b.dir = 'ltr'; b.style.direction = 'ltr'; return b; };
+  const row = (...k) => { const r = mk('div', 'srow'); r.append(...k); if(k.some(x => x.dir === 'ltr')) r.classList.add('l'); return r; };
+  const grp = (title, right) => { const g = mk('div', 'sg'); const l = mk('div', 'sl'); l.append(mk('span', '', title)); if(right) l.append(right); g.append(l); return g; };
+  const head = mk('div', 'sph'); head.append(mk('b', '', LX('زیرنویس', 'Subtitles')), mk('span', 'sfn', '', {id:'ccName'}));
+  const tog = btn('ccTog', LX('نمایش زیرنویس', 'Show subtitles')); tog.setAttribute('role', 'menuitemcheckbox'); tog.setAttribute('aria-checked', 'false');
+  pop.append(head, row(btn('ccLoad', LX('انتخاب فایل…', 'Choose file…')), btn('ccDel', LX('حذف', 'Remove'))), tog);
+
+  const g1 = grp(LX('زمان‌بندی (ثانیه)', 'Timing (seconds)'), mk('span', '', LX('مثبت = دیرتر', '+ = later')));
+  const sh = mk('div', 'shift'); const inp = mk('input', '', null, {id:'ccShiftIn', type:'text', inputmode:'decimal', dir:'ltr', 'aria-label': LX('جابه‌جایی به ثانیه', 'Offset in seconds'), placeholder:'0'});
+  sh.append(mk('div', 'big', '', {id:'ccBig'}), inp);
+  g1.append(sh,
+    row(num('ccM1', '−1'), num('ccM01', '−0.1'), num('ccP01', '+0.1'), num('ccP1', '+1')),
+    row(num('ccM5', '−5'), btn('ccRst', LX('صفر', 'Reset')), num('ccP5', '+5')),
+    row(btn('ccPrev', LX('خط قبل', 'Prev line')), btn('ccNext', LX('خط بعد', 'Next line'))),
+    row(btn('ccAlign', LX('این لحظه را شروع خط کن', 'Line starts right now'))),
+    mk('div', 'shint', LX('ویدئو را درست لحظهٔ گفته‌شدن یک جمله نگه دار و دکمهٔ آخر را بزن تا زمان‌بندی خودکار تنظیم شود.', 'Pause exactly when a line is spoken, then press the last button to set the timing automatically.')));
+  pop.append(g1);
+
+  if(subOverlay()){
+    const g2 = grp(LX('ظاهر', 'Appearance'));
+    const val = id => mk('span', 'sval', '', {id});
+    g2.append(
+      row(btn('ssM', 'A−', LX('کوچک‌تر', 'Smaller')), val('ssV'), btn('ssP', 'A+', LX('بزرگ‌تر', 'Larger'))),
+      row(btn('slM', '↓', LX('پایین‌تر', 'Lower')), val('slV'), btn('slP', '↑', LX('بالاتر', 'Higher'))),
+      row(btn('sb0', LX('بدون زمینه', 'No box')), btn('sb1', LX('نیمه‌شفاف', 'Soft')), btn('sb2', LX('پررنگ', 'Solid'))),
+      row(btn('scW', LX('سفید', 'White')), btn('scY', LX('زرد', 'Yellow'))),
+      row(btn('ssR', LX('بازنشانی ظاهر', 'Reset appearance'))));
+    pop.append(g2);
+  }
+  const L = (id, f) => { const e = $(id); if(e) e.addEventListener('click', f); };
+  L('ccLoad', ()=>{ closePops(); $('rSub').click(); });
+  L('ccDel', ()=>{ if(subTrack()) clearSub(); });
+  L('ccTog', ()=>{
+    const tr = subTrack(); if(!tr){ toast(LX('اول فایل زیرنویس را انتخاب کن', 'Choose a subtitle file first')); return; }
+    R.subOn = !R.subOn; if(!subOverlay()) tr.track.mode = R.subOn ? 'showing' : 'hidden';
+    paintCue(); paintCc();
+  });
+  [['ccM1',-1],['ccM01',-.1],['ccP01',.1],['ccP1',1],['ccM5',-5],['ccP5',5]].forEach(([id, d]) => L(id, ()=>shiftSub(d)));
+  L('ccRst', ()=>{ if(subTrack()) applyShift(0); });
+  L('ccPrev', ()=>subJump('prev')); L('ccNext', ()=>subJump('next')); L('ccAlign', subAlign);
+  const commit = ()=>{
+    if(!subTrack()){ toast(LX('اول فایل زیرنویس را انتخاب کن', 'Choose a subtitle file first')); inp.value = ''; return; }
+    const v = parseFloat(toEnDigits(inp.value).replace(/^\+/, '')); if(Number.isFinite(v)) applyShift(v); else paintCc();
+  };
+  inp.addEventListener('change', commit);
+  inp.addEventListener('keydown', e=>{ e.stopPropagation(); if(e.key === 'Enter'){ e.preventDefault(); commit(); inp.blur(); } });
+  const sv = ()=>{ saveSP(); applySubStyle(); paintCc(); };
+  L('ssM', ()=>{ SP.size = Math.max(60, SP.size - 10); sv(); }); L('ssP', ()=>{ SP.size = Math.min(220, SP.size + 10); sv(); });
+  L('slM', ()=>{ SP.lift = Math.max(0, SP.lift - 4); sv(); }); L('slP', ()=>{ SP.lift = Math.min(40, SP.lift + 4); sv(); });
+  L('sb0', ()=>{ SP.bg = 0; sv(); }); L('sb1', ()=>{ SP.bg = 60; sv(); }); L('sb2', ()=>{ SP.bg = 90; sv(); });
+  L('scW', ()=>{ SP.color = '#ffffff'; sv(); }); L('scY', ()=>{ SP.color = '#ffd84a'; sv(); });
+  L('ssR', ()=>{ SP.size = 100; SP.lift = 0; SP.bg = 60; SP.color = '#ffffff'; sv(); });
 }
 function paintCc(){
-  const has = !!rv().querySelector('track');
-  $('ccTog').setAttribute('aria-checked', has && R.subOn);
-  const s = R.subShift;
-  $('ccShift').textContent = has ? (s ? `جابه‌جایی فعلی: ${s > 0 ? 'دیرتر' : 'زودتر'} ${pd(Math.abs(s).toFixed(1).replace('.','٫'))} ثانیه` : 'زیرنویس بدون جابه‌جایی') : 'زیرنویسی انتخاب نشده';
+  if(!$('ccTog')) return;
+  const tr = subTrack(), has = !!tr, s = R.subShift || 0;
+  $('ccTog').setAttribute('aria-checked', String(has && R.subOn));
+  $('ccName').textContent = has ? R.subName : LX('زیرنویسی انتخاب نشده', 'No subtitle selected');
+  $('ccBig').textContent = fmtShift(s);
+  const inp = $('ccShiftIn'); if(document.activeElement !== inp) inp.value = s ? String(s).replace('.', EN ? '.' : '٫').replace(/\d/g, d => EN ? d : '۰۱۲۳۴۵۶۷۸۹'[d]) : '';
+  ['ccDel','ccTog','ccM1','ccM01','ccP01','ccP1','ccM5','ccP5','ccRst','ccPrev','ccNext','ccAlign'].forEach(id => { const e = $(id); if(e) e.disabled = !has; });
+  if($('ssV')){
+    $('ssV').textContent = pd(SP.size) + '%'; $('slV').textContent = pd(SP.lift);
+    const on = (id, v) => $(id).setAttribute('aria-pressed', String(v));
+    on('sb0', SP.bg === 0); on('sb1', SP.bg === 60); on('sb2', SP.bg === 90); on('scW', SP.color === '#ffffff'); on('scY', SP.color === '#ffd84a');
+  }
 }
 
 /* ----- کنترل‌های سفارشی ----- */
@@ -2052,9 +2223,13 @@ function togglePlay(){
   if(el.paused || el.ended) el.play().catch(()=>toast('پخش شروع نشد')); else el.pause();
 }
 function skip(d){
-  const el = rv(); if(!el.getAttribute('src')) return;
+  const el = rv(); if(!el.getAttribute('src') || el.readyState < 1) return;
+  let t = (el.currentTime || 0) + d;
   const max = isFinite(el.duration) ? el.duration : Infinity;
-  el.currentTime = Math.max(0, Math.min(max, el.currentTime + d));
+  try{ if(el.seekable && el.seekable.length){ const e = el.seekable.end(el.seekable.length - 1); if(isFinite(e)) t = Math.min(t, e); } }catch(x){}
+  t = Math.max(0, Math.min(max, t));
+  R.userSeek = Date.now() + 2500; /* پرش کاربر همیشه برای بقیهٔ اعضا فرستاده شود */
+  el.currentTime = t; kickIdle();
   const f = document.createElement('div'); f.className = 'skipfx'; f.style[d < 0 ? 'left' : 'right'] = '12%';
   f.innerHTML = `<svg class="ic"><use href="#${d < 0 ? 'i-back10' : 'i-fwd10'}"/></svg>`;
   $('stage').appendChild(f); setTimeout(()=>f.remove(), 650);
@@ -2223,17 +2398,14 @@ function initRoom(){
   $('spdPop').innerHTML = [0.5,0.75,1,1.25,1.5,2].map(v=>`<button type="button" role="menuitemradio" data-v="${v}" aria-checked="${v===1}">${pd(String(v).replace('.','٫'))}×</button>`).join('');
   $('spdPop').addEventListener('click', e=>{ const b = e.target.closest('button'); if(!b) return; el.playbackRate = Number(b.dataset.v); closePops(); kickIdle(); });
   $('cSpd').addEventListener('click', ()=>togglePop('spdPop'));
-  $('cCc').addEventListener('click', ()=>{ paintCc(); togglePop('ccPop'); });
-  $('ccLoad').addEventListener('click', ()=>{ closePops(); $('rSub').click(); });
-  $('ccTog').addEventListener('click', ()=>{
-    const tr = el.querySelector('track'); if(!tr){ toast('اول فایل زیرنویس را انتخاب کن'); return; }
-    R.subOn = !R.subOn; tr.track.mode = R.subOn ? 'showing' : 'hidden'; paintCc();
-  });
-  $('ccM').addEventListener('click', ()=>shiftSub(-0.5));
-  $('ccP').addEventListener('click', ()=>shiftSub(0.5));
+  buildSubPanel(); applySubStyle();
+  $('cCc').addEventListener('click', ()=>{ applySubStyle(); paintCc(); togglePop('ccPop'); const p = $('ccPop'); if(!p.hidden){ p.style.maxHeight = Math.max(170, st.clientHeight - 64) + 'px'; p.scrollTop = 0; } });
   $('rSub').addEventListener('change', e=>{ if(e.target.files[0]) setSub(e.target.files[0]); e.target.value = ''; });
   document.addEventListener('click', e=>{ if(!e.target.closest('.popw')) closePops(); });
-  paintCc(); paintSpd();
+  st.addEventListener('dragover', e=>{ if(e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+  st.addEventListener('drop', e=>{ const f = e.dataTransfer && e.dataTransfer.files[0]; if(f && /\.(srt|vtt)$/i.test(f.name) && !$('rSub').disabled){ e.preventDefault(); setSub(f); } });
+  if(window.ResizeObserver) new ResizeObserver(applySubStyle).observe(st); else window.addEventListener('resize', applySubStyle);
+  paintSpd();
 
   /* دکمه‌ها */
   $('cPlay').addEventListener('click', togglePlay);
@@ -2251,7 +2423,7 @@ function initRoom(){
   /* لمس/ماوس روی صحنه */
   let clk = 0, clkT = 0;
   st.addEventListener('pointermove', kickIdle);
-  st.addEventListener('pointerdown', kickIdle);
+  st.addEventListener('pointerdown', e=>{ R.hid = e.pointerType === 'touch' && st.classList.contains('idle'); kickIdle(); });
   st.addEventListener('click', e=>{
     if(e.target.closest('.ctl, .bigplay, .pop') || !el.getAttribute('src')) return;
     const now = Date.now();
@@ -2261,7 +2433,9 @@ function initRoom(){
       if(x < .33) skip(-10); else if(x > .67) skip(10); else toggleFull();
       return;
     }
-    clk = now; clkT = setTimeout(togglePlay, 260);
+    clk = now;
+    if(R.hid){ R.hid = false; return; } /* اولین لمس فقط کنترل‌های پنهان را نشان می‌دهد، ویدئو را متوقف نمی‌کند */
+    clkT = setTimeout(togglePlay, 260);
   });
 
   /* رویدادهای ویدئو: نمایش + همگام‌سازی */
@@ -2273,7 +2447,7 @@ function initRoom(){
   ['playing','canplay','pause','error','seeked'].forEach(ev=>el.addEventListener(ev, ()=>{ $('spin').hidden = true; }));
   el.addEventListener('loadedmetadata', ()=>{ rsend({t:'dur', d:el.duration}); checkDur(); });
   ['play','pause','seeked'].forEach(ev=>el.addEventListener(ev, ()=>{
-    if(Date.now() < R.mute) return;
+    if(Date.now() < R.mute && !(ev === 'seeked' && Date.now() < R.userSeek)) return;
     rsend({t: ev === 'seeked' ? 'seek' : ev, time: el.currentTime});
   }));
   el.addEventListener('ratechange', ()=>{ paintSpd(); if(Date.now() < R.mute) return; rsend({t:'rate', v:el.playbackRate}); });
