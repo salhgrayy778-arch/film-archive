@@ -31,6 +31,7 @@ grant insert, update, delete on public.film_roles to authenticated;
 
 -- 3a) A rating alone (no text) is allowed, like Letterboxd
 alter table public.film_public_reviews drop constraint if exists film_public_reviews_review_check;
+alter table public.film_public_reviews drop constraint if exists film_public_reviews_review_len;
 alter table public.film_public_reviews add constraint film_public_reviews_review_len check (char_length(review) <= 1500);
 alter table public.film_public_reviews alter column review set default '';
 
