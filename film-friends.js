@@ -56,7 +56,9 @@ async function getRoles(ids){
   const chunk=wanted.slice(i,i+60);
   try{
    const rows=await get('/film_roles?select=user_id,role&user_id=in.('+chunk.join(',')+')&limit=60');
-   for(const r of rows)roles.set(r.user_id,r.role);
+   const sets=new Map();
+   for(const r of rows){if(!sets.has(r.user_id))sets.set(r.user_id,new Set());sets.get(r.user_id).add(r.role);}
+   for(const [id,set] of sets)roles.set(id,set.has('critic')?'critic':set.has('admin')?'admin':set.has('moderator')?'moderator':'member');
   }catch(e){/* roles table not created yet */}
   for(const id of chunk)if(!roles.has(id))roles.set(id,'member');
  }
@@ -74,7 +76,7 @@ async function myFollowing(force){
 window.addEventListener('film-account-state',()=>{followingSet=null;});
 
 /* ---------- small UI parts ---------- */
-const roleLabel=r=>r==='critic'?T('منتقد','Critic'):r==='admin'?T('مدیر','Admin'):'';
+const roleLabel=r=>r==='critic'?T('منتقد','Critic'):r==='admin'?T('مدیر','Admin'):r==='moderator'?T('مودریتور','Moderator'):'';
 function avatar(profile,size){
  const a=make('span','fsAvatar');a.style.width=a.style.height=(size||44)+'px';a.style.fontSize=Math.round((size||44)*.42)+'px';
  const src=profile&&/^data:image\/jpeg;base64,[a-z0-9+/=]+$/i.test(profile.avatar||'')&&profile.avatar.length<170000?profile.avatar:'';

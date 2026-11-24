@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
                     "group-watch.js","group-watch-account.js","sidebar-ui.js","add-film-ui.js",
-                    "account-profile.js")}
+                    "account-profile.js","admin-panel.js","security/film-admin-v3.sql")}
 index=files["index.html"]
 errors=[]
 def check(ok,message):
@@ -63,6 +63,15 @@ for name,expression in {
     "Private PEM block":r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
 }.items():
     check(re.search(expression,combined) is None,name+" appears in public client code")
+# Staff panel: UI only; permissions are enforced by the database.
+panel=files["admin-panel.js"]
+check("innerHTML" not in panel and "eval(" not in panel and "document.write" not in panel,"Staff panel must not use innerHTML/eval")
+admin_sql=files["security/film-admin-v3.sql"]
+for needle in ("film_is_staff()","film_is_admin()","enable row level security","revoke insert, update, delete on public.film_roles",
+               "raise exception 'admin only'","cannot remove the last admin"):
+    check(needle in admin_sql,"film-admin-v3.sql is missing: "+needle)
+check("service_role" not in panel and "service-role" not in panel.replace("service-role key","") ,"Staff panel must never hold a service key")
+
 if errors:
     print("Security checks failed:")
     for problem in errors:print(" -",problem)

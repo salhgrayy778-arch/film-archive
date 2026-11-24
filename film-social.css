@@ -18,6 +18,7 @@ body.roomFocus .fsLaunch{bottom:12px}
 .fsName:hover,.fsFilm:hover{text-decoration:underline;text-underline-offset:3px}
 .fsRole{font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.02em}
 .fsRole-critic{background:#8b1e2d;color:#fff}.fsRole-admin{background:var(--gold);color:var(--on-gold)}
+.fsRole-moderator{background:#2f6f5e;color:#fff}
 .fsScore{display:inline-block;padding:2px 9px;border-radius:8px;background:color-mix(in srgb,var(--gold) 22%,transparent);border:1px solid color-mix(in srgb,var(--gold) 55%,transparent);font-weight:800;font-size:13px;direction:ltr}
 .fsScoreBig{font-size:18px;padding:4px 12px;background:#8b1e2d;border-color:#8b1e2d;color:#fff}
 .fsText{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9;margin:10px 0 6px}

@@ -169,11 +169,40 @@ function createPoster(m,cls,eager){
  }else placeholder();
  return element;
 }
+/* Corrections made by moderators/admins (table film_catalog_overrides). Public, read-only here.
+ * Only these fields, with strict shapes, are ever applied on top of the cached TMDB record. */
+const overrides=new Map();
+const OVERRIDE_TEXT={fa_title:180,title:180,original_title:180,director:200,cast:600,country:160,overview:2500};
+function cleanPatch(raw){
+ const out={};if(!raw||typeof raw!=='object')return out;
+ for(const [key,max] of Object.entries(OVERRIDE_TEXT))if(typeof raw[key]==='string')out[key]=raw[key].slice(0,max);
+ if(Number.isInteger(raw.runtime)&&raw.runtime>0&&raw.runtime<1000)out.runtime=raw.runtime;
+ if(typeof raw.release_date==='string'&&/^\d{4}(-\d{2}-\d{2})?$/.test(raw.release_date))out.release_date=raw.release_date;
+ if(typeof raw.poster_path==='string'&&/^\/[a-zA-Z0-9_-]{8,90}\.(?:jpg|png|webp)$/.test(raw.poster_path)){out.poster_path=raw.poster_path;out.poster_url='';}
+ return out;
+}
+async function loadOverrides(){
+ try{
+  if(typeof sb==='undefined'||!sb||!sb.url||!sb.key)return;
+  const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),3500);
+  const r=await fetch(sb.url.replace(/\/$/,'')+'/rest/v1/film_catalog_overrides?select=film_id,patch,hidden&limit=2000',{headers:{apikey:sb.key},signal:ctl.signal});
+  clearTimeout(timer);
+  if(!r.ok)return;
+  const rows=await r.json();overrides.clear();
+  for(const row of Array.isArray(rows)?rows:[]){const id=idNumber(row.film_id);if(id)overrides.set(id,{patch:cleanPatch(row.patch),hidden:Boolean(row.hidden)});}
+ }catch(e){/* table not created yet or offline: the site works without corrections */}
+}
+function applyOverrides(){
+ if(!overrides.size)return;
+ catalog=catalog.filter(m=>!overrides.get(m.id)?.hidden).map(m=>{const o=overrides.get(m.id);return o?{...m,...o.patch,_edited:true}:m;});
+ for(const [id,m] of [...extra]){const o=overrides.get(id);if(o)o.hidden?extra.delete(id):extra.set(id,{...m,...o.patch,_edited:true});}
+}
 async function loadCatalog(){
  if(catalogPromise)return catalogPromise;
  catalogPromise=(async()=>{
   // Both files are requested at once (before: one after the other) so the first film page opens sooner.
   const extraRequest=fetch(new URL('data/tmdb-extra.json',BASE),{cache:'default'}).catch(()=>null);
+  const overrideRequest=loadOverrides();
   const r=await fetch(new URL('data/tmdb-catalog.json',BASE),{cache:'default'});
   if(!r.ok)throw Error('Catalog HTTP '+r.status);
   const d=await r.json();if(!Array.isArray(d.movies))throw Error('Invalid catalog');
@@ -190,6 +219,7 @@ async function loadCatalog(){
   }catch(error){console.warn('Extended TMDB poster metadata not yet available',error);}
   const known=new Set(verified.map(m=>m.id));
   catalog=verified.concat(extras.filter(m=>!known.has(m.id)));
+  await overrideRequest;applyOverrides();
   catalogLoaded=true;return catalog;
  })().catch(error=>{catalogLoaded=true;catalogFailed=true;console.warn('Film index unavailable',error);return [];});
  return catalogPromise;
@@ -702,6 +732,14 @@ function init(){
 }
 window.filmDiscovery={
  openFilm,openSearch,
+ /* Called by the staff panel right after a save so the editor sees the change at once. */
+ async setOverride(filmId,patch,hidden){
+  const id=idNumber(filmId);if(!id)return;
+  await loadCatalog();
+  if(patch===null)overrides.delete(id);else overrides.set(id,{patch:cleanPatch(patch),hidden:Boolean(hidden)});
+  catalogPromise=null;catalogLoaded=false;await loadCatalog();
+ },
+ overrideFor(filmId){return overrides.get(idNumber(filmId))||null;},
  // Shared with the "Add film" combobox: not restricted to the curated 1,100.
  async searchAllMovies(input,max=12){
   const term=String(input||'').trim().slice(0,160);
