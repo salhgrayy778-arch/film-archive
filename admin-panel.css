@@ -1,0 +1,62 @@
+/* Staff panel (admin + moderator) */
+.apLaunch{position:fixed;bottom:72px;inset-inline-start:20px;z-index:38;border:1px solid #2f6f5e;border-radius:40px;padding:10px 16px;background:var(--panel);color:var(--ink);font:inherit;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 24px #0005}
+body.roomFocus .apLaunch,body.cinema .apLaunch,body.inRoomTab .apLaunch{display:none!important}
+.apDialog{width:min(1280px,98vw);height:min(920px,96vh);max-width:none;max-height:none;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--ink);padding:0;overflow:hidden}
+.apDialog[open]{display:flex;flex-direction:column}
+.apDialog::backdrop{background:#000c;backdrop-filter:blur(3px)}
+.apHead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.apTitle{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.apTitle h2{margin:0;font-size:21px}
+.apWho{font-size:13px;color:var(--gold);font-weight:700}
+.apHeadActions{display:flex;gap:8px}
+.apLayout{flex:1;min-height:0;display:grid;grid-template-columns:220px minmax(0,1fr)}
+.apNav{display:flex;flex-direction:column;gap:4px;padding:14px 12px;border-inline-end:1px solid var(--line);background:var(--panel);overflow:auto}
+.apNavBtn{text-align:start;border:1px solid transparent;border-radius:10px;padding:10px 12px;background:none;color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.apNavBtn:hover{background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.apNavBtn.on{background:color-mix(in srgb,var(--gold) 22%,transparent);border-color:color-mix(in srgb,var(--gold) 55%,transparent)}
+.apContent{overflow:auto;padding:18px 22px 28px}
+.apMsg{margin:0 0 12px;min-height:0;font-size:14px;color:var(--gold);font-weight:600}.apMsg:empty{display:none}.apMsg.bad{color:#e5736d}
+.apStack{display:grid;gap:16px;align-content:start}
+.apCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.apCard{padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);display:grid;gap:2px}
+.apCard strong{font-size:28px;line-height:1.1}.apCard span{font-size:13px;color:var(--mute)}
+.apCard.live{border-color:#2f6f5e;background:color-mix(in srgb,#2f6f5e 18%,var(--panel))}
+.apBox{padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);display:grid;gap:8px;align-content:start}
+.apBox h3,.apDrawer h4{margin:0 0 4px;font-size:16px}
+.apTwo{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.apThree{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.apLine{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px dashed color-mix(in srgb,var(--line) 70%,transparent)}
+.apLine:last-child{border-bottom:0}.apGrow{flex:1;min-width:120px}
+.apLine small,.apHint{color:var(--mute);font-size:12.5px}.apHint{margin:0}
+.apLine.good{border-inline-start:3px solid #2f6f5e;padding-inline-start:8px}.apLine.bad{border-inline-start:3px solid #b3412f;padding-inline-start:8px}
+.apUser{display:inline-flex;align-items:center;gap:8px}
+.apChips{display:flex;flex-wrap:wrap;gap:8px}.apChip{display:inline-flex;align-items:center;gap:8px;padding:5px 10px;border:1px solid var(--line);border-radius:30px;background:var(--bg)}
+.apBadges{display:inline-flex;gap:4px;flex-wrap:wrap}
+.apBar{display:flex;gap:8px;flex-wrap:wrap}.apBar input,.apBar select{flex:1;min-width:160px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit}
+.apBar .apNarrow{flex:0 0 120px;min-width:100px}.apLtr{direction:ltr;text-align:left}
+.apTableWrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+.apTable{width:100%;border-collapse:collapse;font-size:13.5px;min-width:900px}
+.apTable th{position:sticky;top:0;background:var(--panel);text-align:start;padding:10px 12px;font-weight:700;border-bottom:1px solid var(--line);white-space:nowrap}
+.apTable td{padding:9px 12px;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);vertical-align:middle}
+.apRowBtn{cursor:pointer}.apRowBtn:hover td,.apRowBtn:focus-visible td{background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.apDrawerRow td{background:var(--panel);padding:0}
+.apDrawer{padding:16px 18px;display:grid;gap:10px}
+.apRoles{display:flex;gap:8px;flex-wrap:wrap}
+.apDot{width:10px;height:10px;border-radius:50%;background:#7a7a7a;display:inline-block;flex:none}.apDot.on{background:#3fbf7f;box-shadow:0 0 0 3px #3fbf7f33}.apDot.day{background:#d9a441}
+.apPager{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px}
+.apReviews{display:grid;gap:12px}.apReview{display:grid;gap:8px}.apText{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
+.apForm{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.apField{display:grid;gap:4px;font-size:13px}.apField span{color:var(--mute)}
+.apField input,.apField textarea,.apForm>input{padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+.apField:has(textarea){grid-column:1/-1}.apForm>.apCheck,.apForm>input,.apForm>.apLine{grid-column:1/-1}
+.apCheck{display:flex;gap:8px;align-items:center}
+.apResults{display:flex;gap:8px;flex-wrap:wrap}.apResult{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;cursor:pointer}.apResult:hover{border-color:var(--gold)}
+.apEmpty{margin:6px 0;color:var(--mute);font-size:14px}
+.btn.danger{border-color:#b3412f;color:#e5736d}.btn.apArmed{background:#b3412f;color:#fff;border-color:#b3412f}.btn.apOn{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 18%,transparent)}
+@media(max-width:820px){
+ .apDialog{width:100vw;height:100dvh;border-radius:0}
+ .apLayout{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+ .apNav{flex-direction:row;overflow-x:auto;border-inline-end:0;border-bottom:1px solid var(--line);padding:8px}
+ .apNavBtn{white-space:nowrap}.apContent{padding:14px}
+ .apLaunch{bottom:68px}
+}
+.apGrow>small{display:block;margin-top:2px}

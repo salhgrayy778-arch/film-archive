@@ -125,6 +125,17 @@ code changes and CI workflow status do not prove production account security.
 - The watched list is public only when the user enables "show my watched films".
 - Room members' account id (`uid`) is self-reported over the unauthenticated broadcast
   channel and is used only to load a public profile/avatar; it grants no access.
-- Planned (not built): admin panel. It must be account-based (role check), with
-  last-sign-in data served by a Supabase Edge Function/RPC using the service-role key
-  kept server-side, never in the browser.
+
+## Staff panel (admin / moderator)
+
+- Run `security/film-admin-v3.sql` once after `film-social-v2.sql`. Roles (`critic`, `moderator`,
+  `admin`, several per user) live in `film_roles`; they can only be changed through
+  `film_set_role()` (admin only; the last admin cannot be removed). Every grant/revoke,
+  review deletion and catalog correction is written to `film_audit` by database triggers.
+- The panel (`admin-panel.js`) is only a UI. Everything is enforced by the database:
+  reading users/e-mails/last sign-in (`film_admin_users`, `film_admin_stats`) is admin-only and reads
+  `auth.users` inside a `security definer` function, so no service key is ever in the browser.
+  Moderators can delete reviews and add catalog corrections (`film_catalog_overrides`, allow-listed
+  fields only; the site re-validates them before use) and can read the role list and audit log.
+- Presence (`film_ping`) stores only user id, first/last seen, visit count and the page query
+  (e.g. `?film=1726`); only staff can read it.

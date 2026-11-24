@@ -33,6 +33,7 @@ jobs:
       - name: Validate JavaScript module syntax
         run: |
           node --check film-friends.js
+          node --check admin-panel.js
           node --check account-profile.js
           node --check film-discovery.js
           node --check group-watch.js
