@@ -45,14 +45,21 @@ function explain(e){
 }
 
 /* ---------- who am I ---------- */
-let myRoles=new Set(),rolesFor='';
+let myRoles=new Set(),rolesFor='',roleError='',roleTries=0,retryTimer=0;
 const isAdmin=()=>myRoles.has('admin'),isStaff=()=>myRoles.has('admin')||myRoles.has('moderator');
 async function loadMyRoles(){
+ clearTimeout(retryTimer);
  if(!ready()){myRoles=new Set();rolesFor='';syncLaunch();return;}
  if(rolesFor===ses.id)return;
- try{const rows=await api('/film_roles?select=role&user_id=eq.'+ses.id);myRoles=new Set((rows||[]).map(r=>r.role));}
- catch(e){myRoles=new Set();}
- rolesFor=ses.id;syncLaunch();
+ try{
+  const rows=await api('/film_roles?select=role&user_id=eq.'+ses.id);
+  myRoles=new Set((rows||[]).map(r=>r.role));roleError='';rolesFor=ses.id;roleTries=0;
+ }catch(e){
+  // A failed lookup must never be remembered as "no role": retry a few times.
+  myRoles=new Set();roleError=String(e.message||e).slice(0,160);
+  if(roleTries++<4)retryTimer=setTimeout(()=>loadMyRoles(),2000*roleTries);
+ }
+ syncLaunch();
 }
 function syncLaunch(){
  let b=$('adminLaunch');
@@ -477,11 +484,24 @@ async function auditView(serial){
 function onAccount(){
  rolesFor='';pingOff=false;
  if(!ready()){myRoles=new Set();syncLaunch();clearInterval(pingTimer);return;}
- loadMyRoles().then(()=>{if(location.hash==='#admin')openPanel();});
+ loadMyRoles().then(()=>{if(location.hash==='#admin'){if(isStaff())openPanel();else banner(diagnose());}});
  startPing();
 }
 window.addEventListener('film-account-state',onAccount);
-window.addEventListener('hashchange',()=>{if(location.hash==='#admin')openPanel();});
-window.filmStaff={open:openPanel,isAdmin,isStaff,roles:()=>[...myRoles]};
+function diagnose(){
+ if(!ready())return T('هنوز وارد حساب نشده‌ای یا اتصال حساب آماده نیست.','You are not signed in yet, or the account is still connecting.');
+ return T('حساب: ','Account: ')+ses.email+' — '+(isStaff()?T('نقش‌ها: ','Roles: ')+[...myRoles].join(', '):T('نقش مدیریتی برای این حساب پیدا نشد','No staff role found for this account'))+(roleError?' — '+T('خطا: ','Error: ')+roleError:'');
+}
+function banner(text){
+ let b=$('apBanner');if(!b){b=make('div','apBanner');b.id='apBanner';b.setAttribute('role','status');document.body.appendChild(b);}
+ b.textContent=text;clearTimeout(b._t);b._t=setTimeout(()=>b.remove(),12000);b.onclick=()=>b.remove();
+}
+async function openFromHash(){
+ if(location.hash!=='#admin')return;
+ if(ready()){rolesFor='';await loadMyRoles();}
+ if(isStaff())openPanel();else banner(diagnose());
+}
+window.addEventListener('hashchange',openFromHash);
+window.filmStaff={open:openPanel,isAdmin,isStaff,roles:()=>[...myRoles],diagnose};
 if(typeof ses!=='undefined'&&ses)onAccount();
 })();
