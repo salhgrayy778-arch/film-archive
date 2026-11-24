@@ -61,7 +61,7 @@ const displayMembers = () => {
 const status = () => {
   const ready=roomReady(), n=activeConnections().length;
   let text;
-  if(navigator.onLine===false) text=localLabel('اینترنت قطع است','No internet connection');
+  if(navigator.onLine===false) text=localLabel('اینترنت قطع است؛ پس از وصل شدن خودکار برمی‌گردی','No internet; you will rejoin automatically when it is back');
   else if(R.roomError) {
     const network=['network','server-error','socket-error','socket-closed'].includes(R.roomError);
     const missing=['peer-unavailable','join-failed'].includes(R.roomError);
@@ -72,6 +72,8 @@ const status = () => {
       :localLabel('اتصال اتاق برقرار نشد؛ دوباره تلاش کن','Room connection failed; try again');
   }
   else if(!R.peer) text=localLabel('اتاقی فعال نیست','No active room');
+  else if(R.hostAway) text=localLabel('میزبان فعلاً قطع است؛ منتظر بازگشتش…','Host is away; waiting for them to return…');
+  else if(R.roomPhase==='reconnecting') text=localLabel('اتصال قطع شد؛ در حال اتصال مجدد…','Connection lost; reconnecting…');
   else if(!ready) text=localLabel('در حال اتصال به اتاق…','Connecting to room…');
   else if(R.host) text=n ? localLabel('اتاق آنلاین · ','Room online · ')+toFaNumber(n+1)+memberLabel()
     : localLabel('اتاق ساخته شد · منتظر مهمان','Room created · Waiting for guests');
@@ -136,6 +138,24 @@ const safeSharedVideoUrl = value => {
     return u.href;
   }catch(error){return '';}
 };
+// Applies a remote play/pause/seek/tick. Local events are muted only when something actually changes,
+// otherwise every host tick would swallow the viewer's own pause/seek for a second.
+function applyRemote(m,player){
+  const dur=Number.isFinite(player.duration)?player.duration:Infinity;
+  let time=Math.min(dur,m.time);
+  if(m.t==='tick'&&m.playing&&!player.paused&&!m.force)time+=0.12; // transit allowance
+  const drift=Math.abs(player.currentTime-time);
+  const hard=m.t==='tick'&&!m.force?1.5:0.5;
+  const wantPlay=m.t==='play'||(m.t==='tick'&&m.playing);
+  const wantPause=m.t==='pause'||(m.t==='tick'&&!m.playing);
+  if(drift>hard){quiet();player.currentTime=time;}
+  if(wantPlay&&player.paused){
+    quiet();
+    player.play().catch(()=>{
+      if(Date.now()-(R.playToast||0)>20000){R.playToast=Date.now();toast(localLabel('برای شروع پخش، روی دکمه پلی بزن','Tap play to begin'));}
+    });
+  }else if(wantPause&&!player.paused){quiet();player.pause();}
+}
 // Keep the original source selection behavior but remember it for late joiners.
 const originalSetSrc=setSrc, originalSetFile=setFile;
 setSrc = function(url,fromPeer) {
@@ -191,12 +211,13 @@ onMsg = function(message,c) {
   if (m.t==='src') {
     const safe=safeSharedVideoUrl(m.url);
     if(!safe)return;
-    setSrc(safe,true);
+    if(R.url!==safe||!rv().getAttribute('src'))setSrc(safe,true);
     forwarded={t:'src',url:safe};
   } else if (m.t==='file') {
     if (typeof m.name!=='string'||m.name.length>180||!Number.isFinite(m.size)||m.size<0) return;
+    const sameFile=R.source&&R.source.t==='file'&&R.source.name===m.name&&R.source.size===m.size;
     R.source={t:'file',name:m.name,size:m.size};
-    if (R.local!==m.name || R.localSize!==m.size)
+    if (!sameFile && (R.local!==m.name || R.localSize!==m.size))
       chat(localLabel('فایل انتخاب شد: ','Selected file: ')+m.name+localLabel(' — همان فایل را از دستگاه خودت انتخاب کن.',' — open the same file on your device.'),'sys');
   } else if (m.t==='chat') {
     if (typeof m.text!=='string'||!m.text.trim()||m.text.length>4000) return;
@@ -219,14 +240,8 @@ onMsg = function(message,c) {
     R.pDur=m.d;checkDur();
   } else {
     if (!Number.isFinite(m.time)||m.time<0) return;
-    if (player.readyState>0) {
-      quiet();
-      const time=Math.min(Number.isFinite(player.duration)?player.duration:Infinity,m.time);
-      if (Math.abs(player.currentTime-time)>(m.t==='tick'&&!m.force?1.5:0.5)) player.currentTime=time;
-      if (m.t==='play'||(m.t==='tick'&&m.playing&&player.paused))
-        player.play().catch(()=>toast(localLabel('برای شروع پخش، روی دکمه پلی بزن','Tap play to begin')));
-      else if (m.t==='pause'||(m.t==='tick'&&!m.playing&&!player.paused)) player.pause();
-    }
+    if (player.readyState>0) applyRemote(m,player);
+    else if (m.t==='tick'||m.t==='play'||m.t==='seek') R.pendingSync={m:{t:m.t,time:m.time,playing:m.t==='play'?true:m.playing,force:1},at:Date.now()};
   }
   // Host relays validated actions to all other guests; sender never receives an echo.
   if (R.host && m.t!=='dur') rsend(forwarded,c.peer);
@@ -435,11 +450,7 @@ function customizeRoomUI() {
   window.addEventListener('hashchange',readInvite);
   readInvite();
   paintRoomAccountGate();
-  window.addEventListener('offline',()=>{
-    // A disconnected browser must not keep a previously loaded film playing.
-    if(!rv().paused)rv().pause();
-    status();
-  });
+  window.addEventListener('offline',status);
   // Any attempted playback outside an active room is blocked, including keyboard shortcuts.
   document.querySelector('#room').addEventListener('keydown',e=>{
     if(!roomReady() && [' ','k','K','ArrowLeft','ArrowRight','f','F'].includes(e.key) && !['INPUT','TEXTAREA'].includes(e.target?.tagName)){
@@ -447,6 +458,13 @@ function customizeRoomUI() {
     }
   },true);
   rv().addEventListener('play',()=>{if(!roomReady())rv().pause();});
+  // A play/seek/tick that arrived before the movie had metadata is applied as soon as it is ready.
+  const flushPending=()=>{
+    const p=R.pendingSync;if(!p||rv().readyState<1)return;
+    R.pendingSync=null;
+    if(Date.now()-p.at<45000&&roomReady())applyRemote(p.m,rv());
+  };
+  ['loadedmetadata','canplay'].forEach(ev=>rv().addEventListener(ev,flushPending));
 }
 customizeRoomUI();
 })();

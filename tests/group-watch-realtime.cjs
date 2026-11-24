@@ -71,6 +71,7 @@ async function main(){
  assert.equal(guest.R.conn.open,true,'guest receives host welcome');
  assert.equal(host.R.conns.size,1,'host records remote guest');
  assert.equal(host.R.members.size,1,'host records guest name');
+ assert.equal(host.R.conn?.open,true,'host keeps a primary connection so chat/sync controls work');
  assert.ok(guest.R.receivedRoster?.length>=1,'guest receives room roster');
  guest.R.conn.send({t:'chat',text:'hello from another network'});
  await flush();
