@@ -94,3 +94,21 @@ After every relevant release, test in Persian and English, desktop/mobile,
 with/without VPN. Test add-film autocomplete, authentic poster loading,
 group room creation and joining, signup/login and archive sync. The static
 code changes and CI workflow status do not prove production account security.
+
+## Shared film database and automatic sync
+
+- Search, Add Film, the profile top-10, similar films and the library all read the
+  same cached TMDB records (`data/tmdb-catalog.json`, `data/tmdb-extra.json`,
+  `data/tmdb-universe/`) through `window.filmDiscovery` (`resolve`, `posterFor`,
+  `hydrateMovies`, `syncLibrary`).
+- `.github/workflows/sync-film-data.yml` runs every 15 minutes and performs a small,
+  bounded repair / refresh / growth step (`scripts/sync_film_data.py`); it commits
+  only when data changed and shares one concurrency lane with the other data jobs.
+
+## Accounts and group watch
+
+- Group watch requires a signed-in account (the UI stays visible but locked with a
+  sign-in notice; invite links are remembered and opened after sign-in).
+- Archives are loaded and saved only for the signed-in user id; cross-tab sign-in/out
+  is followed. Run `security/archives-rls.sql` once in Supabase so the database itself
+  enforces "each account reads/writes only its own row".

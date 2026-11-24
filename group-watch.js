@@ -383,12 +383,7 @@ startRoom = async function (host) {
   R.peer.on('disconnected',()=>{if(R.peer!==owner)return;status();try{R.peer.reconnect();}catch(e){}});
   status();
 };
-// Room networking is invitation-based, separate from private cloud archives.
-paintRoomAccountGate = function(){
-  const gate=$room('roomAccountGate'),grid=document.querySelector('#room .rgrid');
-  if(gate)gate.hidden=true;
-  if(grid)grid.hidden=false;
-};
+// Account gating lives in group-watch-account.js.
 function readInvite(){
   const match=location.hash.match(/^#join=(film-[a-f0-9]{24})$/);
   if(match){
@@ -449,7 +444,6 @@ function customizeRoomUI() {
   window.addEventListener('online',status);
   window.addEventListener('hashchange',readInvite);
   readInvite();
-  paintRoomAccountGate();
   window.addEventListener('offline',status);
   // Any attempted playback outside an active room is blocked, including keyboard shortcuts.
   document.querySelector('#room').addEventListener('keydown',e=>{

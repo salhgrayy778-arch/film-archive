@@ -2049,7 +2049,7 @@ function toVtt(t){
 function clearSub(silent){
   const tr = subTrack(); if(tr){ try{ tr.track.mode = 'disabled'; }catch(e){} tr.remove(); }
   if(R.subUrl){ try{ URL.revokeObjectURL(R.subUrl); }catch(e){} R.subUrl = ''; }
-  R.subName = ''; R.subBase = null; R.subShift = 0; R.subLoaded = false; R.subOn = false;
+  R.subName = ''; R.subBase = null; R.subShift = 0; R.subLoaded = false; R.subOn = false; cueKey = '#';
   paintCue(); paintCc(); if(!silent) toast(LX('زیرنویس حذف شد', 'Subtitles removed'));
 }
 async function setSub(file){
@@ -2061,16 +2061,34 @@ async function setSub(file){
     const tr = document.createElement('track');
     tr.kind = 'subtitles'; tr.label = LX('زیرنویس', 'Subtitles'); tr.srclang = EN ? 'en' : 'fa'; tr.src = R.subUrl; tr.default = true;
     R.subName = file.name; R.subShift = 0; R.subBase = null; R.subOn = true;
-    const ready = ()=>{
-      if(R.subBase || subTrack() !== tr || !tr.track.cues) return;
-      R.subBase = Array.from(tr.track.cues, c => [c.startTime, c.endTime]); R.subLoaded = true;
-      tr.track.addEventListener('cuechange', paintCue); applyShift(0); paintCc();
-      toast(LX(`زیرنویس بارگذاری شد (${pd(R.subBase.length)} خط)`, `Subtitles loaded (${R.subBase.length} lines)`));
-    };
-    tr.addEventListener('load', ready); setTimeout(ready, 900);
+    // Cues can arrive late on slow devices, and a (re)loaded video can reset the
+    // text track, so initialisation is retried and re-applied (see bindSub).
+    tr.addEventListener('load', ()=>bindSub(true));
+    let tries = 0;
+    const poll = setInterval(()=>{
+      if(subTrack() !== tr || bindSub(true) || ++tries > 60) clearInterval(poll);
+    }, 250);
     el.appendChild(tr); tr.track.mode = subOverlay() ? 'hidden' : 'showing';
     paintCc();
   }catch(e){ toast(LX('خواندن زیرنویس انجام نشد', 'Couldn\'t read the subtitles')); }
+}
+/* Makes the active subtitle track usable: correct mode, cue-change listener, base
+ * timings and the chosen offset. Safe to call repeatedly (e.g. after the video
+ * source changes, which is what happens to a guest when the host shares a movie). */
+function bindSub(announce){
+  const tr = subTrack(); if(!tr) return false;
+  const t = tr.track;
+  try{ t.mode = subOverlay() ? 'hidden' : (R.subOn ? 'showing' : 'hidden'); }catch(e){}
+  if(!t.cues || !t.cues.length) return false;
+  t.addEventListener('cuechange', paintCue);
+  const first = !R.subBase;
+  if(first || R.subBase.length !== t.cues.length){
+    R.subBase = Array.from(t.cues, c => [c.startTime, c.endTime]); R.subLoaded = true;
+    if(!first) R.subShift = 0;
+  }
+  applyShift(R.subShift || 0);
+  if(first && announce) toast(LX(`زیرنویس بارگذاری شد (${pd(R.subBase.length)} خط)`, `Subtitles loaded (${R.subBase.length} lines)`));
+  return true;
 }
 function applyShift(v){
   v = Math.max(-300, Math.min(300, Math.round((Number(v) || 0) * 1000) / 1000));
@@ -2102,10 +2120,19 @@ function subAlign(){
   const i = subCueAt('here'); if(i === null){ toast(LX('خطی پیدا نشد', 'No line found')); return; }
   applyShift(rv().currentTime - R.subBase[i][0]);
 }
+let cueKey = '';
 function paintCue(){
   const ov = $('subOv'), tr = subTrack();
-  ov.replaceChildren();
-  const act = (subOverlay() && R.subOn && tr && tr.track.activeCues) ? Array.from(tr.track.activeCues) : [];
+  // Computed from the playback time (not only activeCues): activeCues is empty or stale
+  // right after the video source is replaced, which is exactly when guests got no subtitles.
+  let act = [];
+  if(subOverlay() && R.subOn && tr && tr.track.cues){
+    const now = rv().currentTime;
+    act = Array.from(tr.track.cues).filter(c => c.startTime <= now && now < c.endTime);
+  }
+  const key = act.map(c => c.startTime + '|' + c.text).join('\n');
+  if(key === cueKey && ov.hidden === !act.length) return;
+  cueKey = key; ov.replaceChildren();
   if(!act.length){ ov.hidden = true; return; }
   for(const c of act){ const d = document.createElement('div'); d.appendChild(c.getCueAsHTML()); ov.appendChild(d); }
   ov.hidden = false;
@@ -2444,6 +2471,8 @@ function initRoom(){
   ['play','pause','ended','playing'].forEach(ev=>el.addEventListener(ev, uiPlay));
   ['progress','loadeddata','canplay','timeupdate'].forEach(ev=>el.addEventListener(ev, uiBuf));
   el.addEventListener('volumechange', uiVol);
+  ['loadstart','loadedmetadata','emptied','canplay'].forEach(ev => el.addEventListener(ev, ()=>{ cueKey = ''; if(subTrack()) bindSub(false); paintCue(); }));
+  ['timeupdate','seeked','seeking','play','pause'].forEach(ev => el.addEventListener(ev, ()=>{ if(R.subOn) paintCue(); }));
   el.addEventListener('waiting', ()=>{ if(el.getAttribute('src')) $('spin').hidden = false; });
   ['playing','canplay','pause','error','seeked'].forEach(ev=>el.addEventListener(ev, ()=>{ $('spin').hidden = true; }));
   el.addEventListener('loadedmetadata', ()=>{ rsend({t:'dur', d:el.duration}); checkDur(); });
@@ -2923,8 +2952,23 @@ function clearPersonalView(){
   cloudEpoch++;cloudReady=false;cloudLoading=false;cloudError='';
   state.films=[];acMeta={snap:{},deleted:{},owner:'',synced:0};syncMsg='';
   accountProfile=blankAccountProfile();profileDirty=false;
-  render();publishAccountProfile();
+  render();publishAccountProfile();announceAccount();
 }
+/* Fill missing ids/posters of archive films from the shared TMDB data. */
+let libSyncBusy=false;
+async function syncLibraryArt(){
+  if(libSyncBusy||!ses||!cloudReady)return;
+  libSyncBusy=true;
+  const owner=ses.id,epoch=cloudEpoch;
+  try{
+    for(let i=0;i<20&&!window.filmDiscovery?.syncLibrary;i++)await new Promise(r=>setTimeout(r,500));
+    if(!window.filmDiscovery?.syncLibrary||!state.films.length)return;
+    const changed=await window.filmDiscovery.syncLibrary(state.films);
+    if(changed&&ses?.id===owner&&epoch===cloudEpoch&&cloudReady){render();stampLater();}
+  }catch(e){console.warn('Library poster sync skipped',e);}
+  finally{libSyncBusy=false;}
+}
+function stampLater(){ if(!ses||!cloudReady)return; stamp(); syncNow(false,true); }
 async function validateAccount(){
   if(!ses?.id||!ses.access_token)return false;
   if(!(await freshToken()))return false;
@@ -2971,7 +3015,7 @@ async function loadAccountArchive(){
     accountProfile=normalizeAccountProfile(doc?.profile);profileDirty=false;
     cloudReady=true;cloudError='';
     setSync(LX('آرشیو حساب آماده است ✓','Account archive loaded ✓'));render();
-    publishAccountProfile();
+    publishAccountProfile();syncLibraryArt();
     return true;
   }catch(err){
     console.error('Supabase account load failed',err);
@@ -3081,6 +3125,13 @@ async function importLegacyBrowserArchive(){
 }
 
 /* ---------- نمایش ---------- */
+let lastAccountSig='';
+function announceAccount(){
+  const sig=(ses?.id||'')+'|'+(cloudReady?1:0);
+  if(sig===lastAccountSig)return;
+  lastAccountSig=sig;
+  try{window.dispatchEvent(new CustomEvent('film-account-state',{detail:{signedIn:Boolean(ses?.id),ready:cloudReady,id:ses?.id||''}}));}catch(e){}
+}
 function updateAcct(){
   const button=$('acctBtn');button.replaceChildren();
   button.classList.toggle('has-avatar',Boolean(ses&&accountProfile.avatar));
@@ -3092,6 +3143,7 @@ function updateAcct(){
   const label=document.createElement('span');label.className='acctBadgeLabel';
   label.textContent=ses?(accountProfile.name||ses.email.split('@')[0]).slice(0,19):LX('ورود / ثبت‌نام','Sign in / Sign up');
   button.appendChild(label);
+  announceAccount();
   $('syncLine').textContent=ses?('حساب: '+ses.email+(syncMsg?' • '+syncMsg:'')):LX('آرشیو شخصی با ورود به حساب فعال می‌شود','Sign in to access your personal movie archive');
 }
 function setSync(m){ syncMsg = m; updateAcct(); if($('auOv').classList.contains('open') && auView==='me') paintAuth(); }
@@ -3155,7 +3207,8 @@ function paintAuth(){
     B.innerHTML = `<h2>${su ? 'ساخت حساب' : 'ورود'}</h2>
       <div class="field"><div class="seg"><button id="auTl" type="button" aria-pressed="${!su}">ورود</button><button id="auTs" type="button" aria-pressed="${su}">ثبت‌نام</button></div></div>
       <div class="field"><label for="auEmail">ایمیل</label><input id="auEmail" type="email" dir="ltr" inputmode="email" autocomplete="username" value="${esc(em)}"></div>
-      <div class="field"><label for="auPass">رمز عبور (حداقل ۶ نویسه)</label><input id="auPass" type="password" dir="ltr" autocomplete="${su ? 'new-password' : 'current-password'}"></div>${msg}
+      <div class="field"><label for="auPass">رمز عبور (حداقل ۶ نویسه)</label><input id="auPass" type="password" dir="ltr" autocomplete="${su ? 'new-password' : 'current-password'}"></div>
+      ${su?`<div class="field"><label for="auPass2">${LX('تکرار رمز عبور','Repeat password')}</label><input id="auPass2" type="password" dir="ltr" autocomplete="new-password"></div>`:''}${msg}
       <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn primary" id="auGo" type="button">${su ? 'ساخت حساب' : 'ورود'}</button></div>
       <p style="margin-top:14px"><button class="linkbtn" id="auForgot" type="button">رمزم را فراموش کرده‌ام</button> · <button class="linkbtn" id="auCfg" type="button">تنظیم اتصال</button></p>`;
     on('auTl', ()=>{ auView = 'login'; paintAuth(); });
@@ -3167,8 +3220,12 @@ function paintAuth(){
       catch(e){ auMsg(faErr(e.message)); }
     });
     on('auGo', async ()=>{
-      const email = $('auEmail').value.trim(), pass = $('auPass').value;
+      const email = $('auEmail').value.trim().toLowerCase(), pass = $('auPass').value;
       if(!email || !pass){ auMsg('ایمیل و رمز را وارد کن'); return; }
+      if(auView==='signup'){
+        if(pass.length < 6){ auMsg('رمز باید حداقل ۶ نویسه باشد'); return; }
+        if(pass !== ($('auPass2')?.value||'')){ auMsg(LX('رمز و تکرار آن یکی نیست','Passwords do not match')); return; }
+      }
       $('auGo').disabled = true; auMsg('');
       try{
         if(auView==='signup'){
@@ -3181,6 +3238,9 @@ function paintAuth(){
       }catch(e){ auMsg(faErr(e.message)); }
       finally{ const g = $('auGo'); if(g) g.disabled = false; }
     });
+    B.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.isComposing){e.preventDefault();const g=$('auGo');if(g&&!g.disabled)g.click();}
+    }));
   }
   const heading=B.querySelector('h2'); if(heading)heading.id='auTitle';
   on('auClose', closeAuth);
@@ -3197,7 +3257,18 @@ function startAccount(){
   updateAcct();
   $('acctBtn').addEventListener('click',()=>openAuth());
   document.addEventListener('visibilitychange',()=>{
-    if(!document.hidden&&ses&&cloudReady&&Date.now()-(acMeta.synced||0)>30000)syncNow(false,false);
+    if(!document.hidden&&ses&&cloudReady&&Date.now()-(acMeta.synced||0)>30000)syncNow(false,false).then(()=>syncLibraryArt());
+  });
+  // Another tab signed in/out or switched account: follow it so this tab never
+  // keeps showing (or writing) a different account's archive.
+  window.addEventListener('storage',event=>{
+    if(event.key!==SES_KEY)return;
+    let next=null;
+    try{const o=event.newValue?JSON.parse(event.newValue):null;if(o?.id&&o.access_token&&o.refresh_token)next=o;}catch(e){}
+    if((next?.id||'')===(ses?.id||'')){if(next&&ses)ses=next;return;}
+    ses=next;
+    clearPersonalView();updateAcct();
+    if(ses)loadAccountArchive();
   });
   const hp=new URLSearchParams(location.hash.slice(1));
   if(hp.get('type')==='recovery'&&hp.get('access_token')&&sb.url){
@@ -3214,6 +3285,7 @@ init();
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="group-watch-realtime.js"></script>
 <script src="room-experience.js"></script>
+<script src="group-watch-account.js"></script>
 <script src="mkv-support.js"></script>
 <script src="cinema-news.js"></script>
 <script src="cinema-translation.js"></script>

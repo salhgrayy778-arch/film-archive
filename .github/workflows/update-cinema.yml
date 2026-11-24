@@ -17,7 +17,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: cinema-refresh
+  group: tmdb-data-writers
   cancel-in-progress: false
 
 jobs:
