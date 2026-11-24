@@ -32,7 +32,7 @@ function scoreByMetadata(main,other){
  const gap=year(main)&&year(other)?Math.abs(year(main)-year(other)):100;
  const recency=gap<=3?9:gap<=9?6:gap<=20?3:0;
  const popularity=Math.min(9,Math.log1p(Number(other.popularity)||0));
- const art=other.poster_url?3:0;
+ const art=other.poster_url||other.poster_path?3:0;
  return genre*38+(director?100:0)+Math.min(4,cast)*18+recency+popularity+art;
 }
 function scoreByTitle(main,other){
@@ -42,7 +42,7 @@ function scoreByTitle(main,other){
  if(!shared)return -1;
  const yr=year(main),theirYear=year(other);
  const proximity=yr&&theirYear?Math.max(0,12-Math.abs(yr-theirYear)):0;
- return shared*48+proximity+Math.min(8,Math.log1p(Number(other.popularity)||0))+(other.poster_url?3:0);
+ return shared*48+proximity+Math.min(8,Math.log1p(Number(other.popularity)||0))+(other.poster_url||other.poster_path?3:0);
 }
 function element(tag,cls,text){
  const item=document.createElement(tag);
@@ -53,9 +53,14 @@ function element(tag,cls,text){
 function poster(m){
  const wrap=element('div','filmSimilarPoster');
  const v=String(m.poster_url||'');
- if(/^assets\/(?:catalog|posters)\/\d+-[a-f0-9]{12}\.webp$/i.test(v)){
+ const path=String(m.poster_path||'');
+ const imageUrl=/^assets\/(?:catalog|posters)\/\d+-[a-f0-9]{12}\.webp$/i.test(v)
+  ?new URL(v,site).href
+  :/^\/[a-zA-Z0-9_-]{8,90}\.(?:jpg|png|webp)$/i.test(path)
+  ?'https://image.tmdb.org/t/p/w342'+path:'';
+ if(imageUrl){
   const img=element('img');
-  img.src=new URL(v,site).href;img.alt=T('پوستر اصلی ','Original poster for ')+String(m.title||m.original_title);
+  img.src=imageUrl;img.alt=T('پوستر اصلی ','Original poster for ')+String(m.title||m.original_title);
   img.loading='lazy';img.decoding='async';
   img.addEventListener('error',()=>{img.remove();makePlaceholder();},{once:true});
   wrap.appendChild(img);
@@ -116,6 +121,33 @@ async function similarFor(movie){
  if(hasMeta){
   result=local.map(m=>({m,score:scoreByMetadata(movie,m)}))
    .filter(x=>x.score>=25).sort((a,b)=>b.score-a.score).map(x=>x.m);
+ }
+ // When the local cache is insufficient, use TMDB's official similar-film
+ // recommendations if reachable. Otherwise retain the verified offline ranking.
+ if(result.length<8&&typeof tm==='function'){
+  try{
+   const remote=await Promise.race([
+    tm('/movie/'+movie.id+'/similar',{language:typeof EN==='boolean'&&EN?'en-US':'fa-IR',page:1}).catch(()=>null),
+    new Promise(resolve=>setTimeout(()=>resolve(null),4500))
+   ]);
+   const known=new Set([movie.id,...result.map(m=>m.id)]);
+   const byId=new Map(local.map(m=>[Number(m.id),m]));
+   for(const item of Array.isArray(remote?.results)?remote.results:[]){
+    if(result.length>=10)break;
+    const id=Number(item.id);
+    if(!Number.isSafeInteger(id)||id<=0||known.has(id)||item.adult)continue;
+    const entry=byId.get(id)||{
+     id,title:String(item.title||item.original_title||'').slice(0,180),
+     original_title:String(item.original_title||item.title||'').slice(0,180),
+     fa_title:typeof EN==='boolean'&&!EN&&/[\u0600-\u06ff]/.test(item.title||'')?item.title:'',
+     release_date:item.release_date||'',vote_average:item.vote_average||0,
+     genre_ids:Array.isArray(item.genre_ids)?item.genre_ids:[],
+     poster_path:item.poster_path||''
+    };
+    if(!entry.title&&!entry.original_title)continue;
+    result.push(entry);known.add(id);
+   }
+  }catch(error){console.warn('TMDB official similar films unavailable',error);}
  }
  // If a rare movie only has a title, avoid asserting genre or plot similarity.
  if(result.length<8){
