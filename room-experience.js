@@ -63,9 +63,20 @@ function paint(){
  if(hostBtn)hostBtn.hidden=inRoom;
  if(joinRow)joinRow.hidden=inRoom;
 }
+/* Room focus: while you are in a room and on the room tab, hide the hero so the room fits one screen. */
+let focusOn=false;
+function focus(){
+ const on=Boolean(R.peer)&&typeof state!=='undefined'&&state.tab==='room';
+ if(on===focusOn)return;
+ focusOn=on;document.body.classList.toggle('roomFocus',on);
+ if(on)window.scrollTo({top:0});
+}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.tab'))setTimeout(focus,30);});
+window.addEventListener('film-room-state',()=>setTimeout(focus,0));
+window.addEventListener('film-room-ended',()=>setTimeout(focus,0));
 window.addEventListener('film-room-state',paint);
 window.addEventListener('online',paint);window.addEventListener('offline',paint);
-setInterval(paint,1500);
+setInterval(()=>{paint();focus();},1500);
 
 /* ---------- sync button (host: "bring everyone to me", guest: "sync with host") ---------- */
 let syncBtn=$('rSync');

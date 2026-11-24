@@ -38,6 +38,7 @@ jobs:
           node --check group-watch.js
           node --check group-watch-account.js
           node --check group-watch-realtime.js
+          node --check room-experience.js
           node --check cinema-translation.js
       - name: Test Supabase Realtime room relay
         run: node tests/group-watch-realtime.cjs

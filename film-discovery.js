@@ -149,7 +149,7 @@ function posterOf(m){
   return 'https://image.tmdb.org/t/p/w342'+path;
  return '';
 }
-function createPoster(m,cls){
+function createPoster(m,cls,eager){
  const element=node('div',cls),url=posterOf(m);
  const placeholder=()=>{
   // This is a labeled typographic fallback, NEVER a fabricated TMDB poster.
@@ -162,7 +162,7 @@ function createPoster(m,cls){
     L('پوستر اصلی موجود نیست','Original poster unavailable')));
  };
  if(url){
-  const img=node('img');img.src=url;img.loading='lazy';
+  const img=node('img');img.src=url;img.loading=eager?'eager':'lazy';img.decoding='async';if(eager)img.fetchPriority='high';
   img.alt=L('پوستر رسمی ','Official movie poster: ')+titleOf(m);
   img.onerror=()=>{img.remove();placeholder();};
   element.appendChild(img);
@@ -172,16 +172,16 @@ function createPoster(m,cls){
 async function loadCatalog(){
  if(catalogPromise)return catalogPromise;
  catalogPromise=(async()=>{
+  // Both files are requested at once (before: one after the other) so the first film page opens sooner.
+  const extraRequest=fetch(new URL('data/tmdb-extra.json',BASE),{cache:'default'}).catch(()=>null);
   const r=await fetch(new URL('data/tmdb-catalog.json',BASE),{cache:'default'});
   if(!r.ok)throw Error('Catalog HTTP '+r.status);
   const d=await r.json();if(!Array.isArray(d.movies))throw Error('Invalid catalog');
   const verified=d.movies.filter(m=>idNumber(m?.id)).map(m=>({...m,_source:'catalog'}));
-  // A separate bounded GitHub Action gradually caches original posters and
-  // metadata for popular movies outside the initial 1,100.
   let extras=[];
   try{
-    const response=await fetch(new URL('data/tmdb-extra.json',BASE),{cache:'default'});
-    if(response.ok){
+    const response=await extraRequest;
+    if(response&&response.ok){
       const supplement=await response.json();
       if(Array.isArray(supplement.movies))
         extras=supplement.movies.filter(m=>idNumber(m?.id)&&m.details_ok&&posterOf(m))
@@ -242,7 +242,7 @@ function empty(container,text){container.replaceChildren(node('p','filmSearchEmp
 /* Load official artwork for visible title-only results, never guessing by title.
  * Bounded concurrency avoids sending a million API calls from the browser.
  * A failure leaves the descriptive placeholder intact. */
-let libraryIndex=null,libraryCount=0;
+let libraryIndex=null,libraryCount=0,posterHint=null;
 const posterTasks=new Map(),posterQueue=[];let posterActive=0;
 const posterObserver=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{
  for(const entry of entries){
@@ -296,10 +296,10 @@ async function drainPosterQueue(){
   })().then(job.resolve).finally(()=>{posterActive--;drainPosterQueue();});
  }
 }
-function filmCard(m){
+function filmCard(m,eager){
  const link=node('a','filmResultCard');link.href=permalink(m.id);
  link.dataset.filmId=String(m.id);link.dataset.popularity=String(m.popularity||0);link.setAttribute('aria-label',titleOf(m));
- link.appendChild(createPoster(m,'filmResultPoster'));
+ link.appendChild(createPoster(m,'filmResultPoster',eager));
  if(m._source==='universe'&&!posterOf(m)&&posterObserver)posterObserver.observe(link);
  const name=node('strong','',titleOf(m));name.dir='auto';link.appendChild(name);
  if(m.original_title&&m.original_title!==titleOf(m))link.appendChild(node('small','',m.original_title));
@@ -323,7 +323,7 @@ function renderSearch(){
  const matches=rankedMovies(term);
  host.replaceChildren();
  if(!matches.length)empty(host,L('نتیجه‌ای پیدا نشد؛ جستجوی مستقیم TMDB را امتحان کن.','No matching films; try live TMDB search.'));
- else matches.slice(0,limit).forEach(m=>host.appendChild(filmCard(m)));
+ else matches.slice(0,limit).forEach((m,i)=>host.appendChild(filmCard(m,i<12)));
  $('filmSearchCount').textContent=EN?matches.length.toLocaleString('en-US')+' films':matches.length.toLocaleString('fa-IR')+' فیلم';
  $('filmSearchMore').hidden=limit>=matches.length;
  $('filmSearchRemote').hidden=term.length<2;
@@ -385,6 +385,11 @@ function detailStructure(id){
  back.type='button';back.onclick=()=>openSearch(query);hero.appendChild(back);
  const cols=node('div','filmDetailColumns');
  const cover=node('div','filmDetailPoster');cover.id='filmDetailPoster';cols.appendChild(cover);
+ // Show the poster from the card you clicked immediately; the full record replaces it later.
+ if(posterHint&&posterHint.id===id){
+  const holder=node('div','filmDetailPosterImage'),img=node('img');img.src=posterHint.src;img.alt='';img.decoding='async';
+  img.fetchPriority='high';holder.appendChild(img);cover.appendChild(holder);
+ }
  const copy=node('div','filmDetailCopy');
  copy.appendChild(node('span','filmDetailEyebrow','MY FILM ARCHIVE · MOVIE FILE'));
  const heading=node('h1','',L('در حال بارگذاری…','Loading movie…'));heading.id='filmDetailTitle';copy.appendChild(heading);
@@ -637,7 +642,14 @@ function navigateLink(event){
  const a=event.target.closest('a[data-film-id]');
  if(!a||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
  const id=idNumber(a.dataset.filmId);if(!id)return;
+ const img=a.querySelector('img');
+ posterHint=img&&img.src?{id,src:img.currentSrc||img.src}:null;
  event.preventDefault();clearSuggestions();openFilm(id);
+}
+// Warm the image cache as soon as a pointer touches a result card.
+function warmPoster(event){
+ const img=event.target.closest?.('a[data-film-id]')?.querySelector('img');
+ if(img&&img.src&&!img.dataset.warm){img.dataset.warm='1';const pre=new Image();pre.decoding='async';pre.src=img.currentSrc||img.src;}
 }
 function translateStatic(){
  if(!EN)return;
@@ -665,6 +677,7 @@ function init(){
  document.addEventListener('click',event=>{if(!event.target.closest('#filmQuickForm'))clearSuggestions();});
  $('filmQuickSuggestions').addEventListener('click',navigateLink);
  $('filmSearchResults').addEventListener('click',navigateLink);
+ for(const box of [$('filmSearchResults'),$('filmQuickSuggestions')]){box.addEventListener('pointerover',warmPoster,{passive:true});box.addEventListener('touchstart',warmPoster,{passive:true});}
  $('filmSearchInput').addEventListener('input',()=>{
   clearTimeout(searchTimer);searchTimer=setTimeout(()=>{
    query=$('filmSearchInput').value.trim();limit=30;renderSearch();

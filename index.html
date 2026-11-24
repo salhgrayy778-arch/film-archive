@@ -615,6 +615,7 @@ body{overflow-x:clip;padding-bottom:145px}
 <link rel="stylesheet" href="account-profile.css">
 <link rel="stylesheet" href="film-discovery.css">
 <link rel="stylesheet" href="room-experience.css">
+<link rel="stylesheet" href="film-social.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1160,7 +1161,7 @@ function normalizeAccountProfile(source){
   seen.add(id);if(favorites.length>=10)break;
  }
  return {name:String(p.name||'').trim().slice(0,60),bio:String(p.bio||'').trim().slice(0,500),
-  avatar,favorites,updatedAt:Number.isSafeInteger(p.updatedAt)&&p.updatedAt>=0?p.updatedAt:0};
+  avatar,favorites,showWatched:p.showWatched!==false,updatedAt:Number.isSafeInteger(p.updatedAt)&&p.updatedAt>=0?p.updatedAt:0};
 }
 let accountProfile=blankAccountProfile(),profileDirty=false;
 function publishAccountProfile(){
@@ -2514,7 +2515,7 @@ function initRoom(){
   /* نام */
   kvGet(RN_KEY).then(v=>{ if(v && !$('rName').value) $('rName').value = v; paintPres(); });
   let nameT = 0;
-  $('rName').addEventListener('input', ()=>{ paintPres(); clearTimeout(nameT); nameT = setTimeout(()=>{ kvSet(RN_KEY, $('rName').value.trim()); rsend({t:'hello', name:nm(), re:1}); }, 700); });
+  $('rName').addEventListener('input', ()=>{ paintPres(); clearTimeout(nameT); nameT = setTimeout(()=>{ kvSet(RN_KEY, $('rName').value.trim()); rsend({t:'hello', name:nm(), re:1, uid:R.myUid?R.myUid():''}); }, 700); });
 
   /* میان‌برهای صفحه‌کلید */
   document.addEventListener('keydown', e=>{

@@ -61,10 +61,10 @@ function handle(payload){
   if(!c.open)c.open=true;
   if(!R.conn||!R.conn.open)R.conn=c; /* chat/sync controls talk to "the other side" */
   if(m.t==='hello'){
-   if(!m.re)transmit(payload.from,{t:'welcome',host:roomId,name:nm()});
+   if(!m.re)transmit(payload.from,{t:'welcome',host:roomId,name:nm(),uid:R.myUid?R.myUid():''});
   }else if(fresh){
    /* a guest we do not know (host reloaded): ask it to introduce itself again */
-   transmit(payload.from,{t:'welcome',host:roomId,name:nm(),again:1});
+   transmit(payload.from,{t:'welcome',host:roomId,name:nm(),uid:R.myUid?R.myUid():'',again:1});
   }
   onMsg(m,c);
   if(m.t==='hello'&&!m.re){
@@ -82,7 +82,8 @@ function handle(payload){
   clearTimeout(joinTimer);clearInterval(helloTimer);helloTimer=0;
   R.conn=connection(roomId,true);R.roomError=null;R.roomPhase='online';R.hostAway=false;
   R.members.set(roomId,String(m.name||label('میزبان','Host')).slice(0,24));
-  if(m.again)transmit(roomId,{t:'hello',name:nm(),re:1});
+  R.uids&&R.uids.set(roomId,/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(m.uid||''))?String(m.uid):'');
+  if(m.again)transmit(roomId,{t:'hello',name:nm(),uid:R.myUid?R.myUid():'',re:1});
   if(first){
    transmit(roomId,{t:'syncreq'});
    if(typeof startPing==='function'&&!R.ping)startPing();
@@ -137,7 +138,7 @@ function beginHello(){
  const send=()=>{
   if(role!=='guest'||!channel||R.conn?.open){clearInterval(helloTimer);helloTimer=0;return;}
   helloTries++;
-  sendTo(roomId,{t:'hello',name:nm()});
+  sendTo(roomId,{t:'hello',name:nm(),uid:R.myUid?R.myUid():''});
  };
  send();
  helloTimer=setInterval(send,2500);

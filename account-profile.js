@@ -29,6 +29,7 @@ dialog.innerHTML='<div class="profileShell">'
  +'<label for="profileBiography">'+T('بیو','Bio')+'</label>'
  +'<textarea id="profileBiography" maxlength="500" rows="4" placeholder="'+T('سینما برای تو چه معنایی دارد؟','What does cinema mean to you?')+'"></textarea>'
  +'<small id="profileBioCount" class="profileCharacterCount"></small></div></div>'
+ +'<label class="profileWatchedToggle"><input id="profileShowWatched" type="checkbox"> '+T('فیلم‌هایی که دیده‌ام روی پروفایل عمومی من نمایش داده شود','Show films I have watched on my public profile')+'</label>'
  +'<div class="profileSectionTitle"><h3>'+T('۱۰ فیلم مورد علاقه','Your favorite 10 films')+'</h3><span id="profileSelectedCount"></span></div>'
  +'<label class="profileSearchLabel" for="profileFilmSearch">'+T('جستجوی فیلم','Find a film')+'</label>'
  +'<div class="profileSearchBar"><span aria-hidden="true">⌕</span>'
@@ -238,7 +239,7 @@ function enterEdit(){
  if(!ses||!cloudReady)return;
  draft=normalizeAccountProfile(accountProfile);mode='edit';
  $('profileRead').hidden=true;$('profileEdit').hidden=false;
- $('profileDisplayName').value=draft.name;$('profileBiography').value=draft.bio;
+ $('profileShowWatched').checked=draft.showWatched!==false;$('profileDisplayName').value=draft.name;$('profileBiography').value=draft.bio;
  $('profileImageFile').value='';$('profileFilmSearch').value='';
  $('profileFilmSuggestions').hidden=true;$('profileAddOther').hidden=true;
  photo($('profileEditAvatar'),draft.avatar,draft.name||ses.email);
@@ -316,6 +317,7 @@ $('profileEdit').addEventListener('submit',async event=>{
  event.preventDefault();if(!draft||mode!=='edit'||!ses||ses.id!==openedBy)return;
  draft.name=$('profileDisplayName').value.trim().slice(0,60);
  draft.bio=$('profileBiography').value.trim().slice(0,500);
+ draft.showWatched=$('profileShowWatched').checked;
  const btn=$('profileSave');btn.disabled=true;btn.textContent=T('در حال ذخیره…','Saving…');feedback('');
  try{
   const ok=await saveAccountProfileDraft(draft);
