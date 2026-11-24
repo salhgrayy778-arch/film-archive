@@ -7,6 +7,9 @@ if (typeof R === 'undefined' || typeof startRoom !== 'function') return;
 
 R.conns = new Map();
 R.members = new Map();
+R.uids = new Map(); // room peer id -> account id (for avatars and profile links)
+R.myUid = () => (typeof ses!=='undefined' && ses && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(ses.id))) ? ses.id : '';
+const cleanUid = v => /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(v||'')) ? String(v) : '';
 R.source = R.url ? {t:'src',url:R.url} : null;
 R.roomGeneration = 0;
 const $room = id => document.getElementById(id);
@@ -44,9 +47,9 @@ const memberLabel = () => EN ? ' participants' : ' نفر';
 const localLabel = (fa,en) => EN ? en : fa;
 const toFaNumber = n => EN ? String(n) : String(n).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const displayMembers = () => {
-  const own = [{id:R.peer && R.peer.id || 'self',name:nm(),host:R.host,me:true}];
+  const own = [{id:R.peer && R.peer.id || 'self',name:nm(),host:R.host,me:true,uid:R.myUid()}];
   for (const [id,name] of R.members) {
-    if (id !== (R.peer && R.peer.id)) own.push({id,name,host:!R.host && !!R.conn && id===R.conn.peer,me:false});
+    if (id !== (R.peer && R.peer.id)) own.push({id,name,host:!R.host && !!R.conn && id===R.conn.peer,me:false,uid:R.uids.get(id)||''});
   }
   $room('rMemberCount').textContent=toFaNumber(own.length)+memberLabel();
   const element=$room('rMembers');
@@ -56,6 +59,7 @@ const displayMembers = () => {
     const letter=document.createElement('i');letter.textContent=Array.from(p.name)[0]||'?';letter.setAttribute('aria-hidden','true');
     const label=document.createElement('span');label.textContent=p.name+(p.host?' ★':'')+(p.me?' ('+localLabel('من','me')+')':'');
     root.append(letter,label);element.append(root);
+    try{R.decorateMember&&R.decorateMember(root,letter,p);}catch(e){}
   }
 };
 const status = () => {
@@ -89,7 +93,7 @@ const status = () => {
 };
 const broadcastRoster = () => {
   if (!R.host || !R.peer || !R.peer.id) return;
-  const list=[{id:R.peer.id,name:nm()},...Array.from(R.members,([id,name])=>({id,name}))];
+  const list=[{id:R.peer.id,name:nm(),uid:R.myUid()},...Array.from(R.members,([id,name])=>({id,name,uid:R.uids.get(id)||''}))];
   rsend({t:'members',list});
   displayMembers();
 };
@@ -177,6 +181,7 @@ onMsg = function(message,c) {
   if (m.t==='hello') {
     const name=String(m.name||localLabel('مهمان','Guest')).slice(0,24);
     R.members.set(c.peer,name);
+    R.uids.set(c.peer,cleanUid(m.uid));
     if (R.host) broadcastRoster(); else displayMembers();
     status();
     return;
@@ -186,7 +191,7 @@ onMsg = function(message,c) {
     const roster=new Map();
     for (const entry of m.list) {
       if (entry && typeof entry.id==='string' && typeof entry.name==='string' && entry.id!==(R.peer && R.peer.id))
-        roster.set(entry.id,entry.name.slice(0,24));
+        {roster.set(entry.id,entry.name.slice(0,24));R.uids.set(entry.id,cleanUid(entry.uid));}
     }
     R.members=roster;displayMembers();status();return;
   }
@@ -258,12 +263,12 @@ wire = function(c) {
     if (R.host) {
       R.members.set(c.peer,localLabel('مهمان','Guest'));
       R.conn=activeConnections()[0]||null; // compatibility with existing chat/sync controls
-      sendOne(c,{t:'hello',name:nm()});
+      sendOne(c,{t:'hello',name:nm(),uid:R.myUid?R.myUid():''});
       broadcastRoster();
       sendSnapshot(c);
     } else {
       R.members.set(c.peer,localLabel('میزبان','Host'));
-      sendOne(c,{t:'hello',name:nm()});
+      sendOne(c,{t:'hello',name:nm(),uid:R.myUid?R.myUid():''});
       displayMembers();
     }
     startPing();status();
@@ -273,7 +278,7 @@ wire = function(c) {
     if(R.peer!==owner)return;
     if(R.host){
       if(R.conns.get(c.peer)!==c)return;
-      R.conns.delete(c.peer);R.members.delete(c.peer);
+      R.conns.delete(c.peer);R.members.delete(c.peer);R.uids.delete(c.peer);
       R.conn=activeConnections()[0]||null;
       broadcastRoster();
       chat(localLabel('یک نفر از اتاق خارج شد','A member left the room'),'sys');

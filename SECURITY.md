@@ -112,3 +112,19 @@ code changes and CI workflow status do not prove production account security.
 - Archives are loaded and saved only for the signed-in user id; cross-tab sign-in/out
   is followed. Run `security/archives-rls.sql` once in Supabase so the database itself
   enforces "each account reads/writes only its own row".
+
+## Social layer (profiles, follows, reviews, critics)
+
+- Run `security/film-social-rls.sql` and then `security/film-social-v2.sql` once in the
+  Supabase SQL Editor. They create/extend `film_public_profiles`, `film_follows`,
+  `film_public_reviews` and `film_roles`, with RLS: public read; each user writes only
+  their own profile/review/follow rows; only admins write roles or delete others' reviews.
+- Roles live in `film_roles` and are checked by `film_is_admin()` in the database, never
+  by the browser. Make yourself admin / grant the critic role with the commented SQL
+  snippets at the end of `film-social-v2.sql`.
+- The watched list is public only when the user enables "show my watched films".
+- Room members' account id (`uid`) is self-reported over the unauthenticated broadcast
+  channel and is used only to load a public profile/avatar; it grants no access.
+- Planned (not built): admin panel. It must be account-based (role check), with
+  last-sign-in data served by a Supabase Edge Function/RPC using the service-role key
+  kept server-side, never in the browser.

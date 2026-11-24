@@ -94,3 +94,51 @@ body.cinema #cineExit{display:inline-flex}
   #cineLayer .cCurtain{transition:none}
   .rRecon.spin .ic,.tools2 .btn.syncBtn.busy .ic,.rBanner .rbMsg i{animation:none}
 }
+
+/* ---------- Room focus mode: once you are in a room the whole room fits one screen ---------- */
+body.roomFocus .reel>:not(.hbar){display:none!important}
+body.roomFocus .reel{min-height:0!important;padding-bottom:6px!important;margin-bottom:0!important}
+body.roomFocus .reel::before,body.roomFocus .reel::after{display:none!important}
+body.roomFocus .filmQuickSearch,body.roomFocus #filmQuickSuggestions,body.roomFocus #room>.sec,body.roomFocus #room>.hint,
+body.roomFocus #room .rmain .rbox .hint,body.roomFocus #roomAccountGate{display:none!important}
+body.roomFocus .tabsWrap{margin:6px auto 8px}
+@media(min-width:980px){
+ body.roomFocus #room .rgrid{height:calc(100dvh - 168px);min-height:520px;align-items:stretch;grid-template-columns:minmax(0,2fr) minmax(300px,1fr)}
+ body.roomFocus #room .rmain{display:flex;flex-direction:column;min-height:0;min-width:0}
+ body.roomFocus #room .stage{flex:0 1 auto;width:min(100%,calc((100dvh - 168px - 138px)*16/9));max-height:calc(100dvh - 168px - 138px);margin:0 auto 8px}
+ body.roomFocus #room .reacts{flex:none;margin:0 0 6px}
+ body.roomFocus #room .rmain .rbox{flex:none;padding:8px 10px}
+ body.roomFocus #room .rmain .rbox .rrow{margin:4px 0;gap:6px}
+ body.roomFocus #room .rmain .rbox .btn{padding:7px 10px;font-size:13px}
+ body.roomFocus #room .rside{display:flex;flex-direction:column;min-height:0;gap:10px}
+ body.roomFocus #room .rside .rbox:first-child{flex:none;max-height:46%;overflow:auto}
+ body.roomFocus #room .rside .chatbox{flex:1 1 0;min-height:0;display:flex;flex-direction:column;margin:0}
+ body.roomFocus #room .rside #chLog{flex:1 1 0;height:auto;min-height:60px;margin-bottom:8px}
+ body.roomFocus #room .rside .multiPres{max-height:104px;padding:6px 4px;margin-bottom:6px}
+}
+@media(max-width:979px){
+ body.roomFocus #room .rside #chLog{height:30dvh;min-height:140px}
+ body.roomFocus #room .rside .multiPres{max-height:84px}
+}
+@media(min-width:980px){
+ body.roomFocus .siteCinemaFooter,body.roomFocus footer{display:none!important}
+ body.roomFocus main{padding-bottom:6px!important}
+ body.roomFocus #room .rmain .tools2{display:flex;flex-wrap:wrap}
+ body.roomFocus #room .rmain .tools2 .btn,body.roomFocus #room .rmain #rFileBtn{flex:1 1 auto;min-height:38px;height:38px;padding:4px 10px}
+ body.roomFocus #room .cineBtn{min-height:38px!important;height:38px;padding:4px 12px!important}
+ body.roomFocus #room .cineBtn small,body.roomFocus #room .cineBtn span+span{display:none!important}
+ body.roomFocus #room .stage{width:min(100%,calc((100dvh - 168px - 176px)*16/9));max-height:calc(100dvh - 168px - 176px)}
+ body.roomFocus #room .rside .rbox:first-child{display:flex;flex-direction:column;gap:6px}
+ body.roomFocus #room .rside .rbox:first-child .rrow{margin:0}
+ body.roomFocus #room #rLeave{padding:6px 10px;height:36px}
+ body.roomFocus #room .invite{margin:0;padding:6px 8px}
+ body.roomFocus #room .invite .code{font-size:13px;padding:4px 6px;margin:2px 0}
+ body.roomFocus #room .invite .rrow .btn{padding:4px 8px;font-size:12px;height:32px}
+}
+@media(min-width:980px){
+ body.roomFocus #room .rgrid{height:calc(100dvh - 192px)}
+ body.roomFocus #room .stage{width:min(100%,calc((100dvh - 192px - 176px)*16/9));max-height:calc(100dvh - 192px - 176px)}
+ body.roomFocus #room .rside .rbox:first-child{max-height:none;overflow:visible}
+ body.roomFocus #room .rside .rbox:first-child .rrow:has(#rName){display:none}
+ body.roomFocus #room .rside .multiPres{min-height:70px}
+}
