@@ -15,6 +15,8 @@ const canonicalMoviePoster=p=>/^assets\/(?:catalog|posters)\/\d+-[a-f0-9]{12}\.w
   ?new URL(p,SITE).href:'';
 // Match the main movie search: prefer cached art, then a verified TMDB poster path.
 const moviePoster=movie=>{
+ const shared=window.filmDiscovery?.posterFor?.(movie);
+ if(shared)return shared;
  const cached=canonicalMoviePoster(movie?.poster_url);
  if(cached)return cached;
  const path=String(movie?.poster_path||'');
@@ -141,6 +143,12 @@ function drawOptions(movies){
    +'<span class="tmSuggestPick">'+L('انتخاب','Select')+'</span></button>';
  }).join('');
  activeIndex=-1;
+ // Same poster pipeline as the main movie search: late art is painted in place.
+ window.filmDiscovery?.hydrateMovies?.(movies,record=>{
+  const poster=moviePoster(record);if(!poster||visible!==movies)return;
+  const button=result.querySelector('[data-tmdb-id="'+record.id+'"] .tmSuggestCover');
+  if(button){button.replaceChildren();const img=document.createElement('img');img.src=poster;img.alt='';img.decoding='async';button.appendChild(img);}
+ });
 }
 async function suggest(){
  const token=++requestVersion;
@@ -271,7 +279,15 @@ async function hydrateLive(movie){
  }catch(error){ /* All fields remain editable; nothing is lost. */ }
 }
 function chooseFilm(movie){
+ movie=window.filmDiscovery?.resolve?.(movie)||movie;
  setFilm(movie);
+ if(!moviePoster(movie))window.filmDiscovery?.hydrateMovies?.([movie],record=>{
+  const art=moviePoster(record);
+  if(!art||!sectionIsOpen()||Number(state.form.tmdb)!==Number(record.id)||state.form.poster)return;
+  state.form.poster=art;paintPoster();
+  const cover=selected.querySelector('.tmSelectedPoster');
+  if(cover){cover.replaceChildren();const img=document.createElement('img');img.src=art;img.alt='';cover.appendChild(img);}
+ });
  if(movie && !moviePoster(movie) &&
     (movie.details_ok===false||movie._source==='universe'||movie._source==='live'))hydrateLive(movie);
 }

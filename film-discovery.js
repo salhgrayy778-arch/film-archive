@@ -242,6 +242,7 @@ function empty(container,text){container.replaceChildren(node('p','filmSearchEmp
 /* Load official artwork for visible title-only results, never guessing by title.
  * Bounded concurrency avoids sending a million API calls from the browser.
  * A failure leaves the descriptive placeholder intact. */
+let libraryIndex=null,libraryCount=0;
 const posterTasks=new Map(),posterQueue=[];let posterActive=0;
 const posterObserver=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{
  for(const entry of entries){
@@ -261,10 +262,13 @@ function queuePoster(id,card){
   if(holder)holder.replaceWith(createPoster(cached,'filmResultPoster'));
   return;
  }
- if(posterTasks.has(id)){posterTasks.get(id).then(update=>paintPoster(card,update));return;}
+ requestPoster(id).then(update=>paintPoster(card,update));
+}
+function requestPoster(id){
+ if(posterTasks.has(id))return posterTasks.get(id);
  const task=new Promise(resolve=>{posterQueue.push({id,resolve});drainPosterQueue();});
  posterTasks.set(id,task);
- task.then(update=>paintPoster(card,update));
+ return task;
 }
 function paintPoster(card,m){
  if(!m||!card.isConnected)return;
@@ -707,6 +711,62 @@ window.filmDiscovery={
  async getCuratedMovies(){
   await loadCatalog();
   return catalog.slice();
+ },
+ /* One shared record per film: cached catalog + extra + home feed. Every
+  * feature (search, add-film, profile, library) resolves through these so
+  * they always agree on title and poster. */
+ resolve(movie){
+  const id=idNumber(movie?.id);if(!id)return movie||null;
+  const known=findFilm(id);
+  return known?{...movie,...known,poster_url:known.poster_url||movie.poster_url||''}:movie;
+ },
+ posterFor(movie){const m=this.resolve(movie);return m?posterOf(m):'';},
+ /* Fill missing posters for a result list; calls onUpdate(record) per film that gained art. */
+ async hydrateMovies(list,onUpdate){
+  await Promise.all([loadCatalog(),loadFeatured()]).catch(()=>{});
+  for(const movie of (list||[]).slice(0,30)){
+   const id=idNumber(movie?.id);if(!id)continue;
+   const known=this.resolve(movie);
+   if(known&&posterOf(known)){if(!posterOf(movie)&&onUpdate)onUpdate(known);continue;}
+   if(Number(movie.popularity||0)<20)continue;
+   requestPoster(id).then(update=>{
+    const merged=update?this.resolve({...movie,...update}):null;
+    if(merged&&posterOf(merged)&&onUpdate)onUpdate(merged);
+   }).catch(()=>{});
+  }
+ },
+ /* Match archive films to the shared TMDB data (exact id, else exact title+year).
+  * Fills only missing posters/ids and returns true when anything changed. */
+ async syncLibrary(films){
+  await Promise.all([loadCatalog(),loadFeatured()]).catch(()=>{});
+  if(!catalog.length)return false;
+  if(!libraryIndex||libraryCount!==catalog.length){
+   libraryIndex=new Map();libraryCount=catalog.length;
+   for(const m of catalog){
+    const year=String(m.release_date||'').slice(0,4);
+    for(const name of [m.title,m.original_title,m.fa_title]){
+     const key=normalize(name)+'|'+year;
+     if(key.length>3&&!libraryIndex.has(key))libraryIndex.set(key,m);
+    }
+   }
+  }
+  const byId=new Map(catalog.map(m=>[m.id,m]));
+  let changed=false;
+  for(const f of films||[]){
+   if(!f||typeof f!=='object')continue;
+   let record=Number(f.tmdb)>0?byId.get(Number(f.tmdb)):null;
+   if(!record&&!f.tmdb){
+    const year=String(f.year||'').slice(0,4);
+    if(year)record=libraryIndex.get(normalize(f.titleEn)+'|'+year)||libraryIndex.get(normalize(f.title)+'|'+year);
+    if(record){f.tmdb=record.id;changed=true;}
+   }
+   if(!record)continue;
+   const art=posterOf(record);
+   if(art&&!String(f.poster||'').trim()){
+    f.poster=String(record.poster_url||'').startsWith('assets/')?record.poster_url:art;changed=true;
+   }
+  }
+  return changed;
  },
  getCurrentMovie(){return current?{...current}:null;},
  onTabRendered(tab){

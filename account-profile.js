@@ -56,9 +56,12 @@ function posterUrl(source){
  catch(error){return '';}
 }
 function favoritePoster(movie){
+ const tmdb=/^tmdb:([1-9][0-9]*)$/.exec(String(movie.id||''));
+ // Shared poster pipeline first (same record the main movie search shows).
+ const shared=tmdb&&window.filmDiscovery?.posterFor?.({id:Number(tmdb[1])});
+ if(shared)return shared;
  const stored=posterUrl(movie.poster);
  if(stored)return stored;
- const tmdb=/^tmdb:([1-9][0-9]*)$/.exec(String(movie.id||''));
  const record=tmdb&&catalog?.find(m=>m.id===Number(tmdb[1]));
  if(!record)return '';
  const cached=posterUrl(record.poster_url);
@@ -158,11 +161,7 @@ function candidates(){
   const id=String(f.id||'');
   if(!/^[a-zA-Z0-9_-]{1,80}$/.test(id)||!f.title)continue;
   records.push({id:'archive:'+id,title:String(f.title).slice(0,160),alt:String(f.titleEn||''),
-   year:String(f.year||'').slice(0,4),poster:f.poster||'',my:true});
- }
- for(const m of catalog||[]){
-  records.push({id:'tmdb:'+m.id,title:String(!EN&&m.fa_title?m.fa_title:m.title||m.original_title||'').slice(0,160),
-   alt:String(m.original_title||m.title||''),year:String(m.release_date||'').slice(0,4),poster:m.poster_url||'',my:false});
+   year:String(f.year||'').slice(0,4),poster:f.poster||(f.tmdb&&window.filmDiscovery?.posterFor?.({id:Number(f.tmdb)}))||'',my:true});
  }
  return records;
 }
@@ -182,12 +181,9 @@ async function searchMovies(){
   for(const m of fromSearch){
    const ident='tmdb:'+Number(m.id);
    if(!Number.isSafeInteger(Number(m.id))||Number(m.id)<=0||known.has(ident))continue;
-   const path=String(m.poster_path||'');
-   const official=/^\/[a-zA-Z0-9_-]{8,90}\.(?:jpg|png|webp)$/i.test(path)
-    ?'https://image.tmdb.org/t/p/w342'+path:'';
    options.push({id:ident,title:String(!EN&&m.fa_title?m.fa_title:m.title||m.original_title||'').slice(0,160),
     alt:String(m.original_title||m.title||''),year:String(m.release_date||'').slice(0,4),
-    poster:m.poster_url||official,my:false,popularity:Number(m.popularity)||0});known.add(ident);
+    poster:window.filmDiscovery?.posterFor?.(m)||'',my:false,popularity:Number(m.popularity)||0,raw:m});known.add(ident);
   }
  }catch(error){console.warn('Expanded favorite movie search unavailable',error);}
  if(token!==searchVersion||mode!=='edit'||norm(input.value)!==q)return;
@@ -195,7 +191,8 @@ async function searchMovies(){
   const a=norm(m.title),b=norm(m.alt);
   let score=a===q||b===q?700:a.startsWith(q)||b.startsWith(q)?520:a.includes(q)||b.includes(q)?280:-1;
   if(score>=0&&m.my)score+=80;
-  return {m,i,score};
+  if(!m.my&&score<0)score=1; // already matched by the shared movie search
+  return {m,i,score:m.my?score:1000-i};
  }).filter(x=>x.score>=0&&!selected.has(x.m.id))
    .sort((a,b)=>b.score-a.score||a.i-b.i).slice(0,10);
  list.replaceChildren();
@@ -218,6 +215,13 @@ async function searchMovies(){
   empty.textContent=catalogFailed?T('فهرست TMDB در دسترس نیست؛ ورود دستی ممکن است.','Movie index unavailable; manual entry works.'):
    T('نتیجه‌ای پیدا نشد؛ عنوان را دستی وارد کن.','No matches; add the title manually.');list.appendChild(empty);}
  list.hidden=false;$('profileAddOther').hidden=false;
+ window.filmDiscovery?.hydrateMovies?.(matches.map(x=>x.m.raw).filter(Boolean),record=>{
+  const art=window.filmDiscovery.posterFor(record);if(!art||token!==searchVersion)return;
+  const idx=matches.findIndex(x=>x.m.id==='tmdb:'+record.id);
+  const thumb=list.querySelectorAll('.profileSuggestionPoster')[idx];
+  if(thumb){thumb.replaceChildren();const im=document.createElement('img');im.src=art;im.alt='';thumb.appendChild(im);}
+  if(idx>=0)matches[idx].m.poster=art;
+ });
 }
 function addFavorite(m){
  if(!draft||draft.favorites.length>=10){feedback(T('حداکثر ۱۰ فیلم مجاز است.','Maximum 10 films.'));return;}

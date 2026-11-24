@@ -7,7 +7,7 @@ import sys
 root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
-                    "group-watch.js","sidebar-ui.js","add-film-ui.js",
+                    "group-watch.js","group-watch-account.js","sidebar-ui.js","add-film-ui.js",
                     "account-profile.js")}
 index=files["index.html"]
 errors=[]

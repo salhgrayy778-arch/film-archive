@@ -256,6 +256,12 @@
 .roomAccountGate h3{font-size:20px;margin:7px 0 12px}
 .roomAccountGate p{font-size:13px;line-height:2;color:var(--mute);margin:0 0 18px}
 #room .rgrid[hidden]{display:none!important}
+.roomAccountGate.compact{padding:22px 20px;margin:12px 0 16px;max-width:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;text-align:start}
+.roomAccountGate.compact .roomGateSymbol{font-size:30px}
+.roomAccountGate.compact h3{margin:0;flex:1 1 240px;font-size:16px}
+.roomAccountGate.compact p{margin:0;flex:2 1 280px}
+.roomAccountGate.compact button{flex:0 0 auto}
+#room .rgrid.roomAuthLocked{opacity:.42;filter:saturate(.6);pointer-events:none;user-select:none}
 @media(max-width:950px){
  .filmSearchResults{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
