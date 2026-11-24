@@ -551,7 +551,45 @@ async function showDetail(id){
   const live=await fetchLiveDetail(id);
   if(live)movie=live;
  }
- if(seq===loadSerial&&state.tab==='film'&&movie)showFilm(movie);
+ if(seq===loadSerial&&state.tab==='film'&&movie){
+  showFilm(movie);
+  // Cached popular-film records already have posters and core metadata.
+  // Fetch missing Persian metadata on demand without delaying the film page.
+  const needsPersian=!EN&&(!faValue(movie.fa_title)
+    ||!(faValue(movie.overview_fa)&&movie.overview_source_for_fa===movie.overview));
+  const missingCore=(!movie.overview||!movie.release_date||!Array.isArray(movie.genre_ids));
+  if(needsPersian||missingCore){
+   const initial=movie;
+   (async()=>{
+    try{
+     let update={};
+     if(missingCore){
+      const live=await fetchLiveDetail(id);
+      if(live)update={...live};
+     }else{
+      const fa=await tm('/movie/'+id,{language:'fa-IR'});
+      if(idNumber(fa?.id)===id){
+       if(faValue(fa.title))update.fa_title=fa.title;
+       if(faValue(fa.overview)){
+        update.overview_fa=fa.overview;
+        update.overview_source_for_fa=initial.overview;
+        update.overview_translation_source='tmdb';
+       }
+      }
+     }
+     if(seq!==loadSerial||state.tab!=='film'||current?.id!==id)return;
+     if(!Object.keys(update).length)return;
+     // Keep locally cached artwork and metadata over incomplete live responses.
+     const enriched={...initial,...Object.fromEntries(Object.entries(update).filter(([k,v])=>
+       v!==null&&v!==undefined&&v!==''&&(!Array.isArray(v)||v.length>0)))};
+     if(!enriched.overview_fa&&initial.overview_fa)enriched.overview_fa=initial.overview_fa;
+     if(faValue(enriched.overview_fa)&&enriched.overview_translation_source==='tmdb')
+      enriched.overview_source_for_fa=enriched.overview;
+     extra.set(id,enriched);showFilm(enriched);
+    }catch(error){console.warn('Additional TMDB translation unavailable',error);}
+   })();
+  }
+ }
 }
 function openFilm(id,push=true){
  const ident=idNumber(id);if(!ident){openSearch(query,push);return;}
