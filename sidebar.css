@@ -18,7 +18,7 @@ html[dir="ltr"] .drawer{
   transition:transform .28s ease,visibility 0s .28s;
   visibility:hidden;
   text-align:start;
-  z-index:22;
+  z-index:48;
 }
 /* Logical inset mirrors the physical right edge in both writing directions. */
 html[dir="rtl"] .drawer{inset-inline-start:0;inset-inline-end:auto}
@@ -30,7 +30,7 @@ html[dir="ltr"] .drawer.open{
   visibility:visible;
   transition:transform .28s ease,visibility 0s;
 }
-.dbg{z-index:21}
+.dbg{z-index:47}
 body.drawerOpen{overflow:hidden}
 .drawer .dhead{
   display:flex;align-items:center;justify-content:space-between;gap:12px;

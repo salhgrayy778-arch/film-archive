@@ -57,8 +57,19 @@ async function load(){
     likeRows=lr.filter(l=>l.user_id!==ses.id).map(l=>({...l,follower_id:l.user_id,kind:'like'}));
    }
   }catch(e){likeRows=[];}
-  items=[...rows,...likeRows].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).slice(0,40);
-  if(owner!==ses.id){owner=ses.id;if(!getSeen()){/* first time on this device: do not flash old followers as new */setSeen(items[0]?.created_at||new Date().toISOString());}}
+  // roles given to me (critic / moderator / admin): shown as a notification
+  let roleRows=[];
+  try{
+   const rr=await F.get('/film_roles?select=role,granted_by,created_at&user_id=eq.'+ses.id+'&order=created_at.desc&limit=5');
+   roleRows=rr.filter(r=>r&&r.created_at).map(r=>({...r,follower_id:r.granted_by||ses.id,kind:'role'}));
+  }catch(e){roleRows=[];}
+  items=[...rows,...likeRows,...roleRows].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).slice(0,40);
+  if(owner!==ses.id){owner=ses.id;if(!getSeen()){
+   /* first time on this device: old followers/likes are not "new", but a role given in the last 7 days is */
+   const week=new Date(Date.now()-7*864e5).toISOString();
+   const base=items.find(i=>!(i.kind==='role'&&i.created_at>week));
+   setSeen(base?.created_at||'2000-01-01T00:00:00.000Z');
+  }}
   paint();
   if(!panel.hidden)render();
  }catch(e){/* offline or SQL not run: stay quiet */}
@@ -68,8 +79,8 @@ async function render(){
  const F=window.filmFriends;const seen=getSeen();const mine=++renderSerial;
  panel.replaceChildren();
  const head=make('div','bellHead');head.appendChild(make('span','',T('🔔 اعلان‌ها','🔔 Notifications')));panel.appendChild(head);
- if(!items.length){panel.appendChild(make('div','bellEmpty',T('هنوز اعلانی نداری؛ دنبال‌کردن و لایک نظرها اینجا می‌آید.','Nothing yet: new followers and likes on your reviews show up here.')));return;}
- const pm=await F.getProfiles(items.map(i=>i.follower_id));
+ if(!items.length){panel.appendChild(make('div','bellEmpty',T('هنوز اعلانی نداری؛ دنبال‌کردن، لایک نظرها و نقش‌های تازه‌ات اینجا می‌آید.','Nothing yet: new followers and likes on your reviews show up here.')));return;}
+ const pm=await F.getProfiles(items.filter(i=>i.kind!=='role').map(i=>i.follower_id));
  if(mine!==renderSerial)return;
  for(const it of items.slice(0,12)){
   const p=pm.get(it.follower_id);
@@ -77,7 +88,13 @@ async function render(){
   const when=new Date(it.created_at).toLocaleDateString((typeof EN!=='undefined'&&EN)?'en-US':'fa-IR',{month:'short',day:'numeric'});
   const txt=make('span','');
   const who=p?.display_name||T('فیلم‌باز','Movie fan');
-  if(it.kind==='like'){
+  if(it.kind==='role'){
+   const R={critic:['🎬','منتقد','a critic'],moderator:['🛡️','مودریتور','a moderator'],admin:['👑','مدیر سایت','a site admin']}[it.role]||['⭐',it.role,it.role];
+   b.classList.add('isRole');
+   txt.append(make('b','',T('تو '+R[1]+' شدی','You are now '+R[2])),make('small','',T('پنل کاربری‌ات را باز کن تا امکانات تازه را ببینی · ','Open your user panel to see the new tools · ')+when));
+   b.append(make('span','bellRoleIcon',R[0]),txt);
+   b.onclick=()=>{close();try{window.filmPanelDock?.open?.();}catch(e){}};
+  }else if(it.kind==='like'){
    const rv=reviewInfo.get(Number(it.review_id));
    txt.append(make('b','',who),make('small','',T('نظر تو را پسندید','Liked your review')+(rv?.film_title?' · '+String(rv.film_title).slice(0,40):'')+' · '+when));
    const av=F.avatar(p,36);const wrap=make('span','bellAv');wrap.append(av,bellHeart());

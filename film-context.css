@@ -1,0 +1,12 @@
+.fcMenu{position:fixed;z-index:90;min-width:230px;max-width:min(320px,92vw);padding:6px;border:1px solid color-mix(in srgb,var(--gold) 50%,var(--line));border-radius:15px;background:var(--panel);color:var(--ink);
+ box-shadow:0 18px 50px rgba(0,0,0,.5);animation:fcIn .14s ease;direction:rtl}
+html[dir=ltr] .fcMenu{direction:ltr}
+@keyframes fcIn{from{opacity:0;transform:scale(.96) translateY(-4px)}to{opacity:1;transform:none}}
+.fcHead{display:flex;align-items:center;gap:9px;padding:6px 8px 8px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.fcHead img{width:30px;height:44px;object-fit:cover;border-radius:6px;flex:none}
+.fcHead b{font-size:13px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.fcItem{display:flex;align-items:center;gap:9px;width:100%;min-height:42px;padding:8px 10px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;font-size:14px;text-align:start;cursor:pointer}
+.fcItem:hover,.fcItem:focus-visible{background:color-mix(in srgb,var(--gold) 16%,transparent);outline:0}
+.fcIcon{width:22px;text-align:center;flex:none}
+.fcOn{margin-inline-start:auto;color:var(--gold);font-weight:900}
+@media (prefers-reduced-motion:reduce){.fcMenu{animation:none}}

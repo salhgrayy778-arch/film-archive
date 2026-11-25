@@ -824,8 +824,39 @@ function init(){
  const id=idNumber(new URL(location.href).searchParams.get('film'));
  if(id)openFilm(id,false);
 }
+/* Right-click menu: add a film to the account lists straight from any card. Returns 'seen' | 'want' | 'same' | '' (failed). */
+async function quickAdd(filmId,status,hint){
+ const ident=idNumber(filmId);
+ if(!ident||!['seen','want'].includes(status)||!requireCloud())return '';
+ await Promise.all([loadCatalog(),loadFeatured()]).catch(()=>{});
+ const h=hint&&typeof hint==='object'?hint:{};
+ const known=findFilm(ident);
+ const m=known||{id:ident,title:String(h.title||'').slice(0,180),original_title:String(h.title||'').slice(0,180),release_date:/^\d{4}$/.test(String(h.year||''))?h.year+'-01-01':'',genre_ids:[]};
+ const owner=ses.id,old=state.films,previous=old.find(f=>Number(f.tmdb)===ident);
+ if(previous?.status===status)return 'same';
+ try{
+  if(previous){
+   state.films=old.map(f=>f===previous?{...f,status,date:status==='seen'&&!f.date?todayISO():f.date||''}:f);
+  }else{
+   const year=Number(String(m.release_date||'').slice(0,4))||'';
+   const genre=(m.genre_ids||[]).map(id=>GENRES[id]).find(Boolean)||'';
+   let id='tmdb-'+ident;if(old.some(f=>f.id===id))id=newId();
+   const hp=/^https:\/\/image\.tmdb\.org\/t\/p\/[\w./-]+$/i.test(String(h.poster||''))?String(h.poster):'';
+   const title=!EN&&faValue(m.fa_title)?m.fa_title:m.title||m.original_title||'';
+   if(!title)return '';
+   state.films=old.concat([{id,tmdb:ident,title,titleEn:m.original_title||m.title||title,year,genre,
+    director:String(m.director||'').slice(0,240),cast:String(m.cast||'').slice(0,350),
+    country:String(m.country||'').slice(0,180),runtime:Number(m.runtime)||'',
+    poster:posterOf(m)?String(m.poster_url):hp,status,notes:'',rating:0,liked:false,
+    date:status==='seen'?todayISO():'',logs:[]}]);
+  }
+  if(!await saveFilms()){if(ses?.id===owner&&cloudReady)state.films=old;return '';}
+  updateAccountButtons();
+  return status;
+ }catch(error){console.error('Quick add failed',error);if(ses?.id===owner&&cloudReady)state.films=old;return '';}
+}
 window.filmDiscovery={
- openFilm,openSearch,
+ openFilm,openSearch,quickAdd,
  /* Called by the staff panel right after a save so the editor sees the change at once. */
  async setOverride(filmId,patch,hidden){
   const id=idNumber(filmId);if(!id)return;
