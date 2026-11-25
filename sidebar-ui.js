@@ -49,6 +49,34 @@ const notif=group('اعلان‌ها','Notifications');
 toggle(notif,'bell','اعلان‌های زنگوله','Bell notifications','دنبال‌کننده‌های تازه و لایک نظرهایت','New followers and likes on your reviews');
 toggle(notif,'ann','اعلان‌های سایت','Site announcements','نوار اعلان مدیران بالای صفحه','The announcement bar at the top');
 
+// real phone notifications (follow / like / role): switch + live hint
+{
+  const b=el('button','tsRow tsSwitchRow');b.type='button';b.id='drawerPush';b.setAttribute('role','switch');b.setAttribute('aria-checked','false');
+  const tx=el('span','tsText');const ttl=el('b','',T('اعلان روی گوشی','Phone notifications'));const hint=el('small','','');tx.append(ttl,hint);
+  const sw=el('span','tsSwitch');sw.appendChild(el('i'));b.append(tx,sw);notif.appendChild(b);
+  const MSG={
+    'on':['روشن است: دنبال‌کردن، لایک و نقش تازه را روی گوشی می‌بینی','On: follows, likes and new roles reach your phone'],
+    'off':['خاموش؛ با زدن این دکمه روشن می‌شود','Off; tap to turn on'],
+    'signin':['برای روشن کردن اول وارد حساب شو','Sign in first to turn this on'],
+    'denied':['مرورگر اعلان‌ها را بسته؛ از تنظیمات سایت در مرورگر آزاد کن','Notifications are blocked; allow them in the browser site settings'],
+    'need-install':['روی آیفون اول سایت را نصب کن (ابزارها ← نصب روی گوشی)، بعد این را روشن کن','On iPhone, install the site first (Tools → Install on your phone), then turn this on'],
+    'unsupported':['این مرورگر اعلان گوشی را پشتیبانی نمی‌کند؛ Chrome را امتحان کن','This browser does not support phone notifications; try Chrome']
+  };
+  const paint=async()=>{const s=window.filmPush?await window.filmPush.state():'unsupported';b.setAttribute('aria-checked',String(s==='on'));b.dataset.state=s;hint.textContent=T(...(MSG[s]||MSG.off));};
+  b.addEventListener('click',async()=>{
+    const s=b.dataset.state;
+    if(s==='need-install'){close.click();setTimeout(()=>window.filmInstall?.install?.(),250);return;}
+    if(s==='on'){await window.filmPush.disable();}
+    else if(s==='off'){hint.textContent=T('در حال روشن کردن…','Turning on…');const r=await window.filmPush.enable();
+      if(r==='no-table')hint.textContent=T('مدیر سایت هنوز بخش اعلان را در دیتابیس راه نینداخته','The site admin has not set up notifications in the database yet');
+      else if(r==='error')hint.textContent=T('روشن نشد؛ دوباره امتحان کن','Could not turn on; try again');
+      if(r==='no-table'||r==='error')return;}
+    paint();
+  });
+  paint();window.addEventListener('film-push-state',paint);
+  new MutationObserver(paint).observe(drawer,{attributes:true,attributeFilter:['class']});
+}
+
 const show=group('نمایش','Display');
 toggle(show,'scenes','پس‌زمینهٔ سینمایی متحرک','Animated cinema backgrounds','نور پروژکتور و صحنه‌های پشت صفحه‌ها','Projector light and scenes behind the pages');
 
@@ -56,7 +84,7 @@ const help=group('راهنما و تازه‌ها','Help & updates');
 const upBtn=action(help,'✨','تازه‌های سایت','Site updates','آخرین به‌روزرسانی‌های مهم','The latest important updates',()=>{close.click();setTimeout(()=>window.filmUpdates?.open?.(),250);},'drawerUpdates');
 const upDot=()=>{const b=upBtn.querySelector('b');b.querySelector('.suDot')?.remove();if(window.filmUpdates?.unseen?.()){const d=el('i','suDot');d.setAttribute('aria-label',T('جدید','New'));b.appendChild(d);}};
 upDot();window.addEventListener('film-updates-state',upDot);new MutationObserver(upDot).observe(drawer,{attributes:true,attributeFilter:['class']});
-const inst=action(help,'📲','نصب روی گوشی (مثل اپ)','Install on your phone','سایت را روی صفحهٔ اصلی گوشی داشته باش','Keep the site on your home screen',()=>{close.click();setTimeout(()=>window.filmInstall?.install?.(),250);},'drawerInstall');
+const inst=action(help,'📲','نصب روی گوشی (مثل اپ)','Install on your phone','برای دریافت اعلان؛ سایت روی صفحهٔ اصلی گوشی','For notifications and quick access, on your home screen',()=>{close.click();setTimeout(()=>window.filmInstall?.install?.(),250);},'drawerInstall');
 const instShow=()=>{inst.hidden=Boolean(window.filmInstall?.installed?.());};instShow();window.addEventListener('film-install-state',instShow);
 action(help,'🧭','نمایش دوبارهٔ آموزش سایت','Replay the site tour','معرفی کوتاه بخش‌های سایت','A short intro to every section',()=>{
   close.click();setTimeout(()=>{try{window.filmTour?.start(true);}catch(e){}},250);

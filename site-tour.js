@@ -40,6 +40,8 @@ function build(){
  ring=make('div','stRing');arrow=make('div','stArrow');arrow.appendChild(arrowSvg());
  card=make('div','stCard');
  layer.append(ring,arrow,card);doc.body.appendChild(layer);
+ // never a dead end: tapping the dimmed page outside the card ends the tour
+ layer.addEventListener('pointerdown',e=>{if(!card.contains(e.target))finish();});
 }
 function finish(){
  markDone();running=false;
@@ -91,8 +93,10 @@ function go(d){
  if(idx<0)idx=0;
  draw();
 }
+const zoomed=()=>{try{return (window.visualViewport?.scale||1)>1.05;}catch(e){return false;}};
 function start(force){
  if(running)return;
+ if(!force&&(zoomed()||doc.activeElement?.matches?.('input,textarea')))return;
  if(!force&&isDone())return;
  steps=STEPS.filter(s=>visible(doc.querySelector(s.sel)));
  if(steps.length<3)return;
