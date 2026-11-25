@@ -278,6 +278,7 @@ function friendCard(uid,profile,role,lastReview){
   l.appendChild(make('small','fsDate',relTime(lastReview.created_at)));sec2.appendChild(l);
   if(lastReview.review){const t=lastReview.review;sec2.appendChild(make('p','fsSnippet',t.length>170?t.slice(0,170)+'…':t));}
  reviewLink(sec2,lastReview);
+  if(lastReview.id){const lf=make('div','fsCardFoot');lf.appendChild(likeBar(lastReview));sec2.appendChild(lf);}
  }else sec2.appendChild(make('p','fsEmpty',T('هنوز نظری ننوشته.','No review yet.')));
  card.append(sec1,sec2);
  return card;
