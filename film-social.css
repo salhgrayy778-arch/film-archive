@@ -125,3 +125,6 @@ button.fsStat{cursor:pointer}button.fsStat:hover span{text-decoration:underline}
 /* Round 10: like notifications in the bell */
 .bellAv{position:relative;display:inline-flex;flex:none}
 .bellHeart{position:absolute;inset-inline-end:-4px;bottom:-4px;width:18px;height:18px;padding:3px;border-radius:50%;background:#ff4d6d;fill:#fff;border:2px solid var(--panel)}
+
+.bellItem.isRole .bellRoleIcon{width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:19px;background:color-mix(in srgb,var(--gold) 20%,transparent);border:1px solid color-mix(in srgb,var(--gold) 55%,transparent)}
+.bellItem.isRole{border-inline-start:3px solid var(--gold)}

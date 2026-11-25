@@ -1,0 +1,32 @@
+/* Theme picker: a centred card with live mini-previews of every palette. */
+html #themePanel.themePanel{position:fixed;top:50%;left:50%;right:auto;inset-inline-start:auto;inset-inline-end:auto;transform:translate(-50%,-50%);
+ width:min(660px,94vw);max-height:min(86dvh,720px);padding:0;overflow:hidden;display:flex;flex-direction:column;z-index:60;
+ border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));border-radius:22px;background:var(--panel);
+ box-shadow:0 0 0 100vmax rgba(4,3,14,.62),0 30px 90px rgba(0,0,0,.55)}
+html #themePanel[hidden]{display:none}
+.themePanelHead{padding:18px 22px 6px;margin:0;background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 16%,transparent),color-mix(in srgb,var(--accent2) 14%,transparent) 70%,transparent)}
+.themePanelHead strong{font-size:19px;font-weight:800;letter-spacing:0}
+.themePanelHead button{width:40px;height:40px;border-radius:50%;font-size:22px}
+#themePanelDesc{margin:0;padding:0 22px 14px;font-size:12.5px;color:var(--mute);background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 16%,transparent),color-mix(in srgb,var(--accent2) 14%,transparent) 70%,transparent);border-bottom:1px solid var(--line)}
+.themeOptions{display:block;padding:6px 20px 20px;overflow-y:auto}
+.tpLabel{margin:16px 2px 8px;font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.04em}
+.tpGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:12px}
+.tpCard{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:9px 9px 11px;min-height:0;border:1.5px solid var(--line);border-radius:16px;background:var(--bg);color:var(--ink);text-align:start;cursor:pointer;
+ transition:transform .18s,border-color .18s,box-shadow .18s}
+.tpCard:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--gold) 70%,var(--line));box-shadow:0 10px 24px rgba(0,0,0,.28)}
+.tpCard[aria-pressed="true"]{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 30%,transparent),0 10px 26px rgba(0,0,0,.3);transform:none}
+.tpPrev{position:relative;display:block;height:78px;border-radius:11px;overflow:hidden;background:var(--p-bg);border:1px solid rgba(127,127,127,.28)}
+.tpPrev i{position:absolute;display:block}
+.tpBar{left:8px;right:8px;top:8px;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--p-a),var(--p-b))}
+.tpLine{left:8px;top:26px;width:62%;height:6px;border-radius:4px;background:var(--p-ink);opacity:.78}
+.tpLine.s{top:38px;width:42%;opacity:.4}
+.tpBtn{left:8px;bottom:9px;width:44px;height:15px;border-radius:8px;background:var(--p-a)}
+.tpDot{right:9px;bottom:8px;width:17px;height:17px;border-radius:50%;background:var(--p-b);box-shadow:0 0 0 3px color-mix(in srgb,var(--p-b) 28%,transparent)}
+.tpName{display:block;padding:0 3px}
+.tpName strong{display:block;font-size:13.5px;line-height:1.5}
+.tpName small{display:block;font-size:11px;line-height:1.5;color:var(--mute)}
+.tpCheck{position:absolute;top:14px;inset-inline-end:14px;width:22px;height:22px;min-width:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;
+ background:var(--gold);color:var(--on-gold);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.tpCheck:empty{display:none}
+@media (max-width:520px){.tpGrid{grid-template-columns:1fr 1fr;gap:9px}.tpName small{display:none}.themeOptions{padding:4px 14px 16px}}
+@media (prefers-reduced-motion:reduce){.tpCard,.tpCard:hover{transition:none;transform:none}}

@@ -37,6 +37,7 @@ try {
 }catch(e){}
 </script>
 <link rel="preload" href="assets/fonts/estedad-arabic-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script>try{var __t=localStorage.getItem('film-archive-theme');document.documentElement.setAttribute('data-theme',(!__t||__t==='auto')?'aurora':__t);}catch(e){document.documentElement.setAttribute('data-theme','aurora');}</script>
 <style>
 html.deskView{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
@@ -547,6 +548,12 @@ body{overflow-x:clip;padding-bottom:145px}
 @media (prefers-color-scheme: light){
   :root:not([data-theme]){--accent2:#396E93;--hero-ink:#F0E4D2;--hero-sub:#CDB9A6}
 }
+:root[data-theme="aurora"]{
+  --bg:#0C0B22; --panel:#181640; --ink:#F6F2FF; --mute:#B9B3DA;
+  --gold:#FFC65C; --on-gold:#1F1430; --line:#35317A; --strip:#080718;
+  --hole:#221E55; --danger:#FF8A9B; --accent2:#FF6FA5;
+  --hero-ink:#FFF7EA; --hero-sub:#D6CFF5; color-scheme:dark;
+}
 :root[data-theme="ocean"]{
   --bg:#071A23; --panel:#102936; --ink:#F3FAFC; --mute:#ACC3CB;
   --gold:#FFAB8B; --on-gold:#16232B; --line:#2C4E5D; --strip:#06121B;
@@ -620,21 +627,23 @@ body{overflow-x:clip;padding-bottom:145px}
 #dashboard #grid{padding-top:3px}
 @media(max-width:560px){.dashNav{gap:6px;margin-top:13px}.dashNavBtn{font-size:12px;padding:9px 12px}.dashLibraryHeading h2{font-size:19px}}
 </style>
-<link rel="stylesheet" href="cinema-news.css?v=20261125e">
-<link rel="stylesheet" href="sidebar.css?v=20261125e">
-<link rel="stylesheet" href="add-film.css?v=20261125e">
-<link rel="stylesheet" href="cinematic-shell.css?v=20261125e">
-<link rel="stylesheet" href="account-profile.css?v=20261125e">
-<link rel="stylesheet" href="film-discovery.css?v=20261125e">
-<link rel="stylesheet" href="room-experience.css?v=20261125e">
-<link rel="stylesheet" href="film-social.css?v=20261125e">
-<link rel="stylesheet" href="admin-panel.css?v=20261125e">
-<link rel="stylesheet" href="critic-panel.css?v=20261125e">
-<link rel="stylesheet" href="film-polish.css?v=20261125e">
-<link rel="stylesheet" href="film-fonts.css?v=20261125e">
-<link rel="stylesheet" href="film-scenes.css?v=20261125e">
-<link rel="stylesheet" href="panel-dock.css?v=20261125e">
-<link rel="stylesheet" href="site-tour.css?v=20261125e">
+<link rel="stylesheet" href="cinema-news.css?v=20261125f">
+<link rel="stylesheet" href="sidebar.css?v=20261125f">
+<link rel="stylesheet" href="theme-picker.css?v=20261125f">
+<link rel="stylesheet" href="film-context.css?v=20261125f">
+<link rel="stylesheet" href="add-film.css?v=20261125f">
+<link rel="stylesheet" href="cinematic-shell.css?v=20261125f">
+<link rel="stylesheet" href="account-profile.css?v=20261125f">
+<link rel="stylesheet" href="film-discovery.css?v=20261125f">
+<link rel="stylesheet" href="room-experience.css?v=20261125f">
+<link rel="stylesheet" href="film-social.css?v=20261125f">
+<link rel="stylesheet" href="admin-panel.css?v=20261125f">
+<link rel="stylesheet" href="critic-panel.css?v=20261125f">
+<link rel="stylesheet" href="film-polish.css?v=20261125f">
+<link rel="stylesheet" href="film-fonts.css?v=20261125f">
+<link rel="stylesheet" href="film-scenes.css?v=20261125f">
+<link rel="stylesheet" href="panel-dock.css?v=20261125f">
+<link rel="stylesheet" href="site-tour.css?v=20261125f">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1302,7 +1311,7 @@ function toast(msg){
 
 /* ---------- پالت‌های رنگی با رنگ‌های مکمل ---------- */
 const THEME_OPTIONS = [
-  {id:'auto',fa:'خودکار',en:'Auto',noteFa:'هماهنگ با روشن/تیره بودن دستگاه',noteEn:'Follows your device appearance',swatches:['#0A1516','#D2AA62','#F1EBDC']},
+  {id:'auto',fa:'شفق سینمایی',en:'Cinema Aurora',noteFa:'پیش‌فرض · بنفش شب و کهربایی',noteEn:'Default · Night violet and amber',swatches:['#0C0B22','#FFC65C','#FF6FA5']},
   {id:'dark',fa:'سینمای کلاسیک',en:'Classic Cinema',noteFa:'تیره · سبز مشکی و برنج طلایی',noteEn:'Dark · Deep teal × Brass gold',swatches:['#0A1516','#D2AA62','#7FB7B8']},
   {id:'light',fa:'کاغذ کرم',en:'Warm Paper',noteFa:'روشن · کرم و آبی فولادی',noteEn:'Light · Cream × Steel blue',swatches:['#F1EBDC','#86610F','#2F6A8F']},
   {id:'noir',fa:'نوآر',en:'Noir',noteFa:'تیره · سیاه‌وسفید و نقره‌ای',noteEn:'Dark · Monochrome × Silver',swatches:['#0C0C0D','#E4E4E0','#9AA7B5']},
@@ -1326,16 +1335,21 @@ function paintThemePicker(){
   $('themePanelDesc').textContent = LX('پالت‌های هماهنگ با رنگ‌های مکمل','Coordinated palettes with complementary colors');
   $('themeClose').setAttribute('aria-label',LX('بستن','Close'));
   $('themeOptions').setAttribute('aria-label',LX('تم‌های موجود','Available themes'));
-  $('themeOptions').innerHTML = THEME_OPTIONS.map(o => `
-    <button type="button" class="themeOption" data-theme-option="${o.id}" aria-pressed="${o.id===theme}">
-      <span class="themeSwatch" aria-hidden="true" style="--swatch-bg:${o.swatches[0]};--swatch-a:${o.swatches[1]};--swatch-b:${o.swatches[2]}"></span>
-      <span class="themeCopy"><strong>${LX(o.fa,o.en)}</strong><small>${LX(o.noteFa,o.noteEn)}</small></span>
-      <span class="themeCheck" aria-hidden="true">${o.id===theme?'✓':''}</span>
-    </button>`).join('');
+  const LIGHT = new Set(['light','forest','desert']);
+  const card = o => `
+    <button type="button" class="themeOption tpCard" data-theme-option="${o.id}" aria-pressed="${o.id===theme}">
+      <span class="tpPrev" aria-hidden="true" style="--p-bg:${o.swatches[0]};--p-a:${o.swatches[1]};--p-b:${o.swatches[2]};--p-ink:${LIGHT.has(o.id)?'#2a2a2e':'#f4f2ee'}">
+        <i class="tpBar"></i><i class="tpLine"></i><i class="tpLine s"></i><i class="tpBtn"></i><i class="tpDot"></i>
+      </span>
+      <span class="tpName"><strong>${LX(o.fa,o.en)}</strong><small>${LX(o.noteFa,o.noteEn)}</small></span>
+      <span class="themeCheck tpCheck" aria-hidden="true">${o.id===theme?'✓':''}</span>
+    </button>`;
+  const dark = THEME_OPTIONS.filter(o=>!LIGHT.has(o.id)), light = THEME_OPTIONS.filter(o=>LIGHT.has(o.id));
+  $('themeOptions').innerHTML = `<div class="tpLabel">${LX('تیره','Dark')}</div><div class="tpGrid">${dark.map(card).join('')}</div>
+    <div class="tpLabel">${LX('روشن','Light')}</div><div class="tpGrid">${light.map(card).join('')}</div>`;
 }
 function applyTheme(){
-  if(theme === 'auto') document.documentElement.removeAttribute('data-theme');
-  else document.documentElement.setAttribute('data-theme',theme);
+  document.documentElement.setAttribute('data-theme',theme === 'auto' ? 'aurora' : theme);
   paintThemePicker();
 }
 function showThemePicker(open,restoreFocus=false){
@@ -2881,7 +2895,7 @@ async function authCall(path, body, method, token){
 async function restCall(path, opt){
   const h = { apikey: sb.key, 'Content-Type':'application/json', Authorization:'Bearer ' + ses.access_token, ...((opt&&opt.headers)||{}) };
   const r = await fetch(sb.url.replace(/\/$/,'') + '/rest/v1' + path, { ...(opt||{}), headers:h });
-  if(!r.ok) throw new Error('rest ' + r.status + ' ' + (await r.text()).slice(0,160));
+  if(!r.ok) throw Object.assign(new Error('rest ' + r.status + ' ' + (await r.text()).slice(0,160)),{status:r.status});
   return r;
 }
 async function setSession(j){
@@ -3280,28 +3294,29 @@ function startAccount(){
 startLang();
 init();
 </script>
-<script src="group-watch.js?v=20261125e"></script>
+<script src="group-watch.js?v=20261125f"></script>
 <script src="assets/vendor/supabase-js-2.119.2.js"></script>
-<script src="group-watch-realtime.js?v=20261125e"></script>
-<script src="room-experience.js?v=20261125e"></script>
-<script src="group-watch-account.js?v=20261125e"></script>
-<script src="mkv-support.js?v=20261125e"></script>
-<script src="cinema-news.js?v=20261125e"></script>
-<script src="cinema-translation.js?v=20261125e"></script>
-<script src="sidebar-ui.js?v=20261125e"></script>
-<script src="add-film-ui.js?v=20261125e"></script>
-<script src="account-profile.js?v=20261125e"></script>
-<script src="film-wiki.js?v=20261125e"></script>
-<script src="film-discovery.js?v=20261125e"></script>
-<script src="film-similar.js?v=20261125e"></script>
-<script src="film-friends.js?v=20261125e"></script>
-<script src="follow-bell.js?v=20261125e"></script>
-<script src="film-notes-sync.js?v=20261125e"></script>
-<script src="admin-panel.js?v=20261125e"></script>
-<script src="critic-panel.js?v=20261125e"></script>
-<script src="site-announce.js?v=20261125e"></script>
-<script src="film-scenes.js?v=20261125e"></script>
-<script src="panel-dock.js?v=20261125e"></script>
-<script src="site-tour.js?v=20261125e"></script>
+<script src="group-watch-realtime.js?v=20261125f"></script>
+<script src="room-experience.js?v=20261125f"></script>
+<script src="group-watch-account.js?v=20261125f"></script>
+<script src="mkv-support.js?v=20261125f"></script>
+<script src="cinema-news.js?v=20261125f"></script>
+<script src="cinema-translation.js?v=20261125f"></script>
+<script src="sidebar-ui.js?v=20261125f"></script>
+<script src="film-context.js?v=20261125f"></script>
+<script src="add-film-ui.js?v=20261125f"></script>
+<script src="account-profile.js?v=20261125f"></script>
+<script src="film-wiki.js?v=20261125f"></script>
+<script src="film-discovery.js?v=20261125f"></script>
+<script src="film-similar.js?v=20261125f"></script>
+<script src="film-friends.js?v=20261125f"></script>
+<script src="follow-bell.js?v=20261125f"></script>
+<script src="film-notes-sync.js?v=20261125f"></script>
+<script src="admin-panel.js?v=20261125f"></script>
+<script src="critic-panel.js?v=20261125f"></script>
+<script src="site-announce.js?v=20261125f"></script>
+<script src="film-scenes.js?v=20261125f"></script>
+<script src="panel-dock.js?v=20261125f"></script>
+<script src="site-tour.js?v=20261125f"></script>
 </body>
 </html>

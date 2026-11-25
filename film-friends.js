@@ -565,15 +565,21 @@ function trashButton(r,card){
 }
 /* ---------- hearts on reviews ---------- */
 const likes=new Map();let likeQueue=new Set(),likeTimer=0;
+const serverSeen=new Set(); // review ids whose likes were really read from the server
+/* my own likes are mirrored in this browser, so a red heart never disappears while the server is slow or briefly unreachable */
+const mirrorKey=()=>'film-my-likes-v1:'+(ready()?ses.id:'');
+const mirrorGet=()=>{try{return new Set(JSON.parse(localStorage.getItem(mirrorKey())||'[]'));}catch(e){return new Set();}};
+const mirrorSet=(id,on)=>{if(!ready())return;try{const m=mirrorGet();on?m.add(Number(id)):m.delete(Number(id));localStorage.setItem(mirrorKey(),JSON.stringify([...m].slice(-3000)));}catch(e){}};
 async function fetchLikes(ids,force){
  ids=[...new Set(ids.map(Number).filter(n=>n>0&&(force||!likes.has(n))))];
  for(let i=0;i<ids.length;i+=80){
   const chunk=ids.slice(i,i+80);
-  try{
-   const rows=await get('/film_review_likes?select=review_id,user_id&review_id=in.('+chunk.join(',')+')&limit=5000');
-   for(const id of chunk)likes.set(id,new Set());
-   for(const row of rows)likes.get(Number(row.review_id))?.add(row.user_id);
-  }catch(e){for(const id of chunk)likes.set(id,new Set());}
+  let rows=null;
+  for(let attempt=0;attempt<2&&!rows;attempt++){try{rows=await get('/film_review_likes?select=review_id,user_id&review_id=in.('+chunk.join(',')+')&limit=5000');}catch(e){await new Promise(r=>setTimeout(r,400));}}
+  if(!rows)continue; // unreachable: keep whatever we had (never cache "0 likes" from a failed request)
+  for(const id of chunk){likes.set(id,new Set());serverSeen.add(id);}
+  for(const row of rows)likes.get(Number(row.review_id))?.add(row.user_id);
+  if(ready()){const mine=new Set(rows.filter(r=>r.user_id===ses.id).map(r=>Number(r.review_id)));for(const id of chunk)mirrorSet(id,mine.has(id));}
  }
 }
 function queueLikes(id){
@@ -581,17 +587,21 @@ function queueLikes(id){
  likeTimer=setTimeout(async()=>{const ids=[...likeQueue];likeQueue=new Set();await fetchLikes(ids);for(const id of ids)paintHearts(id);},40);
 }
 function paintBox(box,id){
- const set=likes.get(Number(id));if(!set)return;
+ id=Number(id);
+ const set=likes.get(id)||new Set();
  const me=ready()?ses.id:'';
- const on=!!me&&set.has(me);
+ const local=!!me&&!serverSeen.has(id)&&mirrorGet().has(id);
+ const on=!!me&&(set.has(me)||local);
+ const total=Math.max(set.size,local&&!set.has(me)?set.size+1:0);
  const b=box.querySelector('button');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));
- box.querySelector('span').textContent=set.size?faNum(set.size):'';
+ const cn=box.querySelector('span');cn.textContent=total?faNum(total):'';
  /* paint the heart with its own attributes so it can never turn invisible (stale CSS, theme colours): red + filled when liked */
  const sv=b.querySelector('svg');if(sv){sv.setAttribute('fill',on?'#ff4d6d':'none');sv.setAttribute('stroke',on?'#ff4d6d':'#8a948f');}
- const cn=box.querySelector('span');cn.style.cssText='display:inline;min-width:8px;font-weight:700;font-size:13px;color:'+(on?'#ff4d6d':'inherit');
+ cn.style.cssText='display:inline;min-width:8px;font-weight:700;font-size:13px;color:'+(on?'#ff4d6d':'inherit');
  b.title=on?T('برداشتن لایک','Remove like'):T('پسندیدن این نظر','Like this review');
- b.setAttribute('aria-label',b.title+(set.size?' ('+set.size+')':''));
+ b.setAttribute('aria-label',b.title+(total?' ('+total+')':''));
 }
+function repaintAllHearts(){document.querySelectorAll('.fsLike[data-rid]').forEach(box=>paintBox(box,box.dataset.rid));}
 function paintHearts(id){
  document.querySelectorAll('.fsLike[data-rid="'+Number(id)+'"]').forEach(box=>paintBox(box,id));
 }
@@ -615,14 +625,25 @@ function likeBar(r){
   const id=Number(r.id);await fetchLikes([id]);
   const set=likes.get(id)||new Set();likes.set(id,set);
   const had=set.has(ses.id);
-  if(had)set.delete(ses.id);else set.add(ses.id);paintHearts(id);b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),400);
+  if(had)set.delete(ses.id);else set.add(ses.id);serverSeen.add(id);paintHearts(id);b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),400);
   try{
    if(had)await write('/film_review_likes?review_id=eq.'+id+'&user_id=eq.'+ses.id,{method:'DELETE'});
-   else await write('/film_review_likes',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({review_id:id,user_id:ses.id})});
+   else{
+    try{await write('/film_review_likes',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({review_id:id,user_id:ses.id})});}
+    catch(err){if(err.status!==409)throw err;} // already liked on the server: that is fine
+   }
+   mirrorSet(id,!had);
+   /* re-read the truth from the server so the heart and the number are always exact */
+   await fetchLikes([id],true);
+   const fresh=likes.get(id)||new Set();
+   if(!had&&!fresh.has(ses.id))throw Object.assign(Error('not stored'),{status:0});
+   paintHearts(id);
   }catch(e){
-   if(had)set.add(ses.id);else set.delete(ses.id);paintHearts(id);
+   if(had)set.add(ses.id);else set.delete(ses.id);mirrorSet(id,had);paintHearts(id);
+   const code=e.status?' ('+e.status+')':'';
    toast(e.status===404?T('بخش لایک هنوز فعال نشده است (SQL مرحلهٔ ۸ را یک‌بار اجرا کن).','Likes are not enabled yet (run the step-8 SQL once).')
-    :T('لایک ثبت نشد؛ ایمیل باید تأیید شده باشد و اتصال برقرار باشد.','Could not like: your e-mail must be confirmed and you must be online.'));
+    :e.status===403?T('لایک ثبت نشد؛ ایمیل حسابت باید تأیید شده باشد و حسابت نباید مسدود باشد.','Could not like: your e-mail must be confirmed and your account must not be suspended.')
+    :T('لایک ثبت نشد'+code+'؛ اتصال را بررسی کن و دوباره بزن.','Could not like'+code+'; check your connection and try again.'));
   }
  };
  if(likes.has(Number(r.id)))paintBox(box,r.id);else queueLikes(r.id);
@@ -839,5 +860,7 @@ window.addEventListener('popstate',()=>{
  if(Number.isSafeInteger(rv)&&rv>0&&Number.isSafeInteger(fv)&&fv>0)pendingFocus={id:rv,film:fv};}
 const initial=new URL(location.href).searchParams.get('user');
 if(validId(initial))show(initial);
+window.addEventListener('film-account-state',()=>setTimeout(repaintAllHearts,150));window.addEventListener('focus',()=>{repaintAllHearts();});
+setInterval(()=>{if(!document.hidden)repaintAllHearts();},4000);
 window.filmFriends={goToReview,open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar,refresh:refreshReviews,saveMyReview,likeBar,fetchLikes};
 })();

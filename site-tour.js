@@ -19,12 +19,12 @@ const STEPS=[
  {sel:'#tab-dash',icon:'📊',fa:['داشبورد','فیلم‌های دیده‌شده، «می‌خواهم ببینم» و آمار تماشای تو.'],en:['Dashboard','Your watched films, watchlist and viewing stats.']},
  {sel:'#tab-diary',icon:'📔',fa:['دفترچه تماشا','یادداشت‌های شخصی‌ات دربارهٔ فیلم‌ها، فقط برای خودت.'],en:['Watch diary','Your private notes about films, just for you.']},
  {sel:'#tab-room',icon:'🎬',fa:['تماشای گروهی','با دوستت اتاق بساز و فیلم را همزمان ببینید.'],en:['Group watch','Create a room and watch a film in sync with a friend.']},
- {sel:'#addBtn',icon:'➕',fa:['اضافه کردن فیلم','یک فیلم را به آرشیوت اضافه کن.'],en:['Add a film','Add a film to your archive.']},
+ {sel:'#addBtn',icon:'➕',fa:['اضافه کردن فیلم','یک فیلم را به آرشیوت اضافه کن. نکته: روی هر پوستر فیلم در سایت راست‌کلیک کن تا با یک کلیک به «دیده‌شده» یا «خواهم دید» برود.'],en:['Add a film','Add a film to your archive. Tip: right-click any film poster on the site to put it on Watched or Want to watch in one click.']},
  {sel:'#filmFriendsLaunch',icon:'👥',fa:['دوستان فیلم‌باز','فیلم‌بازها را دنبال کن و آخرین نظرها و امتیازهایشان را ببین.'],en:['Film friends','Follow other film fans and see their latest reviews and scores.']},
- {sel:'#bellBtn',icon:'🔔',fa:['اعلان‌ها','وقتی کسی تو را دنبال کند یا نظرت را لایک کند، اینجا خبرت می‌کنیم.'],en:['Notifications','You are told here when someone follows you or likes your review.']},
+ {sel:'#bellBtn',icon:'🔔',fa:['اعلان‌ها','وقتی کسی تو را دنبال کند، نظرت را لایک کند یا نقش تازه‌ای (منتقد، مودریتور) بگیری، اینجا خبرت می‌کنیم.'],en:['Notifications','You are told here when someone follows you, likes your review or you get a new role (critic, moderator).']},
  {sel:'#panelDockBtn',icon:'🎛️',fa:['پنل کاربری','«پنل» یعنی صفحهٔ کارِ مخصوص نقش تو (میز منتقد، میز مودریتور، پروفایل). از اینجا با یک چرخ انتخاب کن.'],en:['User panel','A panel is the work page for your role (critic desk, moderator desk, profile). Pick your role panels (critic, moderator…) from a wheel here.']},
  {sel:'#acctBtn',icon:'👤',fa:['حساب من','پروفایل، عکس و تنظیمات حسابت.'],en:['My account','Your profile, photo and account settings.']},
- {sel:'#menuBtn',icon:'🧰',fa:['ابزارها و تنظیمات','تم و رنگ سایت، زبان و ابزارهای بیشتر.'],en:['Tools & settings','Site theme and colours, language and more tools.']}
+ {sel:'#menuBtn',icon:'🧰',fa:['ابزارها','تنظیمات سایت: تم و رنگ‌بندی، زبان، اعلان‌ها و پس‌زمینهٔ متحرک.'],en:['Tools','Site settings: theme and colours, language, notifications and animated backgrounds.']}
 ];
 
 let layer,ring,card,arrow,steps=[],idx=0,running=false,onKey,onResize,raf=0;
