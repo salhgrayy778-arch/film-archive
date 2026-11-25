@@ -9,7 +9,8 @@ const T=(fa,en)=>typeof EN!=='undefined'&&EN?en:fa;
 const $=id=>document.getElementById(id);
 const make=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined&&value!==null)e.textContent=String(value);return e;};
 const UUID=/^[0-9a-f]{8}-[0-9a-f-]{27}$/i;
-const ready=()=>typeof ses!=='undefined'&&ses&&cloudReady&&!cloudLoading;
+// The signed-in token is usable as soon as the account is set up; the archive may still be loading (cloudLoading).
+const ready=()=>typeof ses!=='undefined'&&ses&&cloudReady;
 const num=n=>{const v=Number(n)||0;return typeof fa==='function'&&!(typeof EN!=='undefined'&&EN)?fa(v):String(v);};
 const ROLE_FA={critic:'منتقد',moderator:'مودریتور',admin:'ادمین'},ROLE_EN={critic:'Critic',moderator:'Moderator',admin:'Admin'};
 const roleName=r=>T(ROLE_FA[r]||r,ROLE_EN[r]||r);
@@ -61,7 +62,10 @@ async function loadMyRoles(){
  }
  syncLaunch();
 }
+let lastStaffSig='';
 function syncLaunch(){
+ const sig=(typeof ses!=='undefined'&&ses?ses.id:'')+'|'+[...myRoles].sort().join(',');
+ if(sig!==lastStaffSig){lastStaffSig=sig;setTimeout(()=>window.dispatchEvent(new CustomEvent('film-staff-state',{detail:{staff:isStaff(),admin:isAdmin()}})),0);}
  let b=$('adminLaunch');
  if(!isStaff()){if(b)b.remove();const d=$('adminDialog');if(d?.open)d.close();return;}
  if(b)return;
@@ -488,6 +492,13 @@ function onAccount(){
  startPing();
 }
 window.addEventListener('film-account-state',onAccount);
+// Safety net: the account events can fire before the account is usable, so also check regularly.
+setInterval(()=>{
+ const signedIn=typeof ses!=='undefined'&&ses;
+ if(!signedIn){if(myRoles.size||rolesFor){myRoles=new Set();rolesFor='';syncLaunch();}return;}
+ if(ready()&&rolesFor!==ses.id&&!retryTimer)loadMyRoles();
+ if(ready()&&!pingTimer)startPing();
+},2500);
 function diagnose(){
  if(!ready())return T('هنوز وارد حساب نشده‌ای یا اتصال حساب آماده نیست.','You are not signed in yet, or the account is still connecting.');
  return T('حساب: ','Account: ')+ses.email+' — '+(isStaff()?T('نقش‌ها: ','Roles: ')+[...myRoles].join(', '):T('نقش مدیریتی برای این حساب پیدا نشد','No staff role found for this account'))+(roleError?' — '+T('خطا: ','Error: ')+roleError:'');

@@ -362,12 +362,31 @@ function ensureReviewHost(){
  if(reviewHost.parentNode!==view)view.appendChild(reviewHost);
  return reviewHost;
 }
+function trashButton(r,card){
+ const mine=ready()&&r.user_id===ses.id;
+ const b=make('button','fsTrash','🗑️');b.type='button';
+ b.title=mine?T('حذف نظر من','Delete my review'):T('حذف نظر (مدیریت)','Delete review (staff)');
+ b.setAttribute('aria-label',b.title);
+ let armed=false,timer=0;
+ b.onclick=async()=>{
+  if(!armed){armed=true;b.textContent=T('مطمئنی؟','Sure?');b.classList.add('armed');timer=setTimeout(()=>{armed=false;b.textContent='🗑️';b.classList.remove('armed');},4000);return;}
+  clearTimeout(timer);b.disabled=true;
+  try{
+   const response=await write('/film_public_reviews?id=eq.'+Number(r.id),{method:'DELETE',headers:{Prefer:'return=representation'}});
+   const gone=await response.json().catch(()=>[]);
+   if(!Array.isArray(gone)||!gone.length)throw Error('denied');
+   card.remove();refreshReviews();
+  }catch(e){b.disabled=false;armed=false;b.textContent='🗑️';b.classList.remove('armed');(typeof toast==='function'?toast:note)(T('حذف نشد؛ دسترسی نداری یا اتصال قطع است.','Could not delete: no permission or offline.'));}
+ };
+ return b;
+}
 function reviewCard(r,pm,role,opts){
  const card=make('article','fsCard fsReview'+(role==='critic'?' fsCritic':''));
  const top=make('div','fsRow');
  top.append(avatar(pm.get(r.user_id),opts?.big?48:38),nameButton(r.user_id,pm.get(r.user_id),role));
  const grow=make('span','fsGrow');top.appendChild(grow);
  if(r.rating)top.appendChild(score(r.rating,role==='critic'?'fsScoreBig':''));
+ if(r.id&&((window.filmStaff?.isStaff?.())||(ready()&&r.user_id===ses.id)))top.appendChild(trashButton(r,card));
  card.appendChild(top);
  if(r.review)card.appendChild(make('p','fsText',r.review));
  card.appendChild(make('small','fsDate',relTime(r.updated_at||r.created_at)));
@@ -491,6 +510,7 @@ window.addEventListener('film-detail-loaded',e=>{
 });
 function refreshReviews(){const m=window.filmDiscovery?.getCurrentMovie?.();if(m&&reviewHost?.isConnected&&!reviewHost.hidden)renderReviews(m);}
 window.addEventListener('film-account-state',refreshReviews);
+window.addEventListener('film-staff-state',refreshReviews);
 
 /* ---------- room members: avatar + profile link ---------- */
 const pendingRoom=new Set();
