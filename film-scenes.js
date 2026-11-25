@@ -40,10 +40,8 @@ const BUILD={
  },
  film(box,r){
   el('div','sc-glow',null,box);
-  el('div','scr-cone',null,box);el('div','scr-cone two',null,box);
-  el('div','scr-leak',null,box);
-  const lead=el('div','scr-leader',null,box);el('i','',null,lead);
-  for(let i=0;i<36;i++)el('i','scr-dust'+(i>20?' lite':''),`--x:${px(14+r()*72)}%;--y:${px(r()*100)}%;--s:${px(1.5+r()*3.5)}px;--d:${px(14+r()*18)}s;--w:-${px(r()*30)}s;--dx:${px(-30+r()*60)}px`,box);
+  el('div','scr-cone',null,box);
+  for(let i=0;i<14;i++)el('i','scr-dust'+(i>7?' lite':''),`--x:${px(20+r()*60)}%;--y:${px(r()*100)}%;--s:${px(1.5+r()*2.5)}px;--d:${px(16+r()*18)}s;--w:-${px(r()*30)}s;--dx:${px(-24+r()*48)}px`,box);
  },
  diary(box,r){
   el('div','sc-glow',null,box);
@@ -55,14 +53,10 @@ const BUILD={
   });
  },
  dash(box,r){
+  /* the calmest scene: one soft light from above and a few slow dust specks, nothing else */
   el('div','sc-glow',null,box);
-  [['l','-16deg','-3deg',15,0],['r','3deg','16deg',19,-7]].forEach(([c,A,B,d,w])=>{
-   const beam=el('div','stg-beam '+c,`--a:${A};--b:${B};--d:${d}s;--w:${w}s`,box);el('i','',null,beam);
-   el('div','stg-lamp '+c,null,box);
-  });
-  el('div','stg-floor',null,box);
-  for(let i=0;i<5;i++)el('i','stg-haze'+(i>2?' lite':''),`--x:${px(10+r()*80)}%;--s:${px(260+r()*260)}px;--d:${px(26+r()*18)}s;--w:-${px(r()*30)}s`,box);
-  for(let i=0;i<32;i++)el('i','stg-dust'+(i>18?' lite':''),`--x:${px(6+r()*88)}%;--y:${px(r()*100)}%;--s:${px(1.5+r()*3.5)}px;--d:${px(14+r()*18)}s;--w:-${px(r()*30)}s;--dx:${px(-30+r()*60)}px`,box);
+  const beam=el('div','stg-beam c',`--a:-4deg;--b:4deg;--d:26s;--w:0s`,box);el('i','',null,beam);
+  for(let i=0;i<10;i++)el('i','stg-dust'+(i>5?' lite':''),`--x:${px(25+r()*50)}%;--y:${px(r()*100)}%;--s:${px(1.5+r()*2)}px;--d:${px(18+r()*18)}s;--w:-${px(r()*30)}s;--dx:${px(-20+r()*40)}px`,box);
  },
  room(box,r){
   el('div','sc-glow',null,box);

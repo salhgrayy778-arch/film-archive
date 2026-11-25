@@ -8,7 +8,7 @@ const T=(fa,en)=>typeof EN!=='undefined'&&EN?en:fa;
 const doc=document;
 const make=(tag,cls,text)=>{const e=doc.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e;};
 const ready=()=>typeof ses!=='undefined'&&ses&&typeof cloudReady!=='undefined'&&cloudReady;
-const STEP=38; // degrees between two panels on the wheel
+const STEP=30; // degrees between two panels on the wheel
 let dock,wheel,scrim,hub,list=[],sel=0,isOpen=false,sig='',spinTimer=0,wheelLock=0;
 
 function panels(){
@@ -51,7 +51,7 @@ function build(){
 }
 function fill(){
  wheel.replaceChildren();
- hub=make('div','pdHub');hub.append(make('b','',T('پنل‌های شما','Your panels')),make('small','',T('یکی را بچرخان','Spin to pick')));
+ hub=make('div','pdHub');hub.appendChild(make('b','',T('پنل‌ها','Panels')));
  wheel.appendChild(hub);
  list.forEach((p,i)=>{
   const b=make('button','pdItem');b.type='button';b.setAttribute('role','menuitem');b.style.setProperty('--a',(180+i*STEP)+'deg');

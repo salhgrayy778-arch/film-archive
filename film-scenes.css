@@ -181,3 +181,9 @@ body:has(dialog[open]) #filmScene .sc *{animation-play-state:paused!important}
 .ctl-col{left:var(--x);top:-45vh;white-space:pre;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace;color:color-mix(in srgb,var(--c1) 80%,#9f9);opacity:calc(var(--o)*var(--dim));animation:scCode var(--d) linear var(--w) infinite}
 @keyframes scCode{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,160vh,0)}}
 @keyframes scSmoke{0%{transform:translate3d(0,0,0) scale(.6);opacity:0}15%{opacity:calc(.8*var(--dim))}100%{transform:translate3d(9vw,-125vh,0) scale(1.7);opacity:0}}
+
+/* Round 12: calmer scenes for the film page and the dashboard */
+.scr-cone{opacity:calc(.26*var(--dim))}
+.stg-beam.c{left:50%;width:56vw;margin-left:-28vw}
+.stg-beam.c i{opacity:calc(.26*var(--dim))}
+.sc-dash .sc-glow{background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 90%,var(--c2) 10%),var(--bg) 70%)}
