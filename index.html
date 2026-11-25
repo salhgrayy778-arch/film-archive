@@ -620,21 +620,21 @@ body{overflow-x:clip;padding-bottom:145px}
 #dashboard #grid{padding-top:3px}
 @media(max-width:560px){.dashNav{gap:6px;margin-top:13px}.dashNavBtn{font-size:12px;padding:9px 12px}.dashLibraryHeading h2{font-size:19px}}
 </style>
-<link rel="stylesheet" href="cinema-news.css?v=20261125d">
-<link rel="stylesheet" href="sidebar.css?v=20261125d">
-<link rel="stylesheet" href="add-film.css?v=20261125d">
-<link rel="stylesheet" href="cinematic-shell.css?v=20261125d">
-<link rel="stylesheet" href="account-profile.css?v=20261125d">
-<link rel="stylesheet" href="film-discovery.css?v=20261125d">
-<link rel="stylesheet" href="room-experience.css?v=20261125d">
-<link rel="stylesheet" href="film-social.css?v=20261125d">
-<link rel="stylesheet" href="admin-panel.css?v=20261125d">
-<link rel="stylesheet" href="critic-panel.css?v=20261125d">
-<link rel="stylesheet" href="film-polish.css?v=20261125d">
-<link rel="stylesheet" href="film-fonts.css?v=20261125d">
-<link rel="stylesheet" href="film-scenes.css?v=20261125d">
-<link rel="stylesheet" href="panel-dock.css?v=20261125d">
-<link rel="stylesheet" href="site-tour.css?v=20261125d">
+<link rel="stylesheet" href="cinema-news.css?v=20261125e">
+<link rel="stylesheet" href="sidebar.css?v=20261125e">
+<link rel="stylesheet" href="add-film.css?v=20261125e">
+<link rel="stylesheet" href="cinematic-shell.css?v=20261125e">
+<link rel="stylesheet" href="account-profile.css?v=20261125e">
+<link rel="stylesheet" href="film-discovery.css?v=20261125e">
+<link rel="stylesheet" href="room-experience.css?v=20261125e">
+<link rel="stylesheet" href="film-social.css?v=20261125e">
+<link rel="stylesheet" href="admin-panel.css?v=20261125e">
+<link rel="stylesheet" href="critic-panel.css?v=20261125e">
+<link rel="stylesheet" href="film-polish.css?v=20261125e">
+<link rel="stylesheet" href="film-fonts.css?v=20261125e">
+<link rel="stylesheet" href="film-scenes.css?v=20261125e">
+<link rel="stylesheet" href="panel-dock.css?v=20261125e">
+<link rel="stylesheet" href="site-tour.css?v=20261125e">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -915,8 +915,9 @@ body{overflow-x:clip;padding-bottom:145px}
 
 <div class="dbg" id="dBg" hidden></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-labelledby="drawerTitle" inert>
-  <div class="dhead"><h2 id="drawerTitle">ابزارها و داده‌ها</h2><button class="btn" id="drawerClose" type="button" aria-label="بستن"><svg class="ic" style="margin:0"><use href="#i-close"/></svg></button></div>
-  <section class="settingsGroup" aria-labelledby="settingsHeading"><h3 id="settingsHeading">تنظیمات و نگهداری آرشیو</h3>
+  <div class="dhead"><h2 id="drawerTitle">ابزارها</h2><button class="btn" id="drawerClose" type="button" aria-label="بستن"><svg class="ic" style="margin:0"><use href="#i-close"/></svg></button></div>
+  <div id="drawerSettings"></div>
+  <div id="legacyMovieTools" hidden>
   <section class="backup">
     <b>نسخه پشتیبان</b><br>
     اطلاعات روی همین دستگاه و مرورگر ذخیره می‌شود. برای انتقال به دستگاه دیگر یا اطمینان بیشتر، فایل پشتیبان بگیر.
@@ -933,7 +934,7 @@ body{overflow-x:clip;padding-bottom:145px}
 <section class="backup"><b>اتصال به TMDB (اختیاری، فقط اگر کلید داری)</b><br>یک کلید پیش‌فرض داخل سایت تعبیه شده و فعال است. اگر کلید شخصی خودت را اینجا بگذاری (از themoviedb.org/settings/api)، فقط در مرورگر خودت ذخیره می‌شود و جای کلید پیش‌فرض را می‌گیرد.
   <div class="row"><input id="tmKeyIn" type="password" dir="ltr" placeholder="API Key یا Read Access Token" autocomplete="off"><button class="btn primary" id="tmKeySave" type="button">ذخیره کلید</button><button class="btn" id="tmKeyDel" type="button">حذف کلید</button></div>
   <div class="hint" id="tmState"></div></section>
-  </section>
+  </div>
 </aside>
 
 <button class="fab" id="addBtn">+ اضافه کردن فیلم</button>
@@ -3279,28 +3280,28 @@ function startAccount(){
 startLang();
 init();
 </script>
-<script src="group-watch.js?v=20261125d"></script>
+<script src="group-watch.js?v=20261125e"></script>
 <script src="assets/vendor/supabase-js-2.119.2.js"></script>
-<script src="group-watch-realtime.js?v=20261125d"></script>
-<script src="room-experience.js?v=20261125d"></script>
-<script src="group-watch-account.js?v=20261125d"></script>
-<script src="mkv-support.js?v=20261125d"></script>
-<script src="cinema-news.js?v=20261125d"></script>
-<script src="cinema-translation.js?v=20261125d"></script>
-<script src="sidebar-ui.js?v=20261125d"></script>
-<script src="add-film-ui.js?v=20261125d"></script>
-<script src="account-profile.js?v=20261125d"></script>
-<script src="film-wiki.js?v=20261125d"></script>
-<script src="film-discovery.js?v=20261125d"></script>
-<script src="film-similar.js?v=20261125d"></script>
-<script src="film-friends.js?v=20261125d"></script>
-<script src="follow-bell.js?v=20261125d"></script>
-<script src="film-notes-sync.js?v=20261125d"></script>
-<script src="admin-panel.js?v=20261125d"></script>
-<script src="critic-panel.js?v=20261125d"></script>
-<script src="site-announce.js?v=20261125d"></script>
-<script src="film-scenes.js?v=20261125d"></script>
-<script src="panel-dock.js?v=20261125d"></script>
-<script src="site-tour.js?v=20261125d"></script>
+<script src="group-watch-realtime.js?v=20261125e"></script>
+<script src="room-experience.js?v=20261125e"></script>
+<script src="group-watch-account.js?v=20261125e"></script>
+<script src="mkv-support.js?v=20261125e"></script>
+<script src="cinema-news.js?v=20261125e"></script>
+<script src="cinema-translation.js?v=20261125e"></script>
+<script src="sidebar-ui.js?v=20261125e"></script>
+<script src="add-film-ui.js?v=20261125e"></script>
+<script src="account-profile.js?v=20261125e"></script>
+<script src="film-wiki.js?v=20261125e"></script>
+<script src="film-discovery.js?v=20261125e"></script>
+<script src="film-similar.js?v=20261125e"></script>
+<script src="film-friends.js?v=20261125e"></script>
+<script src="follow-bell.js?v=20261125e"></script>
+<script src="film-notes-sync.js?v=20261125e"></script>
+<script src="admin-panel.js?v=20261125e"></script>
+<script src="critic-panel.js?v=20261125e"></script>
+<script src="site-announce.js?v=20261125e"></script>
+<script src="film-scenes.js?v=20261125e"></script>
+<script src="panel-dock.js?v=20261125e"></script>
+<script src="site-tour.js?v=20261125e"></script>
 </body>
 </html>

@@ -1,201 +1,71 @@
-/* My Film Archive sidebar: purpose-based tools, accessible navigation,
-   bilingual text, fixed right-side presentation independent of RTL/LTR. */
+/* Tools menu (right side): basic site settings only - language, theme, notifications, announcements,
+ * background animation and a replay of the site tour. Preferences live in this browser (localStorage). */
 (function(){
 'use strict';
-const drawer=document.getElementById('drawer');
-if(!drawer||!document.getElementById('menuBtn'))return;
+const drawer=document.getElementById('drawer'),host=document.getElementById('drawerSettings');
+if(!drawer||!host||!document.getElementById('menuBtn'))return;
 const isEN=typeof EN!=='undefined'&&EN;
 const T=(fa,en)=>isEN?en:fa;
-const el=(name,cls,text)=>{
-  const node=document.createElement(name);
-  if(cls)node.className=cls;
-  if(text!==undefined)node.textContent=text;
-  return node;
-};
-const svg=icon=>{
-  const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  s.setAttribute('class','ic');s.setAttribute('aria-hidden','true');
-  const use=document.createElementNS('http://www.w3.org/2000/svg','use');
-  use.setAttribute('href','#'+icon);s.appendChild(use);return s;
-};
+const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
+const KEY='film-site-prefs-v1';
+const DEFAULTS={bell:true,ann:true,scenes:true};
+let prefs={...DEFAULTS};
+try{const p=JSON.parse(localStorage.getItem(KEY)||'{}');for(const k of Object.keys(DEFAULTS))if(typeof p[k]==='boolean')prefs[k]=p[k];}catch(e){}
+const CLS={bell:'prefNoBell',ann:'prefNoAnn',scenes:'prefNoScenes'};
+function apply(){for(const k of Object.keys(CLS))document.documentElement.classList.toggle(CLS[k],!prefs[k]);}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(prefs));}catch(e){}}
+apply();
 
-const dhead=drawer.querySelector('.dhead');
+drawer.setAttribute('role','dialog');drawer.setAttribute('aria-modal','true');
+drawer.setAttribute('aria-label',T('ابزارها و تنظیمات سایت','Tools & site settings'));
+const dhead=drawer.querySelector('.dhead'),close=document.getElementById('drawerClose');
 const title=document.getElementById('drawerTitle');
-const close=document.getElementById('drawerClose');
-const importBlock=drawer.querySelector(':scope > section.backup');
-const settings=drawer.querySelector(':scope > section.settingsGroup');
-const blocks=settings?[...settings.querySelectorAll(':scope > section.backup')]:[];
-if(!dhead||!title||!close||!importBlock||blocks.length!==3)return;
-const [backupBlock,posterBlock,tmdbBlock]=blocks;
+title.textContent=T('ابزارها','Tools');
+const lead=el('p','drawerLead',T('تنظیمات پایهٔ سایت','Basic site settings'));
+const wrap=el('div','drawerHeading');wrap.append(title,lead);dhead.replaceChildren(wrap,close);
 
-// Retain the existing sections and input IDs; moving DOM nodes keeps their
-// already-bound event handlers for Letterboxd, backups, posters and TMDB.
-drawer.setAttribute('role','dialog');
-drawer.setAttribute('aria-modal','true');
-drawer.setAttribute('aria-label',T('ابزارها و تنظیمات My Film Archive','My Film Archive tools and settings'));
-const headingWrap=el('div','drawerHeading');
-const brand=el('div','drawerBrand','MY FILM ARCHIVE');
-const heading=el('h2','',T('ابزارها و تنظیمات','Tools & Settings'));
-heading.id='drawerTitle';
-title.removeAttribute('id');
-const lead=el('p','drawerLead',T('همهٔ امکانات، منظم و در دسترس','Everything you need, in one place'));
-headingWrap.append(brand,heading,lead);
-dhead.replaceChildren(headingWrap,close);
-
-const groups=el('div','drawerGroups');
-function createGroup(id,fa,en,subFa,subEn,icon,open=false){
-  const details=el('details','drawerGroup');
-  details.id=id;details.open=open;
-  const summary=el('summary');
-  const iconBox=el('span','drawerGroupIcon');
-  iconBox.appendChild(svg(icon));
-  const texts=el('span','drawerSummaryCopy');
-  const head=el('strong','',T(fa,en));
-  const sub=el('small','',T(subFa,subEn));
-  texts.append(head,sub);summary.append(iconBox,texts);
-  const content=el('div','drawerGroupContent');
-  details.append(summary,content);
-  groups.appendChild(details);
-  return {details,content,summary};
+function group(fa,en){const g=el('section','tsGroup');g.appendChild(el('h3','',T(fa,en)));host.appendChild(g);return g;}
+function action(g,icon,fa,en,hintFa,hintEn,onClick,id){
+  const b=el('button','tsRow');b.type='button';if(id)b.id=id;
+  const t=el('span','tsText');t.append(el('b','',icon+' '+T(fa,en)));if(hintFa)t.append(el('small','',T(hintFa,hintEn)));
+  b.append(t,el('span','tsGo','›'));b.addEventListener('click',onClick);g.appendChild(b);return b;
 }
-const navigation=createGroup('drawerNavigation', 'دسترسی سریع','Quick navigation',
-  'چهار صفحه اصلی سایت','The four main pages','i-menu',true);
-const dataGroup=createGroup('drawerDataGroup','ورود، خروجی و پشتیبان','Import, export & backups',
-  'پشتیبان و ذخیرهٔ اطلاعات','Backups and data safety','i-file');
-const personalize=createGroup('drawerPersonalizeGroup','ظاهر و لینک سایت','Appearance & site link',
-  'تم، زبان و اشتراک‌گذاری','Themes, language and sharing','i-link');
-
-const links=[
-  {id:'news',icon:'i-film',fa:'اخبار سینمای جهان',en:'Cinema news'},
-  {id:'dash',icon:'i-menu',fa:'داشبورد',en:'Dashboard'},
-  {id:'diary',icon:'i-file',fa:'دفترچه تماشا',en:'Watch diary'},
-  {id:'room',icon:'i-clap',fa:'تماشای گروهی',en:'Group watch'}
-];
-const navList=el('div','drawerNavList');
-for(const item of links){
-  const button=el('button','drawerNavButton');
-  button.type='button';button.dataset.drawerTab=item.id;
-  button.append(svg(item.icon),el('span','',T(item.fa,item.en)));
-  navList.appendChild(button);
+function toggle(g,key,fa,en,hintFa,hintEn){
+  const b=el('button','tsRow tsSwitchRow');b.type='button';b.setAttribute('role','switch');
+  const t=el('span','tsText');t.append(el('b','',T(fa,en)),el('small','',T(hintFa,hintEn)));
+  const sw=el('span','tsSwitch');sw.appendChild(el('i'));
+  b.append(t,sw);
+  const paint=()=>b.setAttribute('aria-checked',String(prefs[key]));
+  b.addEventListener('click',()=>{prefs[key]=!prefs[key];save();apply();paint();
+    if(key==='scenes')window.dispatchEvent(new Event('resize'));});
+  paint();g.appendChild(b);return b;
 }
-navigation.content.append(navList);
-const updateNav=()=>{
-  let tab='news';try{if(typeof state!=='undefined')tab=state.tab;}catch(e){}
-  navList.querySelectorAll('button[data-drawer-tab]').forEach(b=>{
-    if(b.dataset.drawerTab===tab)b.setAttribute('aria-current','page');
-    else b.removeAttribute('aria-current');
-  });
-};
-navList.addEventListener('click',e=>{
-  const b=e.target.closest('button[data-drawer-tab]');
-  if(!b)return;
-  const target=document.getElementById('tab-'+b.dataset.drawerTab);
-  if(!target)return;
-  target.click();document.getElementById('drawerClose').click();
-  updateNav();
-});
 
-// Preserves all original operations without duplicating listeners.
-dataGroup.content.append(importBlock,backupBlock);
-// Keep legacy poster/TMDB controls mounted for existing event handlers.
-// They are intentionally not shown in Tools; poster selection and movie
-// metadata remain available inside the Add Film dialog.
-const inactiveTools=el('div','');
-inactiveTools.hidden=true;inactiveTools.id='legacyMovieTools';
-inactiveTools.append(posterBlock,tmdbBlock);
-drawer.appendChild(inactiveTools);
-settings.remove();
+const look=group('ظاهر و زبان','Look & language');
+action(look,'🎨','تم و رنگ‌بندی سایت','Theme & colours','انتخاب از بین پالت‌های رنگی','Pick a colour palette',()=>{close.click();document.getElementById('themeBtn').click();},'drawerThemeShortcut');
+action(look,'🌐',isEN?'فارسی':'English',isEN?'Switch to Persian':'Switch to English',isEN?'':'زبان سایت را به انگلیسی ببر',isEN?'':'',()=>document.getElementById('langBtn').click(),'drawerLanguageShortcut');
 
-const actions=el('div','drawerActionRows');
-const themeButton=el('button','drawerActionButton',T('🎨 تغییر تم','🎨 Change theme'));
-themeButton.id='drawerThemeShortcut';themeButton.type='button';
-themeButton.addEventListener('click',()=>{
-  document.getElementById('drawerClose').click();
-  document.getElementById('themeBtn').click();
-});
-const languageButton=el('button','drawerActionButton',T('🌐 English','🌐 فارسی'));
-languageButton.id='drawerLanguageShortcut';languageButton.type='button';
-languageButton.setAttribute('aria-label',T('تغییر زبان سایت به انگلیسی','Switch site language to Persian'));
-languageButton.addEventListener('click',()=>document.getElementById('langBtn').click());
-actions.append(themeButton,languageButton);
-personalize.content.append(actions);
+const notif=group('اعلان‌ها','Notifications');
+toggle(notif,'bell','اعلان‌های زنگوله','Bell notifications','دنبال‌کننده‌های تازه و لایک نظرهایت','New followers and likes on your reviews');
+toggle(notif,'ann','اعلان‌های سایت','Site announcements','نوار اعلان مدیران بالای صفحه','The announcement bar at the top');
 
-const linkLabel=el('label','drawerSiteLink',T('آدرس فعلی سایت','Current website address'));
-linkLabel.setAttribute('for','drawerSiteLinkField');
-const linkRow=el('div','drawerLinkRow');
-const linkInput=el('input');
-linkInput.id='drawerSiteLinkField';linkInput.type='text';linkInput.readOnly=true;
-linkInput.dir='ltr';linkInput.setAttribute('aria-label',T('نشانی قابل اشتراک سایت','Shareable website URL'));
-const copyBtn=el('button','btn primary',T('کپی لینک','Copy link'));
-copyBtn.id='drawerCopySiteLink';copyBtn.type='button';
-const shareBtn=el('button','btn',T('اشتراک','Share'));
-shareBtn.id='drawerShareSiteLink';shareBtn.type='button';
-linkRow.append(linkInput,copyBtn);
-const feedback=el('p','drawerLinkStatus');
-feedback.id='drawerLinkStatus';feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
-const info=el('p','drawerInfo',T(
-  'لینک از آدرس واقعی سایت ساخته می‌شود و با تغییر نشانی انتشار، خودکار به‌روز خواهد شد.',
-  'The link uses the live published address and automatically follows future hosting changes.'
-));
-personalize.content.append(linkLabel,linkRow,shareBtn,feedback,info);
-shareBtn.style.marginTop='8px';
-shareBtn.style.width='100%';
+const show=group('نمایش','Display');
+toggle(show,'scenes','پس‌زمینهٔ سینمایی متحرک','Animated cinema backgrounds','نور پروژکتور و صحنه‌های پشت صفحه‌ها','Projector light and scenes behind the pages');
 
-const currentUrl=()=>{
-  if(!/^https?:$/.test(location.protocol))return '';
-  return location.origin+location.pathname.replace(/\/index\.html$/i,'/');
-};
-const url=currentUrl();
-linkInput.value=url||T('بعد از انتشار سایت فعال می‌شود','Available after publishing');
-copyBtn.disabled=!url;
-shareBtn.disabled=!url;
-if(!url)feedback.textContent=T('در حالت فایل محلی، لینک عمومی وجود ندارد.','A local file does not have a public link.');
+const help=group('راهنما','Help');
+action(help,'🧭','نمایش دوبارهٔ آموزش سایت','Replay the site tour','معرفی کوتاه بخش‌های سایت','A short intro to every section',()=>{
+  close.click();setTimeout(()=>{try{window.filmTour?.start(true);}catch(e){}},250);
+},'drawerTourReplay');
 
-copyBtn.addEventListener('click',async()=>{
-  if(!url)return;
-  try{
-    if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(url);}
-    else{
-      linkInput.focus();linkInput.select();
-      if(!document.execCommand('copy'))throw Error('Clipboard unavailable');
-    }
-    feedback.textContent=T('لینک My Film Archive کپی شد.','My Film Archive link copied.');
-  }catch(error){
-    feedback.textContent=T('کپی خودکار ممکن نشد؛ لینک را انتخاب و دستی کپی کن.','Could not copy automatically; select the URL and copy manually.');
-    linkInput.focus();linkInput.select();
-  }
-});
-shareBtn.addEventListener('click',async()=>{
-  if(!url)return;
-  const title='My Film Archive';
-  const text=T('اخبار سینمای جهان، آرشیو شخصی و تماشای گروهی','World cinema news, a personal film archive and group watch');
-  if(navigator.share){
-    try{await navigator.share({title,text,url});return;}
-    catch(error){if(error?.name==='AbortError')return;}
-  }
-  copyBtn.click();
-});
+new MutationObserver(()=>document.body.classList.toggle('drawerOpen',drawer.classList.contains('open')))
+  .observe(drawer,{attributes:true,attributeFilter:['class']});
 
-drawer.appendChild(groups);
-
-const syncDrawerState=()=>{
-  const open=drawer.classList.contains('open');
-  document.body.classList.toggle('drawerOpen',open);
-  if(open)updateNav();
-};
-new MutationObserver(syncDrawerState).observe(drawer,{attributes:true,attributeFilter:['class']});
-syncDrawerState();
-document.getElementById('menuBtn').addEventListener('click',updateNav);
-
-// Maintain keyboard focus inside the open modal drawer.
-drawer.addEventListener('keydown',event=>{
-  if(event.key!=='Tab'||!drawer.classList.contains('open'))return;
-  const focusable=[...drawer.querySelectorAll('button:not([disabled]),input:not([disabled]),summary,a[href]')]
-    .filter(x=>!x.hidden && x.getClientRects().length>0 &&
-      (x.matches('summary')||!x.closest('details:not([open])')));
-  if(!focusable.length)return;
-  const first=focusable[0],last=focusable[focusable.length-1];
-  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
-  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+// keep keyboard focus inside the open dialog
+drawer.addEventListener('keydown',e=>{
+  if(e.key!=='Tab'||!drawer.classList.contains('open'))return;
+  const f=[...drawer.querySelectorAll('button:not([disabled])')].filter(x=>!x.closest('[hidden]')&&x.getClientRects().length>0);
+  if(!f.length)return;
+  if(e.shiftKey&&document.activeElement===f[0]){e.preventDefault();f[f.length-1].focus();}
+  else if(!e.shiftKey&&document.activeElement===f[f.length-1]){e.preventDefault();f[0].focus();}
 });
 })();

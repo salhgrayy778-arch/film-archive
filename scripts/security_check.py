@@ -41,7 +41,7 @@ check("importLegacyBrowserArchive()" in index,"No explicit legacy browser data m
 check("if(!requireCloud())return;" in index,"Edit/import controls are not account gated")
 check("kvSet(KEY" not in index,"Personal movie archive must not be written to localStorage")
 check("const moviesGroup=createGroup(" not in (root/"sidebar-ui.js").read_text(encoding="utf-8"),"Unwanted movie-details sidebar category still visible")
-check("inactiveTools.hidden=true" in (root/"sidebar-ui.js").read_text(encoding="utf-8"),"Legacy poster/TMDB nodes were not preserved")
+check('id="legacyMovieTools" hidden' in index and 'id="pxAll"' in index and 'id="tmKeySave"' in index,"Legacy poster/TMDB nodes were not preserved")
 # Account profiles are saved only inside authenticated, owner-scoped archives JSON.
 profile = files["account-profile.js"]
 check('src="account-profile.js' in index and 'href="account-profile.css' in index,"Profile UI assets not loaded")
