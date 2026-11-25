@@ -21,3 +21,17 @@
 @keyframes suFade{from{opacity:0}to{opacity:1}}
 @keyframes suPop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.suLayer,.suCard{animation:none}}
+
+/* ---------- install-as-app banner and guide ---------- */
+.piBar{position:fixed;z-index:80;left:50%;bottom:16px;transform:translateX(-50%);width:min(520px,calc(100vw - 24px));display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid color-mix(in srgb,var(--gold) 55%,var(--line));border-radius:18px;background:var(--panel);color:var(--ink);box-shadow:0 18px 50px rgba(0,0,0,.5);animation:piUp .45s cubic-bezier(.2,.9,.25,1);direction:rtl}
+html[dir=ltr] .piBar{direction:ltr}
+.piIcon{width:46px;height:46px;border-radius:12px;flex:none}
+.piText{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.piText b{font-size:14px;line-height:1.5}.piText small{font-size:12px;color:var(--mute);line-height:1.5}
+.piGo{flex:none;min-height:42px;padding:0 20px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),color-mix(in srgb,var(--gold) 70%,var(--accent2)));color:var(--on-gold);font:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.piLater{flex:none;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--mute);font-size:15px;cursor:pointer}
+.piLater:hover{color:var(--ink)}
+.piSteps{margin:0;padding:6px 22px 8px;display:grid;gap:12px;font-size:14.5px;line-height:1.9}
+.piSteps li::marker{color:var(--gold);font-weight:800}
+@keyframes piUp{from{opacity:0;transform:translate(-50%,24px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){.piBar{animation:none}}

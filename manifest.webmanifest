@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "My Film Archive",
+  "short_name": "Film Archive",
+  "description": "اخبار سینمای جهان، آرشیو شخصی فیلم و تماشای گروهی",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0B1B21",
+  "theme_color": "#0C0B22",
+  "icons": [
+    {"src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

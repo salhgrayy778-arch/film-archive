@@ -7,7 +7,7 @@ import sys
 root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
-                    "group-watch.js","group-watch-account.js","sidebar-ui.js","film-context.js","site-updates.js","add-film-ui.js",
+                    "group-watch.js","group-watch-account.js","sidebar-ui.js","film-context.js","site-updates.js","pwa-install.js","add-film-ui.js",
                     "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql","security/film-email-guard.sql","security/film-hardening.sql","film-notes-sync.js","critic-panel.js","site-announce.js","security/film-round8.sql","security/film-round9.sql","film-wiki.js","film-scenes.js","panel-dock.js","site-tour.js","film-fonts.css","film-scenes.css","film-discovery.js","security/film-all-in-one.sql")}
 index=files["index.html"]
 errors=[]
