@@ -1,5 +1,5 @@
 /* Staff panel (admin + moderator) */
-.apLaunch{position:fixed;bottom:72px;inset-inline-start:20px;z-index:38;border:1px solid #2f6f5e;border-radius:40px;padding:10px 16px;background:var(--panel);color:var(--ink);font:inherit;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 24px #0005}
+.apLaunch{position:fixed;bottom:72px;left:20px;z-index:38;border:1px solid #2f6f5e;border-radius:40px;padding:10px 16px;background:var(--panel);color:var(--ink);font:inherit;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 24px #0005}
 body.roomFocus .apLaunch,body.cinema .apLaunch,body.inRoomTab .apLaunch{display:none!important}
 .apDialog{width:min(1280px,98vw);height:min(920px,96vh);max-width:none;max-height:none;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--ink);padding:0;overflow:hidden}
 .apDialog[open]{display:flex;flex-direction:column}
@@ -62,3 +62,5 @@ body.roomFocus .apLaunch,body.cinema .apLaunch,body.inRoomTab .apLaunch{display:
 .apGrow>small{display:block;margin-top:2px}
 
 .apBanner{position:fixed;inset-inline:16px;bottom:16px;z-index:60;max-width:640px;margin-inline:auto;padding:12px 16px;border:1px solid var(--gold);border-radius:12px;background:var(--panel);color:var(--ink);box-shadow:0 10px 30px #0007;font-size:14px;line-height:1.7;cursor:pointer;direction:rtl;text-align:start}
+
+.apDanger{margin-top:14px;padding:12px;border:1px solid #b3412f88;border-radius:12px;background:color-mix(in srgb,#b3412f 8%,transparent)}.apDanger h4{margin:0 0 6px;color:#e5736d}.apDanger input{flex:1;min-width:200px}

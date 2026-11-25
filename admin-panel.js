@@ -40,6 +40,8 @@ const rpc=(name,args)=>api('/rpc/'+name,{method:'POST',body:JSON.stringify(args|
 function explain(e){
  const m=String(e&&e.message||e);
  if(/42501|admin only|403/.test(m))return T('این کار برای نقش تو مجاز نیست.','Your role is not allowed to do this.');
+ if(/remove the admin role first/.test(m))return T('این کاربر ادمین است؛ اول نقش ادمین او را بگیر.','This user is an admin; remove the admin role first.');
+ if(/cannot delete yourself/.test(m))return T('حساب خودت را نمی‌شود حذف کرد.','You cannot delete your own account.');
  if(/last admin/.test(m))return T('آخرین ادمین را نمی‌شود حذف کرد.','The last admin cannot be removed.');
  if(/404|PGRST20|does not exist|42P01/.test(m))return T('هنوز فایل security/film-admin-v3.sql در Supabase اجرا نشده است.','security/film-admin-v3.sql has not been run in Supabase yet.');
  return T('انجام نشد: ','Failed: ')+m.slice(0,140);
@@ -277,6 +279,19 @@ async function drawer(u,tr,serial){
  }
  box.appendChild(rr);
  box.appendChild(make('p','apHint',T('منتقد: نظرش با نشان و نمره در «نظر منتقدان» می‌آید. مودریتور: حذف نظرها و اصلاح آرشیو فیلم‌ها. ادمین: همهٔ این پنل.','Critic: shown in “Critics’ reviews”. Moderator: delete reviews, fix film archive. Admin: this whole panel.')));
+ if(u.user_id!==ses.id){
+  const zone=make('div','apDanger');zone.appendChild(make('h4','',T('حذف حساب','Delete account')));
+  zone.appendChild(make('p','apHint',T('با حذف حساب، آرشیو، پروفایل عمومی، نظرها و دنبال‌کردن‌های این کاربر برای همیشه پاک می‌شود و برگشت ندارد. برای تأیید، ایمیل او را دقیقاً بنویس.','Deleting removes this member’s archive, public profile, reviews and follows permanently. Type the e-mail to confirm.')));
+  const typed=make('input');typed.type='email';typed.dir='ltr';typed.placeholder=u.email||'';typed.autocomplete='off';typed.setAttribute('aria-label',T('ایمیل برای تأیید حذف','E-mail to confirm deletion'));
+  const del=make('button','btn danger',T('حذف دائمی این حساب','Delete this account permanently'));del.type='button';del.disabled=true;
+  typed.oninput=()=>{del.disabled=!u.email||typed.value.trim().toLowerCase()!==String(u.email).toLowerCase();};
+  del.onclick=async()=>{
+   del.disabled=true;
+   try{await rpc('film_admin_delete_user',{p_user:u.user_id});say(T('حساب حذف شد و در گزارش فعالیت ثبت شد.','Account deleted and logged.'));if(live(serial))usersView(serial);}
+   catch(e){say(explain(e),true);del.disabled=false;}
+  };
+  const line=make('div','apLine');line.append(typed,del);zone.appendChild(line);box.appendChild(zone);
+ }
  box.appendChild(make('h4','',T('سابقهٔ نقش‌های این کاربر','This user’s role history')));
  const hist=make('div');box.appendChild(hist);
  td.appendChild(box);row.appendChild(td);tr.after(row);
@@ -426,10 +441,11 @@ function auditLine(e,short){
   role_revoked:T(`${target} از نقش ${role} خارج شد`,`${target} is no longer ${role}`)+(short?'':T(` (توسط ${actor||'سیستم'})`,` (by ${actor||'system'})`)),
   review_deleted:T(`${actor} نظر ${target} را برای فیلم ${film} حذف کرد`,`${actor} deleted ${target}’s review of ${film}`)+(e.detail?.review?` — «${String(e.detail.review).slice(0,80)}»`:''),
   catalog_edit:T(`${actor} اطلاعات فیلم ${film} را اصلاح کرد`,`${actor} corrected film ${film}`)+(e.detail?.fields?.length?' ('+e.detail.fields.join(', ')+')':'')+(e.detail?.hidden?T(' · مخفی شد',' · hidden'):''),
-  catalog_reset:T(`${actor} اصلاح فیلم ${film} را برگرداند`,`${actor} reset film ${film}`)
+  catalog_reset:T(`${actor} اصلاح فیلم ${film} را برگرداند`,`${actor} reset film ${film}`),
+  user_deleted:T(`${actor} حساب ${e.detail?.email||target} را حذف کرد`,`${actor} deleted the account ${e.detail?.email||target}`)
  }[e.action]||e.action;
  line.append(make('span','apGrow',text),make('small','',short?when(e.at):ago(e.at)));
- if(e.action==='role_granted')line.classList.add('good');if(e.action==='role_revoked'||e.action==='review_deleted')line.classList.add('bad');
+ if(e.action==='role_granted')line.classList.add('good');if(e.action==='role_revoked'||e.action==='review_deleted'||e.action==='user_deleted')line.classList.add('bad');
  return line;
 }
 async function rolesView(serial){
@@ -468,7 +484,7 @@ async function rolesView(serial){
 /* ---------- audit log (staff) ---------- */
 async function auditView(serial){
  const root=make('div','apStack'),bar=make('div','apBar');
- const sel=make('select');for(const [v,fa_,en_] of [['','همهٔ رویدادها','All events'],['role_granted','نقش داده شد','Role granted'],['role_revoked','نقش گرفته شد','Role removed'],['review_deleted','نظر حذف شد','Review deleted'],['catalog_edit','اصلاح آرشیو','Catalog fix'],['catalog_reset','برگرداندن اصلاح','Catalog reset']]){const o=make('option','',T(fa_,en_));o.value=v;sel.appendChild(o);}
+ const sel=make('select');for(const [v,fa_,en_] of [['','همهٔ رویدادها','All events'],['role_granted','نقش داده شد','Role granted'],['role_revoked','نقش گرفته شد','Role removed'],['review_deleted','نظر حذف شد','Review deleted'],['catalog_edit','اصلاح آرشیو','Catalog fix'],['catalog_reset','برگرداندن اصلاح','Catalog reset'],['user_deleted','حساب حذف شد','Account deleted']]){const o=make('option','',T(fa_,en_));o.value=v;sel.appendChild(o);}
  bar.appendChild(sel);const list=make('div');root.append(bar,list);main.replaceChildren(root);
  async function load(){
   list.replaceChildren(make('div','fsSkeleton'));

@@ -63,6 +63,51 @@ def try_online_quality_provider():
         print("Optional online translator unavailable; retaining offline translations:", str(error)[:140])
     return None
 
+
+PROTECTED_ENGINES = {"claude"}  # hand-checked translations are never overwritten by machine output
+
+def settled(story: dict) -> bool:
+    return story.get("translation_engine") in PROTECTED_ENGINES and story.get("title_source_for_fa") == story.get("title")
+
+# Systematic Argos mistakes in film news. Applied only to Argos output.
+GLOSSARY = [
+    ("حق امتیاز", "فرنچایز"), ("حق رای", "فرنچایز"), ("قرعه کشی", "انتخاب بازیگر"),
+    ("بازی های گرسنگی", "بازی‌های گرسنگی"), ("تئاتر", "سینما"), ("جعبه دفتر", "گیشه"),
+    ("جعبه‌ی دفتر", "گیشه"), ("باکس آفیس", "گیشه"), ("باکس‌آفیس", "گیشه"),
+    ("پخش جریانی", "پخش آنلاین"), ("استریمینگ", "پخش آنلاین"),
+]
+def polish_argos(text: str) -> str:
+    value = text
+    for bad, good in GLOSSARY:
+        value = value.replace(bad, good)
+    value = value.replace(" ,", "،").replace(",", "،")
+    return re.sub(r"\s+", " ", value).strip()
+
+def web_providers():
+    """Higher quality server-side translators, tried in order inside GitHub Actions only."""
+    import requests
+    def google(text):
+        r = requests.get("https://translate.googleapis.com/translate_a/single",
+                         params={"client": "gtx", "sl": "en", "tl": "fa", "dt": "t", "q": text}, timeout=(6, 20))
+        r.raise_for_status()
+        return "".join(part[0] for part in r.json()[0] if part and part[0])
+    def mymemory(text):
+        r = requests.get("https://api.mymemory.translated.net/get",
+                         params={"q": text[:480], "langpair": "en|fa"}, timeout=(6, 20))
+        r.raise_for_status()
+        return r.json()["responseData"]["translatedText"]
+    return [("google", google), ("mymemory", mymemory)]
+
+def pick_web_provider():
+    probe = "The movie premiered at the film festival."
+    for name, call in web_providers():
+        try:
+            if usable_translation(probe, call(probe)):
+                return name, call
+        except Exception as error:
+            print(f"Translator {name} unavailable:", str(error)[:100])
+    return None, None
+
 def main():
     try:
         raw = SOURCE.read_text(encoding="utf-8")
@@ -76,13 +121,14 @@ def main():
         return 1
 
     online = try_online_quality_provider()
+    web_name, web_call = (None, None) if online is not None else pick_web_provider()
     pending = [
         story for story in stories
-        if isinstance(story, dict) and (
+        if isinstance(story, dict) and not settled(story) and (
             not story.get("title_fa")
             or story.get("title_source_for_fa") != story.get("title")
             or (story.get("summary") and not story.get("summary_fa"))
-            or (online is not None and story.get("translation_engine") != "google")
+            or ((online is not None or web_call is not None) and story.get("translation_engine") not in ("google", "mymemory"))
         )
     ]
     if not pending:
@@ -99,10 +145,17 @@ def main():
                     return result, "google"
             except Exception as error:
                 print("Online translation request failed; trying Argos:", str(error)[:120])
+        if web_call is not None:
+            try:
+                result = usable_translation(text, web_call(text))
+                if result:
+                    return result, web_name
+            except Exception as error:
+                print(f"{web_name} request failed; trying Argos:", str(error)[:120])
         if offline is None:
             offline = load_translation_model()
         try:
-            result = usable_translation(text, offline.translate(text))
+            result = usable_translation(text, polish_argos(offline.translate(text)))
             if result:
                 return result, "argos"
         except Exception as error:
@@ -112,14 +165,14 @@ def main():
     updated = 0
     for item in pending:
         headline = str(item.get("title") or "").strip()
-        if not headline:
+        if not headline or settled(item):
             continue
         if item.get("title_source_for_fa") != headline:
             item.pop("title_fa", None)
             item.pop("summary_fa", None)
             item.pop("translation_engine", None)
 
-        needs_title = not item.get("title_fa") or (online and item.get("translation_engine") != "google")
+        needs_title = not item.get("title_fa") or ((online or web_call) and item.get("translation_engine") not in ("google", "mymemory"))
         if needs_title:
             try:
                 value, provider = translated(headline)
@@ -127,12 +180,12 @@ def main():
                     item["title_fa"] = value
                     item["title_source_for_fa"] = headline
                     item["translation_engine"] = provider
-                    if provider == "google":item.pop("summary_fa", None)
+                    if provider in ("google", "mymemory"):item.pop("summary_fa", None)
                     updated += 1
             except Exception as error:
                 print("Headline translation unavailable:", str(error)[:140])
         summary = str(item.get("summary") or "").strip()
-        if summary and item.get("title_fa") and (not item.get("summary_fa") or (online and item.get("translation_engine") == "google" and item.get("summary_engine") != "google")):
+        if summary and item.get("title_fa") and (not item.get("summary_fa") or ((online or web_call) and item.get("translation_engine") in ("google", "mymemory") and item.get("summary_engine") not in ("google", "mymemory"))):
             try:
                 value, provider = translated(summary)
                 if value:

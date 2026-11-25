@@ -1,7 +1,7 @@
 /* Social layer: profiles, follows, reviews, room members */
-.fsLaunch{position:fixed;bottom:20px;inset-inline-start:20px;z-index:38;border:1px solid var(--gold,#dbb97b);border-radius:40px;padding:11px 18px;background:var(--panel);color:var(--ink);font:inherit;font-weight:700;cursor:pointer;box-shadow:0 8px 24px #0004}
+.fsLaunch{position:fixed;bottom:20px;left:20px;z-index:38;border:1px solid var(--gold,#dbb97b);border-radius:40px;padding:11px 18px;background:var(--panel);color:var(--ink);font:inherit;font-weight:700;cursor:pointer;box-shadow:0 8px 24px #0004}
 body.roomFocus .fsLaunch{bottom:12px}
-.fsDialog{width:min(840px,95vw);max-height:90vh;border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--ink);padding:0;overflow:hidden}
+.fsDialog{width:min(1120px,96vw);height:min(88vh,920px);max-height:92vh;border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--ink);padding:0;overflow:hidden}
 .fsDialog[open]{display:flex;flex-direction:column}
 .fsDialog::backdrop{background:#000b;backdrop-filter:blur(3px)}
 .fsHead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:2}
@@ -74,3 +74,37 @@ button.fsStat{cursor:pointer}button.fsStat:hover span{text-decoration:underline}
 @media(max-width:640px){.fsDialog{width:100vw;max-height:100dvh;border-radius:0}.fsBody{padding:14px}}
 
 .fsTrash{border:1px solid var(--line);border-radius:10px;background:var(--bg);color:#e5736d;font:inherit;font-size:14px;padding:4px 9px;cursor:pointer}.fsTrash:hover{border-color:#b3412f}.fsTrash.armed{background:#b3412f;color:#fff;border-color:#b3412f}
+
+/* ---------- friends page, profile hub, settings ---------- */
+.fsDialog{box-shadow:0 30px 90px #000a;margin:auto;inset:0}
+.fsBody{flex:1;min-height:0}
+.fsNav{position:sticky;top:-18px;background:var(--panel);z-index:1;margin:-18px -22px 4px;padding:0 22px}
+.fsPage{display:grid;gap:14px}
+.fsFriends{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.fsFriend{display:grid;gap:12px;align-content:start;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--bg);transition:border-color .15s,transform .15s}
+.fsFriend:hover{border-color:var(--gold);transform:translateY(-2px)}
+.fsMini{display:grid;gap:6px;padding:10px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.fsMiniLabel{color:var(--mute);font-weight:700;font-size:12px}
+.fsMiniRow{display:flex;gap:10px;align-items:center}
+.fsMiniCover{flex:none;width:44px;aspect-ratio:2/3;border-radius:7px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.fsMiniCover img{width:100%;height:100%;object-fit:cover;display:block}
+.fsMiniInfo{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.fsSnippet{margin:2px 0 0;line-height:1.8;color:var(--ink);overflow-wrap:anywhere;font-size:13.5px}
+.fsSmall{padding:5px 11px;font-size:13px}
+.fsEmail{margin:2px 0 0;color:var(--mute);direction:ltr;text-align:start;font-size:13.5px}
+.fsSet h4{margin:0 0 8px;font-size:16px}.fsSet .fsRow input{flex:1;min-width:200px}
+.fsProfile{padding:22px}
+@media(max-width:640px){.fsDialog{height:100dvh}.fsFriends{grid-template-columns:1fr}.fsNav{margin:-14px -14px 4px;padding:0 14px}.fsLaunch{padding:9px 14px}}
+/* notification bell */
+.bellBtn{position:relative;display:none}
+.bellBtn.on{display:inline-flex;align-items:center;justify-content:center}
+.bellDot{position:absolute;top:-5px;inset-inline-end:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:12px;background:#d92d20;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px var(--panel);box-sizing:border-box}
+.bellDot[hidden]{display:none}
+.bellPanel{position:fixed;z-index:60;width:min(340px,94vw);max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);box-shadow:0 20px 60px #000a;padding:6px}
+.bellPanel[hidden]{display:none}
+.bellHead{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-weight:800}
+.bellItem{display:flex;gap:10px;align-items:center;width:100%;padding:9px 10px;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:start;cursor:pointer}
+.bellItem:hover,.bellItem:focus-visible{background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.bellItem.fresh{background:color-mix(in srgb,#d92d20 9%,transparent)}
+.bellItem small{display:block;color:var(--mute)}
+.bellEmpty{padding:18px 12px;color:var(--mute);text-align:center}
