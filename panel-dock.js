@@ -42,7 +42,10 @@ function build(){
  /* the stage holds the turning ring (wheel), the fixed centre circle (hub) and the pointer; only the ring rotates */
  stage=make('div','pdStage');stage.hidden=true;
  hub=make('div','pdHub');hub.appendChild(make('b','',T('پنل کاربری','User panel')));
- stage.append(wheel,hub,pointer);
+ const x=make('button','pdClose','✕');x.type='button';x.setAttribute('aria-label',T('بستن پنل','Close panel'));x.title=T('بستن','Close');
+ x.addEventListener('click',e=>{e.stopPropagation();close();btn.focus();});
+ hub.append(make('span','pdHubX',T('برای بستن بزن','Tap to close')));hub.setAttribute('role','button');hub.tabIndex=-1;hub.addEventListener('click',e=>{e.stopPropagation();close();btn.focus();});
+ stage.append(wheel,hub,pointer,x);
  dock.append(stage,btn);
  doc.body.append(scrim,dock);
  doc.addEventListener('keydown',e=>{
