@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
                     "group-watch.js","group-watch-account.js","sidebar-ui.js","add-film-ui.js",
-                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql")}
+                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql","security/film-email-guard.sql","security/film-hardening.sql","film-notes-sync.js")}
 index=files["index.html"]
 errors=[]
 def check(ok,message):
@@ -77,6 +77,18 @@ for name in ("follow-bell.js","film-friends.js"):
 delete_sql=files["security/film-admin-v4.sql"]
 for needle in ("security definer","film_is_admin()","raise exception 'admin only'","cannot delete yourself","remove the admin role first","revoke all on function public.film_admin_delete_user"):
     check(needle in delete_sql,"film-admin-v4.sql is missing: "+needle)
+
+guard=files["security/film-email-guard.sql"]
+for needle in ("film_guard_email","film_email_verified()","film_blocked_email_domains","email_confirmed_at is not null","disposable email address not allowed"):
+    check(needle in guard,"film-email-guard.sql is missing: "+needle)
+hard=files["security/film-hardening.sql"]
+for needle in ("film_throttle","film_profile_avatar_format","film_guard_display_name","film_profile_json_size"):
+    check(needle in hard,"film-hardening.sql is missing: "+needle)
+check("innerHTML" not in files["film-notes-sync.js"] and "eval(" not in files["film-notes-sync.js"],"film-notes-sync.js must not use innerHTML/eval")
+check("https://cdnjs.cloudflare.com" not in index and "@supabase/supabase-js@2" not in index,"Third-party CDN scripts must be vendored (assets/vendor)")
+check("https://*.supabase.co" not in index.split("Content-Security-Policy")[1][:1500],"CSP connect-src must name the project host, not a wildcard")
+check("window.top!==window.self" in index,"Clickjacking frame-buster missing")
+check("mailProblem(email)" in index and "email_confirmed_at" in index,"Client must reject fake / unconfirmed e-mails")
 
 if errors:
     print("Security checks failed:")

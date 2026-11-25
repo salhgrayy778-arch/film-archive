@@ -34,6 +34,7 @@ jobs:
         run: |
           node --check film-friends.js
           node --check follow-bell.js
+          node --check film-notes-sync.js
           node --check admin-panel.js
           node --check account-profile.js
           node --check film-discovery.js

@@ -14,7 +14,8 @@ try{
 }catch(e){}
 </script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' https://api.themoviedb.org https://itunes.apple.com https://en.wikipedia.org https://fa.wikipedia.org https://*.supabase.co wss://*.supabase.co https://0.peerjs.com wss://0.peerjs.com https://*.peerjs.com wss://*.peerjs.com https://cdn.jsdelivr.net; media-src 'self' https: blob:; worker-src 'self' blob:; upgrade-insecure-requests">
+<script>/* anti-clickjacking: never run inside someone else's frame */if(window.top!==window.self){try{window.top.location.replace(window.self.location.href);}catch(e){}document.documentElement.style.display='none';}</script>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' https://api.themoviedb.org https://itunes.apple.com https://en.wikipedia.org https://fa.wikipedia.org https://qphlhhuxtlchejbrkeec.supabase.co wss://qphlhhuxtlchejbrkeec.supabase.co https://0.peerjs.com wss://0.peerjs.com https://*.peerjs.com wss://*.peerjs.com https://cdn.jsdelivr.net; media-src 'self' https: blob:; worker-src 'self' blob:; upgrade-insecure-requests">
 <script>try{if(localStorage.getItem("film-archive-lang")==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr";}const savedTheme=localStorage.getItem("film-archive-theme");if(savedTheme&&savedTheme!=="auto")document.documentElement.setAttribute("data-theme",savedTheme);}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23F2D394%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23B5843F%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2215%22%20fill%3D%22%230B1B21%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2226%22%20width%3D%2244%22%20height%3D%2230%22%20rx%3D%227%22%20fill%3D%22%23132A30%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M9%2026%208%2016%2050%207%2053%2018Z%22%20fill%3D%22%23152C31%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M19%2013%2026%2022M34%2010%2042%2019%22%20stroke%3D%22%23D6B572%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2241%22%20r%3D%2210.5%22%20fill%3D%22none%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222.5%22%2F%3E%3Cpath%20d%3D%22m29%2035%2011%206-11%206Z%22%20fill%3D%22%23E3C283%22%2F%3E%3C%2Fsvg%3E">
 <title>My Film Archive | World Cinema News</title>
@@ -357,6 +358,8 @@ main,.reel{position:relative;z-index:1}
 .pop button[aria-checked="true"]::after{content:"✓"}
 .pop .ccs{padding:4px 10px 6px;font-size:12px;color:#A9B3A5}
 
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mute);margin:-4px 0 12px;line-height:1.7;cursor:pointer}.check input{margin-top:5px;flex:none}
+.card .poster,#dBody .dtop .poster{cursor:pointer}
 .reactLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}
 .flt{position:absolute;bottom:74px;width:44px;text-align:center;animation:floatUp 2.8s ease-out forwards;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
 .flt .ic{width:54px;height:54px}.flt .emo{display:block;font-size:48px;line-height:54px;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
@@ -972,6 +975,7 @@ body{overflow-x:clip;padding-bottom:145px}
       <details class="moreSection" id="moreHistory"><summary>یادداشت و تاریخچه تماشا</summary>
         <div class="moreInner">
           <div class="field"><label for="fNotes">یادداشت من (نور، قاب‌بندی، صدا، حس فیلم…)</label><textarea id="fNotes"></textarea></div>
+          <label class="check" id="fNotesPublicRow"><input type="checkbox" id="fNotesPublic" checked> <span>این یادداشت در بخش نظرها (صفحهٔ فیلم، پروفایل من و صفحهٔ دوستان) برای دیگران هم نمایش داده شود</span></label>
           <div class="field"><label class="chk"><input type="checkbox" id="fLiked"> ♥ دوست داشتم</label></div>
           <div class="field" id="logsOnly"><span class="lbl">دفترچه تماشا (هر بار دیدن فیلم)</span><div id="lgList"></div>
             <div class="two" style="margin-top:8px"><div><label class="lbl" for="lgDate">تاریخ این نوبت</label><input id="lgDate" type="date"></div><div><label class="lbl" for="lgRate">امتیاز این نوبت تماشا</label><select id="lgRate"></select></div></div>
@@ -1578,6 +1582,7 @@ function snapshotSheet(){
     id:state.editId,
     values:Object.fromEntries(SHEET_FIELDS.map(id=>[id,$(id).value])),
     liked:$('fLiked').checked,
+    notesPublic:$('fNotesPublic').checked,
     status:state.form.status,
     rating:state.form.rating||0,
     poster:state.form.poster||'',
@@ -1602,7 +1607,7 @@ function openSheet(id){
   $('fYear').value = f?.year || '';
   $('fGenre').value = f?.genre || '';
   $('fDate').value = f ? (f.date || '') : todayISO();
-  $('fNotes').value = f?.notes || ''; $('fLiked').checked = !!f?.liked;
+  $('fNotes').value = f?.notes || ''; $('fLiked').checked = !!f?.liked; $('fNotesPublic').checked = f?.notesPublic !== false;
   state.form.logs = (f?.logs||[]).map(x=>({...x}));
   $('lgDate').value = todayISO(); $('lgNote').value=''; $('lgRate').value='';
   $('delBtn').hidden = !f;
@@ -1644,7 +1649,7 @@ async function submitSheet(){
     // Keep existing watch-specific fields when toggling to the watchlist.
     rating: state.form.status==='seen' ? state.form.rating : (old?.rating ?? 0),
     date: state.form.status==='seen' ? $('fDate').value : (old?.date || ''),
-    notes: $('fNotes').value.trim(), liked: $('fLiked').checked,
+    notes: $('fNotes').value.trim(), notesPublic: $('fNotesPublic').checked, liked: $('fLiked').checked,
     poster: state.form.poster || '',
     tmdb: state.form.tmdb || '',
     logs: state.form.logs.map(l=>({...l}))
@@ -1960,7 +1965,7 @@ function loadPeer(){
   if(R.pl) return R.pl;
   R.pl = new Promise((ok,no)=>{
     const sc = document.createElement('script');
-    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
+    sc.src = 'assets/vendor/peerjs-1.5.4.min.js';
     sc.onload = ok; sc.onerror = ()=>{ R.pl = null; no(new Error('load')); };
     document.head.appendChild(sc);
   });
@@ -2943,8 +2948,19 @@ const docSig = d => (d.films||[]).map(f=>f.id+':'+(f.u||0)).sort().join(',')
   + '|' + JSON.stringify(normalizeAccountProfile(d.profile));
 
 /* ---------- ارتباط با سرور ---------- */
+const FAKE_MAIL_DOMAINS=new Set('mailinator.com guerrillamail.com guerrillamail.net guerrillamail.org sharklasers.com grr.la 10minutemail.com 10minutemail.net 20minutemail.com temp-mail.org temp-mail.io tempmail.com tempmail.net tempmail.dev tempail.com trashmail.com trashmail.net yopmail.com yopmail.net yopmail.fr getnada.com nada.email dispostable.com maildrop.cc mailnesia.com mintemail.com mohmal.com moakt.com fakeinbox.com fakemail.net emailondeck.com emailfake.com generator.email burnermail.io discard.email spambox.us mailsac.com inboxkitten.com mail.tm mail.gw 1secmail.com 1secmail.net 1secmail.org dropmail.me throwawaymail.com cock.li gmailnator.com mailpoof.com 33mail.com bugmenot.com spamgourmet.com tmail.ws tempr.email'.split(' '));
+function mailProblem(email){
+  const e=String(email||'').trim().toLowerCase();
+  if(e.length>254||!/^[a-z0-9._%+-]{1,64}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,24}$/.test(e))
+    return LX('ایمیل معتبر نیست','This e-mail address is not valid');
+  const d=e.split('@')[1];
+  for(const bad of FAKE_MAIL_DOMAINS)if(d===bad||d.endsWith('.'+bad))
+    return LX('ایمیل‌های یک‌بارمصرف و جعلی پذیرفته نمی‌شود؛ با ایمیل واقعی خودت ثبت‌نام کن.','Throw-away e-mail addresses are not accepted; sign up with your real e-mail.');
+  return '';
+}
 function faErr(m){
   m = String(m||'');
+  if(/disposable|Database error saving new user|invalid email address/i.test(m)) return 'این ایمیل پذیرفته نمی‌شود؛ فقط ایمیل واقعی و دائمی (مثل Gmail) مجاز است';
   if(/Invalid login/i.test(m)) return 'ایمیل یا رمز اشتباه است';
   if(/already registered|already been registered/i.test(m)) return 'این ایمیل قبلاً ثبت شده؛ وارد شو';
   if(/at least 6|weak/i.test(m)) return 'رمز باید حداقل ۶ نویسه باشد';
@@ -3275,6 +3291,7 @@ function paintAuth(){
       const email = $('auEmail').value.trim().toLowerCase(), pass = $('auPass').value;
       if(!email || !pass){ auMsg('ایمیل و رمز را وارد کن'); return; }
       if(auView==='signup'){
+        const bad=mailProblem(email); if(bad){ auMsg(bad); return; }
         if(pass.length < 6){ auMsg('رمز باید حداقل ۶ نویسه باشد'); return; }
         if(pass !== ($('auPass2')?.value||'')){ auMsg(LX('رمز و تکرار آن یکی نیست','Passwords do not match')); return; }
       }
@@ -3282,10 +3299,16 @@ function paintAuth(){
       try{
         if(auView==='signup'){
           const j = await authCall('/signup', { email, password:pass });
-          if(j.access_token){ await setSession(j); await afterLogin(); }
-          else auMsg('ایمیل تأیید برایت فرستاده شد؛ بعد از تأیید، وارد شو.', true);
+          if(j.access_token){
+            // The server logged us in without checking the address: "Confirm email" is switched off there.
+            try{await fetch(sb.url.replace(/\/$/,'')+'/auth/v1/logout',{method:'POST',headers:{apikey:sb.key,Authorization:'Bearer '+j.access_token}});}catch(_){}
+            auMsg(LX('ثبت‌نام فعلاً بسته است: تأیید ایمیل در سرور روشن نیست. به مدیر سایت خبر بده.','Sign-up is closed for now: e-mail confirmation is not enabled on the server. Please tell the site owner.'));
+          }
+          else auMsg('ایمیل تأیید برایت فرستاده شد؛ لینک داخل آن را بزن و بعد وارد شو.', true);
         }else{
-          await setSession(await authCall('/token?grant_type=password', { email, password:pass })); await afterLogin();
+          const j = await authCall('/token?grant_type=password', { email, password:pass });
+          if(!j?.user?.email_confirmed_at&&!j?.user?.confirmed_at)throw new Error('Email not confirmed');
+          await setSession(j); await afterLogin();
         }
       }catch(e){ auMsg(faErr(e.message)); }
       finally{ const g = $('auGo'); if(g) g.disabled = false; }
@@ -3334,7 +3357,7 @@ startLang();
 init();
 </script>
 <script src="group-watch.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/vendor/supabase-js-2.119.2.js"></script>
 <script src="group-watch-realtime.js"></script>
 <script src="room-experience.js"></script>
 <script src="group-watch-account.js"></script>
@@ -3348,6 +3371,7 @@ init();
 <script src="film-similar.js"></script>
 <script src="film-friends.js"></script>
 <script src="follow-bell.js"></script>
+<script src="film-notes-sync.js"></script>
 <script src="admin-panel.js"></script>
 </body>
 </html>
