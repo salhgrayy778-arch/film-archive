@@ -142,3 +142,22 @@ html[dir=rtl] .drawer .backup,html[dir=rtl] .drawer .drawerNavButton{text-align:
  .drawer.open,html[dir=rtl] .drawer.open,html[dir=ltr] .drawer.open{transition:none}
  .drawerGroup > summary::after{transition:none}
 }
+
+/* ---------- Tools menu: basic site settings ---------- */
+html.prefNoBell #bellBtn{display:none!important}
+html.prefNoAnn .saWrap{display:none!important}
+html.prefNoScenes .sc{display:none!important}
+.tsGroup{margin:0 0 16px}
+.tsGroup h3{font-size:12.5px;color:var(--mute);font-weight:700;margin:0 4px 8px;letter-spacing:.02em}
+.tsRow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:54px;margin:0 0 8px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);font:inherit;cursor:pointer;text-align:start;transition:border-color .15s,background .15s}
+.tsRow:hover,.tsRow:focus-visible{border-color:var(--gold);outline:0}
+.tsText{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tsText b{font-size:14.5px;font-weight:700}
+.tsText small{font-size:12px;color:var(--mute);line-height:1.6}
+.tsGo{font-size:22px;color:var(--gold);flex:none;line-height:1}
+html[dir=rtl] .tsGo{transform:scaleX(-1)}
+.tsSwitch{flex:none;width:44px;height:26px;border-radius:20px;background:color-mix(in srgb,var(--mute) 35%,transparent);position:relative;transition:background .2s}
+.tsSwitch i{position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:inset-inline-start .2s}
+.tsSwitchRow[aria-checked=true] .tsSwitch{background:var(--gold)}
+.tsSwitchRow[aria-checked=true] .tsSwitch i{inset-inline-start:21px}
+@media (prefers-reduced-motion:reduce){.tsSwitch,.tsSwitch i{transition:none}}
