@@ -19,7 +19,7 @@ const STEPS=[
  {sel:'#tab-dash',icon:'📊',fa:['داشبورد','فیلم‌های دیده‌شده، «می‌خواهم ببینم» و آمار تماشای تو.'],en:['Dashboard','Your watched films, watchlist and viewing stats.']},
  {sel:'#tab-diary',icon:'📔',fa:['دفترچه تماشا','یادداشت‌های شخصی‌ات دربارهٔ فیلم‌ها، فقط برای خودت.'],en:['Watch diary','Your private notes about films, just for you.']},
  {sel:'#tab-room',icon:'🎬',fa:['تماشای گروهی','با دوستت اتاق بساز و فیلم را همزمان ببینید.'],en:['Group watch','Create a room and watch a film in sync with a friend.']},
- {sel:'#addBtn',icon:'➕',fa:['اضافه کردن فیلم','یک فیلم را به آرشیوت اضافه کن یا از Letterboxd وارد کن.'],en:['Add a film','Add a film to your archive or import from Letterboxd.']},
+ {sel:'#addBtn',icon:'➕',fa:['اضافه کردن فیلم','یک فیلم را به آرشیوت اضافه کن.'],en:['Add a film','Add a film to your archive.']},
  {sel:'#filmFriendsLaunch',icon:'👥',fa:['دوستان فیلم‌باز','فیلم‌بازها را دنبال کن و آخرین نظرها و امتیازهایشان را ببین.'],en:['Film friends','Follow other film fans and see their latest reviews and scores.']},
  {sel:'#bellBtn',icon:'🔔',fa:['اعلان‌ها','وقتی کسی تو را دنبال کند یا نظرت را لایک کند، اینجا خبرت می‌کنیم.'],en:['Notifications','You are told here when someone follows you or likes your review.']},
  {sel:'#panelDockBtn',icon:'🎛️',fa:['پنل کاربری','«پنل» یعنی صفحهٔ کارِ مخصوص نقش تو (میز منتقد، میز مودریتور، پروفایل). از اینجا با یک چرخ انتخاب کن.'],en:['User panel','A panel is the work page for your role (critic desk, moderator desk, profile). Pick your role panels (critic, moderator…) from a wheel here.']},

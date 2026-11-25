@@ -61,7 +61,7 @@ function createGroup(id,fa,en,subFa,subEn,icon,open=false){
 const navigation=createGroup('drawerNavigation', 'دسترسی سریع','Quick navigation',
   'چهار صفحه اصلی سایت','The four main pages','i-menu',true);
 const dataGroup=createGroup('drawerDataGroup','ورود، خروجی و پشتیبان','Import, export & backups',
-  'Letterboxd و ذخیرهٔ اطلاعات','Letterboxd and data safety','i-file');
+  'پشتیبان و ذخیرهٔ اطلاعات','Backups and data safety','i-file');
 const personalize=createGroup('drawerPersonalizeGroup','ظاهر و لینک سایت','Appearance & site link',
   'تم، زبان و اشتراک‌گذاری','Themes, language and sharing','i-link');
 
@@ -177,11 +177,6 @@ shareBtn.addEventListener('click',async()=>{
 });
 
 drawer.appendChild(groups);
-// On the empty dashboard, "Import from Letterboxd" opens the matching section
-// before the app's existing click listener tries to focus the import button.
-document.addEventListener('click',e=>{
-  if(e.target.closest('#firstImport'))dataGroup.details.open=true;
-},true);
 
 const syncDrawerState=()=>{
   const open=drawer.classList.contains('open');
