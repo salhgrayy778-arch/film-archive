@@ -251,7 +251,7 @@ create trigger film_guard_email before insert or update of email on auth.users
 
 create or replace function public.film_email_verified() returns boolean
   language sql stable security definer set search_path = public, auth as $$
-  select coalesce((select email_confirmed_at is not null from auth.users where id = auth.uid()), false)
+  select coalesce((select email_confirmed_at is not null and (banned_until is null or banned_until < now()) from auth.users where id = auth.uid()), false)
 $$;
 revoke all on function public.film_email_verified() from public;
 grant execute on function public.film_email_verified() to authenticated;

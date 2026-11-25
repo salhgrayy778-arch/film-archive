@@ -36,6 +36,8 @@ jobs:
           node --check follow-bell.js
           node --check film-notes-sync.js
           node --check admin-panel.js
+          node --check critic-panel.js
+          node --check site-announce.js
           node --check account-profile.js
           node --check film-discovery.js
           node --check group-watch.js
