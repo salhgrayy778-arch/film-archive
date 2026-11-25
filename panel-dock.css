@@ -1,0 +1,48 @@
+/* "Your panels": roulette wheel that rolls out of the RIGHT edge (panel-dock.js). */
+@property --w{syntax:'<angle>';inherits:true;initial-value:0deg}
+/* the old floating panel buttons (left) are replaced by the dock; they stay in the page only as hidden hooks */
+.apLaunch,.cpLaunch{display:none!important}
+
+.pdScrim{position:fixed;inset:0;z-index:36;background:radial-gradient(60% 80% at 100% 50%,color-mix(in srgb,#000 46%,transparent),transparent 72%);animation:pdFade .3s ease}
+.pdDock{--R:230px;position:fixed;right:0;top:50%;z-index:39;width:0;height:0;direction:ltr}
+body.roomFocus .pdDock,body.cinema .pdDock,body.inRoomTab .pdDock{display:none!important}
+.pdBtn{position:absolute;right:0;top:0;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 9px;
+ border:1px solid var(--gold,#dbb97b);border-inline-end:0;border-radius:16px 0 0 16px;background:var(--panel);color:var(--ink);font:inherit;font-size:13px;cursor:pointer;
+ box-shadow:0 8px 26px rgba(0,0,0,.34);transition:transform .2s,background .2s;z-index:3}
+.pdBtn:hover{transform:translateY(-50%) translateX(-3px);background:color-mix(in srgb,var(--gold,#dbb97b) 16%,var(--panel))}
+.pdBtnIcon{font-size:20px;line-height:1}
+.pdBtnLbl{writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:0;white-space:nowrap}
+.pdDock.open .pdBtn{opacity:0;pointer-events:none}
+
+/* the wheel: a full circle centred on the right edge, so only its left half shows */
+.pdWheel{position:absolute;right:calc(var(--R)*-1);top:calc(var(--R)*-1);width:calc(var(--R)*2);height:calc(var(--R)*2);border-radius:50%;
+ transition:--w .75s cubic-bezier(.2,.85,.25,1);transform:rotate(var(--w));
+ background:
+  radial-gradient(circle,var(--panel) 0 22%,transparent 22.4%),
+  repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--gold,#dbb97b) 26%,transparent) 0 1.4deg,transparent 1.4deg 9deg),
+  radial-gradient(circle,color-mix(in srgb,var(--panel) 94%,var(--gold,#dbb97b)) 0 99%,transparent 100%);
+ border:2px solid var(--gold,#dbb97b);box-shadow:0 0 0 8px color-mix(in srgb,var(--gold,#dbb97b) 12%,transparent),0 18px 60px rgba(0,0,0,.5),inset 0 0 40px rgba(0,0,0,.25);
+ animation:pdOut .6s cubic-bezier(.2,.9,.25,1)}
+.pdWheel[hidden]{display:none}
+@keyframes pdOut{from{opacity:0;transform:rotate(calc(var(--w) - 110deg)) scale(.35)}to{opacity:1;transform:rotate(var(--w)) scale(1)}}
+@keyframes pdFade{from{opacity:0}to{opacity:1}}
+.pdHub{position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;margin:-17% 0 0 -17%;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+ transform:rotate(calc(var(--w)*-1));background:radial-gradient(circle,color-mix(in srgb,var(--gold,#dbb97b) 22%,var(--panel)),var(--panel));border:1px solid var(--gold,#dbb97b);color:var(--ink);padding:6px}
+.pdHub{box-sizing:border-box;padding:6px 54% 6px 6px}
+.pdHub b{font-size:13px;line-height:1.5}.pdHub small{font-size:10.5px;color:var(--mute)}
+.pdItem{position:absolute;left:50%;top:50%;width:150px;height:46px;margin:-23px 0 0 -75px;display:flex;align-items:center;gap:8px;padding:0 12px;direction:rtl;
+ border:1px solid color-mix(in srgb,var(--gold,#dbb97b) 55%,transparent);border-radius:26px;background:var(--panel);color:var(--ink);font:inherit;font-size:14px;cursor:pointer;
+ transform:rotate(var(--a)) translateX(calc(var(--R)*.64)) rotate(calc(var(--a)*-1 - var(--w)));box-shadow:0 6px 18px rgba(0,0,0,.3);transition:background .2s,border-color .2s,box-shadow .2s}
+.pdItem .pdIcon{font-size:20px;line-height:1;flex:none}
+.pdItem .pdName{flex:1;text-align:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pdItem:hover,.pdItem:focus-visible{border-color:var(--gold,#dbb97b);outline:0}
+.pdItem.on{background:linear-gradient(135deg,var(--gold,#dbb97b),color-mix(in srgb,var(--gold,#dbb97b) 70%,#8a5b1a));color:#241606;border-color:transparent;box-shadow:0 0 0 3px color-mix(in srgb,var(--gold,#dbb97b) 35%,transparent),0 8px 24px rgba(0,0,0,.4)}
+/* the pointer (does not turn): a small gold marker on the rim, pointing at the chosen panel */
+.pdPointer{position:absolute;right:calc(var(--R) - 4px);top:-12px;width:0;height:0;border-block:12px solid transparent;border-left:20px solid var(--gold,#dbb97b);
+ filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:none;z-index:2}
+.pdDock.open .pdPointer{display:block}
+@media (max-width:640px){
+ .pdDock{--R:170px}.pdItem{width:124px;height:42px;margin:-21px 0 0 -62px;font-size:12.5px;padding:0 9px}
+ .pdBtn{padding:10px 7px;font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){.pdWheel{transition:none;animation:none}.pdScrim{animation:none}}

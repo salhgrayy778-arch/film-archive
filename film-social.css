@@ -121,3 +121,7 @@ button.fsStat{cursor:pointer}button.fsStat:hover span{text-decoration:underline}
 .fsReportForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding:10px;border:1px dashed var(--line);border-radius:12px}
 .fsReportForm input{flex:1;min-width:180px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .fsReportMsg{color:var(--mute)}
+
+/* Round 10: like notifications in the bell */
+.bellAv{position:relative;display:inline-flex;flex:none}
+.bellHeart{position:absolute;inset-inline-end:-4px;bottom:-4px;width:18px;height:18px;padding:3px;border-radius:50%;background:#ff4d6d;fill:#fff;border:2px solid var(--panel)}

@@ -1,0 +1,3 @@
+fedra-arabic-black.woff2 is "Fedra Arabic Display AR+LT Black" (TPTQ Arabic Font Software), supplied by the site owner.
+It is a commercial font: keep your license, and do not reuse this file in other projects.
+cormorant-garamond-latin-600-italic.woff2 (brand signature) is under the SIL Open Font License 1.1 (LICENSE-cormorant.txt).
