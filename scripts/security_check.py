@@ -21,7 +21,7 @@ for directive in ("object-src 'none'","base-uri 'self'","form-action 'self'","fr
 check('name="referrer"' in index,"No referrer policy")
 check('safePosterSrc(' in index,"Missing image URL sanitizer")
 check('safeExternalHref(' in index,"Missing external-link sanitizer")
-check('src="cinema-translation.js"' in index,"Translation script not linked")
+check('src="cinema-translation.js' in index,"Translation script not linked")
 check('crypto.getRandomValues' in files["group-watch.js"],"Weak watch-room IDs")
 check("new URL('data/home-feed.json',base)" in files["cinema-translation.js"],
       "Translation UI should fetch only same-site data")
@@ -44,7 +44,7 @@ check("const moviesGroup=createGroup(" not in (root/"sidebar-ui.js").read_text(e
 check("inactiveTools.hidden=true" in (root/"sidebar-ui.js").read_text(encoding="utf-8"),"Legacy poster/TMDB nodes were not preserved")
 # Account profiles are saved only inside authenticated, owner-scoped archives JSON.
 profile = files["account-profile.js"]
-check('src="account-profile.js"' in index and 'href="account-profile.css"' in index,"Profile UI assets not loaded")
+check('src="account-profile.js' in index and 'href="account-profile.css' in index,"Profile UI assets not loaded")
 check("merged.profile=profileDirty" in index,"Movie archive sync could erase profile")
 check("profile:normalizeAccountProfile(data.profile)" in index,"Profile not read from owner row")
 check("saveAccountProfileDraft(value)" in index and "syncNow(true,true)" in index,"Profile save must persist to Supabase")
@@ -103,7 +103,7 @@ for name in ("film-wiki.js","film-scenes.js","panel-dock.js"):
 check("upload\\.wikimedia\\.org" in files["film-wiki.js"] and "POSTER_OK" in files["film-wiki.js"],"film-wiki.js must only accept Wikimedia poster addresses")
 check("https://www.wikidata.org" in index.split("Content-Security-Policy")[1][:1800],"CSP connect-src must allow Wikidata for the VPN-free fallback")
 check("fonts.googleapis.com" not in index and "fonts.gstatic.com" not in index,"Fonts must be self-hosted (no Google Fonts)")
-check('href="film-fonts.css"' in index and 'href="film-scenes.css"' in index and 'src="film-scenes.js"' in index and 'src="film-wiki.js"' in index,"Round 9 assets are not linked in index.html")
+check(all(x in index for x in ('href="film-fonts.css','href="film-scenes.css','src="film-scenes.js','src="film-wiki.js')),"Round 9 assets are not linked in index.html")
 check("prefers-reduced-motion" in files["film-scenes.css"],"Animated scenes must respect prefers-reduced-motion")
 check("innerHTML" not in files["film-notes-sync.js"] and "eval(" not in files["film-notes-sync.js"],"film-notes-sync.js must not use innerHTML/eval")
 check("https://cdnjs.cloudflare.com" not in index and "@supabase/supabase-js@2" not in index,"Third-party CDN scripts must be vendored (assets/vendor)")
