@@ -22,7 +22,7 @@ const STEPS=[
  {sel:'#addBtn',icon:'➕',fa:['اضافه کردن فیلم','یک فیلم را به آرشیوت اضافه کن یا از Letterboxd وارد کن.'],en:['Add a film','Add a film to your archive or import from Letterboxd.']},
  {sel:'#filmFriendsLaunch',icon:'👥',fa:['دوستان فیلم‌باز','فیلم‌بازها را دنبال کن و آخرین نظرها و امتیازهایشان را ببین.'],en:['Film friends','Follow other film fans and see their latest reviews and scores.']},
  {sel:'#bellBtn',icon:'🔔',fa:['اعلان‌ها','وقتی کسی تو را دنبال کند یا نظرت را لایک کند، اینجا خبرت می‌کنیم.'],en:['Notifications','You are told here when someone follows you or likes your review.']},
- {sel:'#panelDockBtn',icon:'🎛️',fa:['پنل‌های شما','پنل‌های نقش تو (منتقد، مودریتور…) را از اینجا با یک چرخ انتخاب کن.'],en:['Your panels','Pick your role panels (critic, moderator…) from a wheel here.']},
+ {sel:'#panelDockBtn',icon:'🎛️',fa:['پنل کاربری','«پنل» یعنی صفحهٔ کارِ مخصوص نقش تو (میز منتقد، میز مودریتور، پروفایل). از اینجا با یک چرخ انتخاب کن.'],en:['User panel','A panel is the work page for your role (critic desk, moderator desk, profile). Pick your role panels (critic, moderator…) from a wheel here.']},
  {sel:'#acctBtn',icon:'👤',fa:['حساب من','پروفایل، عکس و تنظیمات حسابت.'],en:['My account','Your profile, photo and account settings.']},
  {sel:'#menuBtn',icon:'🧰',fa:['ابزارها و تنظیمات','تم و رنگ سایت، زبان و ابزارهای بیشتر.'],en:['Tools & settings','Site theme and colours, language and more tools.']}
 ];
