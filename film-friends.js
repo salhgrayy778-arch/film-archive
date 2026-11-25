@@ -584,7 +584,6 @@ function paintBox(box,id){
  const me=ready()?ses.id:'';
  const on=!!me&&set.has(me);
  const b=box.querySelector('button');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));
- b.firstChild.textContent=on?'♥':'♡';
  box.querySelector('span').textContent=set.size?faNum(set.size):'';
  b.title=on?T('برداشتن لایک','Remove like'):T('پسندیدن این نظر','Like this review');
  b.setAttribute('aria-label',b.title+(set.size?' ('+set.size+')':''));
@@ -592,9 +591,17 @@ function paintBox(box,id){
 function paintHearts(id){
  document.querySelectorAll('.fsLike[data-rid="'+Number(id)+'"]').forEach(box=>paintBox(box,id));
 }
+/* A real heart drawn as SVG (the old text glyph looked like a tiny blob in many fonts): outline = not liked, filled = liked. */
+function heartIcon(){
+ const NS='http://www.w3.org/2000/svg';
+ const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('class','fsHeartIcon');svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
+ const path=document.createElementNS(NS,'path');
+ path.setAttribute('d','M12 20.6 4.6 13.4C2.2 11 2.3 7.4 4.5 5.5c2-1.7 4.8-1.3 6.4.6l1.1 1.3 1.1-1.3c1.6-1.9 4.4-2.3 6.4-.6 2.2 1.9 2.3 5.5-.1 7.9z');
+ svg.appendChild(path);return svg;
+}
 function likeBar(r){
  const box=make('div','fsLike');box.dataset.rid=Number(r.id);
- const b=make('button','fsHeart');b.type='button';b.appendChild(document.createTextNode('♡'));b.setAttribute('aria-pressed','false');
+ const b=make('button','fsHeart');b.type='button';b.appendChild(heartIcon());b.setAttribute('aria-pressed','false');
  const count=make('span','fsLikeCount');box.append(b,count);
  const mine=()=>ready()&&r.user_id===ses.id;
  if(mine())b.classList.add('own');
@@ -672,9 +679,11 @@ async function renderReviews(movie){
  const criticsAll=reviews.filter(isCritic),membersAll=reviews.filter(r=>!isCritic(r));
  const following=ready()?await myFollowing():new Set();
  const mineReview=ready()?reviews.find(r=>r.user_id===ses.id):null;
- const critics=criticsAll.filter(r=>r!==mineReview),members=membersAll.filter(r=>r!==mineReview);
- await fetchLikes(reviews.map(r=>r.id),true);
  const friendReviews=reviews.filter(r=>following.has(r.user_id)&&r.user_id!==(ready()?ses.id:''));
+ // A review by someone you follow appears ONLY under "From people you follow", never a second time below.
+ const isFriend=new Set(friendReviews.map(r=>r.id));
+ const critics=criticsAll.filter(r=>r!==mineReview&&!isFriend.has(r.id)),members=membersAll.filter(r=>r!==mineReview&&!isFriend.has(r.id));
+ await fetchLikes(reviews.map(r=>r.id),true);
  const firstPage=members.slice(0,10);
  const needProfiles=[...critics,...friendReviews,...firstPage].map(r=>r.user_id).concat(ready()?[ses.id]:[]);
  await getProfiles(needProfiles);
@@ -698,7 +707,7 @@ async function renderReviews(movie){
 
  const sec=(title,cls)=>{const s=make('div','fsSection '+(cls||''));s.appendChild(make('h3','',title));bodyEl.appendChild(s);return s;};
  const cs=sec(T('نظر منتقدان','Critics’ reviews'),'fsCriticsSection');
- if(!critics.length)emptyNote(cs,T('هنوز منتقدی دربارهٔ این فیلم نظر نداده است.','No critic has reviewed this film yet.'));
+ if(!critics.length)emptyNote(cs,criticsAll.some(r=>r!==mineReview)?T('نظر منتقدی که دنبالش می‌کنی بالاتر، در «از دنبال‌شونده‌های تو» آمده است.','A critic you follow is listed above, under “From people you follow”.'):T('هنوز منتقدی دربارهٔ این فیلم نظر نداده است.','No critic has reviewed this film yet.'));
  for(const r of critics)cs.appendChild(reviewCard(r,new Map([[r.user_id,profiles.get(r.user_id)]]),'critic',{big:true}));
 
  if(ready()&&following.size){
@@ -718,7 +727,7 @@ async function renderReviews(movie){
   for(const r of slice)list.appendChild(reviewCard(r,new Map([[r.user_id,profiles.get(r.user_id)]]),roles.get(r.user_id)));
   shownCount+=slice.length;more.hidden=shownCount>=members.length;
  };
- if(!members.length)emptyNote(us,T('هنوز نظری ثبت نشده؛ اولین نفر باش.','No member reviews yet — be the first.'));
+ if(!members.length)emptyNote(us,friendReviews.length||membersAll.some(r=>r!==mineReview)?T('نظر دیگری از کاربران نیست.','No other member reviews.'):T('هنوز نظری ثبت نشده؛ اولین نفر باش.','No member reviews yet — be the first.'));
  more.onclick=paint;us.appendChild(more);await paint();
  // Coming from a clicked review: make sure it is on screen (it may sit beyond the first ten), then scroll + highlight it.
  if(pendingFocus&&pendingFocus.film===id){
@@ -826,5 +835,5 @@ window.addEventListener('popstate',()=>{
  if(Number.isSafeInteger(rv)&&rv>0&&Number.isSafeInteger(fv)&&fv>0)pendingFocus={id:rv,film:fv};}
 const initial=new URL(location.href).searchParams.get('user');
 if(validId(initial))show(initial);
-window.filmFriends={open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar,refresh:refreshReviews,saveMyReview,likeBar,fetchLikes};
+window.filmFriends={goToReview,open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar,refresh:refreshReviews,saveMyReview,likeBar,fetchLikes};
 })();

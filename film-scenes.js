@@ -1,10 +1,10 @@
 /* Animated backgrounds — a different "film world" behind every section of the site.
  *
  *   news     Premiere Night   searchlights and camera flashes        (red-carpet premieres, newsreels)
- *   search   Noir Detective   venetian-blind light, rain, smoke      (Casablanca, Double Indemnity, Chinatown)
- *   film     Deep Space       parallax stars, black-hole ring, slab  (2001, Interstellar, Gravity)
+ *   search   Sweeping Projector  a lamp scanning the dark hall, reel, frames (Cinema Paradiso, Hugo)
+ *   film     Silver Screen    projector cone, film-leader countdown, light leaks (the cinema itself)
  *   diary    Projection Booth projector beam, dust, scrolling film   (Cinema Paradiso, Hugo, Amélie)
- *   dash     Neon City        neon sun, skyline, endless grid, rain  (Blade Runner, Tron, Drive)
+ *   dash     Stage Lights     two crossing spotlights over a hazy stage    (Broadway / Hollywood stage)
  *   room     Grand Theatre    swaying curtains, spotlights, popcorn  (Singin' in the Rain, Moulin Rouge)
  *   friends  Lantern Night    rising lanterns, fireflies             (Tangled, La La Land, Spirited Away)
  *   critic   Walk of Fame     falling golden stars                   (the Oscars)
@@ -32,22 +32,18 @@ const BUILD={
  },
  search(box,r){
   el('div','sc-glow',null,box);
-  const bl=el('div','noir-blinds',null,box);el('i','',null,bl);
-  for(let i=0;i<6;i++)el('i','noir-smoke'+(i>3?' lite':''),`--x:${px(r()*100)}%;--s:${px(220+r()*260)}px;--d:${px(26+r()*18)}s;--w:-${px(r()*30)}s`,box);
-  for(let i=0;i<34;i++)el('i','noir-rain'+(i>18?' lite':''),`--x:${px(r()*100)}%;--h:${px(40+r()*70)}px;--d:${px(.9+r()*.9,2)}s;--w:-${px(r()*2,2)}s`,box);
-  const lens=el('div','noir-lens',null,box);el('i','',null,lens);
+  const b1=el('div','sw-beam',null,box);el('i','',null,b1);
+  const b2=el('div','sw-beam thin',null,box);el('i','',null,b2);
+  el('div','sw-reel',null,box);
+  for(let i=0;i<5;i++)el('i','sw-frame'+(i>2?' lite':''),`--x:${px(18+r()*66)}%;--y:${px(30+r()*50)}%;--s:${px(70+r()*60,0)}px;--d:${px(16+r()*10)}s;--w:-${px(r()*20)}s;--dx:${px(-40+r()*80)}px`,box);
+  for(let i=0;i<30;i++)el('i','scr-dust'+(i>18?' lite':''),`--x:${px(6+r()*88)}%;--y:${px(r()*100)}%;--s:${px(1.5+r()*3.5)}px;--d:${px(14+r()*18)}s;--w:-${px(r()*30)}s;--dx:${px(-30+r()*60)}px`,box);
  },
  film(box,r){
   el('div','sc-glow',null,box);
-  [['s1',70,1],['s2',46,2],['s3',22,3]].forEach(([c,n,size])=>{
-   const shadows=[];for(let i=0;i<n;i++)shadows.push(`${px(r()*100)}vw ${px(r()*100)}vh 0 ${size>2?1:0}px currentColor`);
-   const layer=el('i','space-stars '+c,`box-shadow:${shadows.join(',')};width:${size}px;height:${size}px`,box);
-   // a second copy one screen higher makes the drift seamless
-   const twin=layer.cloneNode(false);twin.classList.add('twin');box.appendChild(twin);
-  });
-  const hole=el('div','space-hole',null,box);el('i','disc',null,hole);el('i','core',null,hole);el('i','halo',null,hole);
-  el('div','space-slab',null,box);
-  el('i','space-comet',null,box);el('i','space-comet c2',null,box);
+  el('div','scr-cone',null,box);el('div','scr-cone two',null,box);
+  el('div','scr-leak',null,box);
+  const lead=el('div','scr-leader',null,box);el('i','',null,lead);
+  for(let i=0;i<36;i++)el('i','scr-dust'+(i>20?' lite':''),`--x:${px(14+r()*72)}%;--y:${px(r()*100)}%;--s:${px(1.5+r()*3.5)}px;--d:${px(14+r()*18)}s;--w:-${px(r()*30)}s;--dx:${px(-30+r()*60)}px`,box);
  },
  diary(box,r){
   el('div','sc-glow',null,box);
@@ -60,14 +56,13 @@ const BUILD={
  },
  dash(box,r){
   el('div','sc-glow',null,box);
-  const sun=el('div','neon-sun',null,box);el('i','',null,sun);
-  const sky=el('div','neon-skyline',null,box);
-  let x=-2;while(x<104){const w=px(2.2+r()*4.6),h=px(26+r()*96,0);
-   const b=el('i','',`left:${px(x)}%;width:${w}%;height:${h}px`,sky);
-   if(r()>.55)el('u','',`--d:${px(2+r()*5)}s;--w:-${px(r()*6)}s;left:${px(10+r()*55,0)}%;top:${px(8+r()*(h-16),0)}px`,b);
-   x+=w+px(.2+r()*.8);}
-  const floor=el('div','neon-floor',null,box);el('i','',null,floor);
-  for(let i=0;i<20;i++)el('i','neon-rain'+(i>11?' lite':''),`--x:${px(r()*100)}%;--d:${px(.7+r()*.8,2)}s;--w:-${px(r()*2,2)}s;--h:${px(60+r()*80)}px`,box);
+  [['l','-16deg','-3deg',15,0],['r','3deg','16deg',19,-7]].forEach(([c,A,B,d,w])=>{
+   const beam=el('div','stg-beam '+c,`--a:${A};--b:${B};--d:${d}s;--w:${w}s`,box);el('i','',null,beam);
+   el('div','stg-lamp '+c,null,box);
+  });
+  el('div','stg-floor',null,box);
+  for(let i=0;i<5;i++)el('i','stg-haze'+(i>2?' lite':''),`--x:${px(10+r()*80)}%;--s:${px(260+r()*260)}px;--d:${px(26+r()*18)}s;--w:-${px(r()*30)}s`,box);
+  for(let i=0;i<32;i++)el('i','stg-dust'+(i>18?' lite':''),`--x:${px(6+r()*88)}%;--y:${px(r()*100)}%;--s:${px(1.5+r()*3.5)}px;--d:${px(14+r()*18)}s;--w:-${px(r()*30)}s;--dx:${px(-30+r()*60)}px`,box);
  },
  room(box,r){
   el('div','sc-glow',null,box);
