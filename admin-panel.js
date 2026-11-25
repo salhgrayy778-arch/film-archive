@@ -2,7 +2,8 @@
  * Needs security/film-admin-v3.sql. The panel is only a UI: every action is allowed or refused by the
  * database (row level security + admin-only functions), so hiding the button is not the protection.
  *  - Admin: overview numbers, who is online, all users, roles, all reviews, catalog corrections, audit log.
- *  - Moderator: reviews (delete), catalog corrections, roles list and audit log (read only). */
+ *  - Moderator (security/film-round9.sql): own desk with report queue, review deletion, timed suspensions with a reason
+ *    (1 hour ... 10 years), film archive fixes and the activity log. No e-mails, no roles, no deleting accounts. */
 (function(){
 'use strict';
 const T=(fa,en)=>typeof EN!=='undefined'&&EN?en:fa;
@@ -44,6 +45,13 @@ function explain(e){
  if(/cannot delete yourself/.test(m))return T('حساب خودت را نمی‌شود حذف کرد.','You cannot delete your own account.');
  if(/last admin/.test(m))return T('آخرین ادمین را نمی‌شود حذف کرد.','The last admin cannot be removed.');
  if(/404|PGRST20|does not exist|42P01/.test(m))return T('بخشی از SQL امنیتی هنوز در Supabase اجرا نشده است؛ فایل security/film-all-in-one.sql را یک‌بار اجرا کن.','Part of the security SQL has not been run in Supabase yet; run security/film-all-in-one.sql once.');
+ if(/cannot suspend an admin/.test(m))return T('ادمین را نمی‌شود تعلیق کرد.','An admin cannot be suspended.');
+ if(/only an admin can suspend a moderator/.test(m))return T('فقط ادمین می‌تواند یک مودریتور را تعلیق کند.','Only an admin can suspend a moderator.');
+ if(/suspension set by an admin/.test(m))return T('این تعلیق را ادمین گذاشته؛ فقط ادمین می‌تواند آن را تغییر دهد.','An admin set this suspension; only an admin can change it.');
+ if(/daily suspension limit/.test(m))return T('سقف ۲۵ تعلیق در ۲۴ ساعت برای مودریتور پر شد.','Daily limit of 25 suspensions reached.');
+ if(/reason required/.test(m))return T('دلیل تعلیق را بنویس (۳ تا ۲۰۰ نویسه).','Write a reason (3–200 characters).');
+ if(/invalid duration/.test(m))return T('مدت تعلیق باید از ۱ ساعت تا ۱۰ سال باشد.','Duration must be between 1 hour and 10 years.');
+ if(/staff only/.test(m))return T('این بخش فقط برای مودریتور و ادمین است.','Staff only.');
  if(/cannot suspend yourself/.test(m))return T('حساب خودت را نمی‌شود تعلیق کرد.','You cannot suspend yourself.');
  if(/violates check constraint/.test(m))return T('متن اعلان باید بین ۱ تا ۲۴۰ نویسه باشد.','The announcement must be 1–240 characters.');
  return T('انجام نشد: ','Failed: ')+m.slice(0,140);
@@ -73,7 +81,7 @@ function syncLaunch(){
  let b=$('adminLaunch');
  if(!isStaff()){if(b)b.remove();const d=$('adminDialog');if(d?.open)d.close();return;}
  if(b)return;
- b=make('button','apLaunch');b.append(make('span','lIcon','🛡️'),make('span','lLbl',T('پنل مدیریت','Staff panel')));b.title=T('پنل مدیریت','Staff panel');b.setAttribute('aria-label',b.title);b.id='adminLaunch';b.type='button';
+ b=make('button','apLaunch');const lbl=isAdmin()?T('پنل مدیریت','Staff panel'):T('میز مودریتور','Moderator desk');b.append(make('span','lIcon','🛡️'),make('span','lLbl',lbl));b.title=lbl;b.setAttribute('aria-label',b.title);b.id='adminLaunch';b.type='button';
  b.onclick=()=>openPanel();document.body.appendChild(b);
 }
 
@@ -118,7 +126,10 @@ const SECTIONS=[
  {id:'overview',fa:'نمای کلی',en:'Overview',icon:'📊',admin:true},
  {id:'users',fa:'کاربران',en:'Users',icon:'👥',admin:true},
  {id:'announce',fa:'اعلان‌های سایت',en:'Announcements',icon:'📣',admin:true},
+ {id:'home',fa:'میز مودریتور',en:'Moderator desk',icon:'🛡️',modOnly:true},
+ {id:'reports',fa:'گزارش‌های نظرها',en:'Review reports',icon:'🚩'},
  {id:'reviews',fa:'نظرها',en:'Reviews',icon:'💬'},
+ {id:'suspensions',fa:'تعلیق حساب‌ها',en:'Suspensions',icon:'⏳'},
  {id:'catalog',fa:'اصلاح آرشیو فیلم‌ها',en:'Film archive fixes',icon:'🎞️'},
  {id:'roles',fa:'نقش‌ها و سابقه',en:'Roles & history',icon:'🏷️'},
  {id:'audit',fa:'گزارش فعالیت',en:'Activity log',icon:'🧾'}
@@ -141,24 +152,27 @@ function drawNav(){
  navBox.replaceChildren();
  for(const s of SECTIONS){
   if(s.admin&&!isAdmin())continue;
+  if(s.modOnly&&isAdmin())continue;
   const b=make('button','apNavBtn'+(s.id===current?' on':''),s.icon+' '+T(s.fa,s.en));b.type='button';
   b.onclick=()=>show(s.id);navBox.appendChild(b);
  }
  dialog.querySelector('.apWho').textContent=[...myRoles].map(roleName).join(' · ');
+ dialog.querySelector('.apTitle h2').textContent=isAdmin()?T('پنل مدیریت','Staff panel'):T('میز مودریتور','Moderator desk');
+ dialog.classList.toggle('apModerator',!isAdmin());
 }
 async function openPanel(section){
  await loadMyRoles();
  if(!isStaff())return;
  if(!dialog)build();
  if(!dialog.open)dialog.showModal();
- show(section||(isAdmin()?'overview':'reviews'));
+ show(section||(isAdmin()?'overview':'home'));
 }
 function show(id){
  const meta=SECTIONS.find(s=>s.id===id);
- if(!meta||(meta.admin&&!isAdmin()))id=isAdmin()?'overview':'reviews';
+ if(!meta||(meta.admin&&!isAdmin())||(meta.modOnly&&isAdmin()))id=isAdmin()?'overview':'home';
  current=id;say('');drawNav();clearInterval(timer);
  main.replaceChildren(make('div','fsSkeleton'));
- const run={overview,users:usersView,announce:announceView,reviews:reviewsView,catalog:catalogView,roles:rolesView,audit:auditView}[id];
+ const run={overview,home:modHomeView,reports:reportsView,suspensions:suspensionsView,users:usersView,announce:announceView,reviews:reviewsView,catalog:catalogView,roles:rolesView,audit:auditView}[id];
  const serial=++renderSerial;
  Promise.resolve(run(serial)).catch(e=>{if(serial===renderSerial){main.replaceChildren();say(explain(e),true);}});
  if(id==='overview')timer=setInterval(()=>{if(dialog.open&&current==='overview')overview(++renderSerial,true).catch(()=>{});},30000);
@@ -300,13 +314,14 @@ async function drawer(u,tr,serial){
   if(!(u.roles||[]).includes('admin')){
    const sus=make('div','apSuspend');
    sus.appendChild(make('h4','',T('تعلیق حساب','Suspend account')));
-   sus.appendChild(make('p','apHint',u.banned?T('این حساب تعلیق است: وارد نمی‌شود و نمی‌تواند نظر یا لایک بگذارد. با بازگرداندن، دوباره عادی می‌شود.','This account is suspended: it cannot sign in, review or like. Restore to make it normal again.')
-    :T('حساب تعلیق‌شده نمی‌تواند وارد شود، نظر بگذارد یا لایک کند؛ اطلاعاتش حذف نمی‌شود و هر وقت خواستی بازش می‌گردانی.','A suspended account cannot sign in, review or like. Nothing is deleted and you can restore it any time.')));
-   sus.appendChild(confirmButton(u.banned?T('بازگرداندن حساب','Restore account'):T('تعلیق حساب','Suspend account'),async()=>{
-    await rpc('film_admin_set_ban',{p_user:u.user_id,p_ban:!u.banned});
-    say(u.banned?T('حساب بازگردانده شد.','Account restored.'):T('حساب تعلیق شد؛ ورودهای فعال او هم بسته شد.','Account suspended; its active sessions were closed.'));
+   sus.appendChild(make('p','apHint',u.banned?T('این حساب تعلیق است: وارد نمی‌شود و نمی‌تواند نظر یا لایک بگذارد. با رفع تعلیق، دوباره عادی می‌شود.','This account is suspended: it cannot sign in, review or like. Lifting the suspension makes it normal again.')
+    :T('مدت را انتخاب کن (از ۱ ساعت تا همیشگی) و دلیل را بنویس. حساب تعلیق‌شده نمی‌تواند وارد شود، نظر بگذارد یا لایک کند؛ اطلاعاتش حذف نمی‌شود.','Choose a length (1 hour to permanent) and write a reason. A suspended account cannot sign in, review or like; nothing is deleted.')));
+   if(u.banned)sus.appendChild(confirmButton(T('رفع تعلیق','Lift suspension'),async()=>{
+    await rpc('film_staff_lift',{p_user:u.user_id});
+    say(T('حساب بازگردانده شد.','Account restored.'));
     if(live(serial))usersView(serial);
-   },'btn'+(u.banned?' primary':' danger')));
+   },'btn primary'));
+   else sus.appendChild(suspendForm(u.user_id,()=>{if(live(serial))usersView(serial);}));
    box.appendChild(sus);
   }
   const zone=make('div','apDanger');zone.appendChild(make('h4','',T('حذف حساب','Delete account')));
@@ -331,6 +346,185 @@ async function drawer(u,tr,serial){
   for(const e of rows||[])hist.appendChild(auditLine(e,true));
  }catch(e){hist.appendChild(empty(explain(e)));}
 }
+
+/* ---------- moderator desk: durations, suspend form, home, reports, suspensions ---------- */
+const DURATIONS=[[1,'۱ ساعت','1 hour'],[6,'۶ ساعت','6 hours'],[12,'۱۲ ساعت','12 hours'],[24,'۱ روز','1 day'],[72,'۳ روز','3 days'],[168,'۱ هفته','1 week'],
+ [336,'۲ هفته','2 weeks'],[720,'۱ ماه','1 month'],[2160,'۳ ماه','3 months'],[4320,'۶ ماه','6 months'],[8760,'۱ سال','1 year'],[17520,'۲ سال','2 years'],
+ [43800,'۵ سال','5 years'],[87600,'۱۰ سال','10 years']];
+function durationLabel(h){
+ h=Number(h)||0;
+ const hit=DURATIONS.find(d=>d[0]===h);if(hit)return T(hit[1],hit[2]);
+ if(h>=876000)return T('همیشگی','permanently');
+ if(h%24===0)return T(num(h/24)+' روز',(h/24)+' days');
+ return T(num(h)+' ساعت',h+' hours');
+}
+function remaining(iso){
+ const ms=new Date(iso).getTime()-Date.now();
+ if(!(ms>0))return T('تمام شده','Over');
+ const h=ms/36e5;
+ if(h<1)return T(num(Math.max(1,Math.round(ms/6e4)))+' دقیقه مانده',Math.max(1,Math.round(ms/6e4))+' min left');
+ if(h<48)return T(num(Math.round(h))+' ساعت مانده',Math.round(h)+' h left');
+ if(h<24*90)return T(num(Math.round(h/24))+' روز مانده',Math.round(h/24)+' d left');
+ if(h<24*365*3)return T(num(Math.round(h/24/30))+' ماه مانده',Math.round(h/24/30)+' months left');
+ return T(num(Math.round(h/24/365))+' سال مانده',Math.round(h/24/365)+' years left');
+}
+function suspendForm(uid,after){
+ const box=make('div','apSusForm');
+ const sel=make('select');sel.setAttribute('aria-label',T('مدت تعلیق','Suspension length'));
+ for(const [h,f,e] of DURATIONS){const o=make('option','',T(f,e));o.value=String(h);if(h===24)o.selected=true;sel.appendChild(o);}
+ if(isAdmin()){const o=make('option','',T('همیشگی (۱۰۰ سال)','Permanent (100 years)'));o.value='876000';sel.appendChild(o);}
+ const why=make('input');why.maxLength=200;why.placeholder=T('دلیل تعلیق (الزامی)','Reason (required)');why.setAttribute('aria-label',why.placeholder);
+ const go=confirmButton(T('تعلیق حساب','Suspend account'),async()=>{
+  const reason=why.value.trim();
+  if(reason.length<3)throw Error('reason required');
+  await rpc('film_staff_suspend',{p_user:uid,p_hours:Number(sel.value),p_reason:reason});
+  say(T('حساب برای '+durationLabel(sel.value)+' تعلیق شد؛ ورودهای فعالش بسته شد و در گزارش فعالیت ثبت شد.','Account suspended for '+durationLabel(sel.value)+'; its sessions were closed and it is in the activity log.'));
+  if(after)after();
+ },'btn danger');
+ box.append(sel,why,go);
+ return box;
+}
+function section(title,content){const b=make('section','apBox');b.appendChild(make('h3','',title));if(content)b.appendChild(content);return b;}
+
+async function modHomeView(serial){
+ const [stats,mine]=await Promise.all([rpc('film_staff_stats'),api('/film_audit?select=*&actor=eq.'+ses.id+'&order=at.desc&limit=8')]);
+ if(!live(serial))return;
+ await fillNames((mine||[]).flatMap(a=>[a.actor,a.target_user]));
+ if(!live(serial))return;
+ const root=make('div','apStack');
+ const cards=make('div','apCards');
+ for(const [key,label,go] of [['open_reports',T('گزارش بازِ نظرها','Open review reports'),'reports'],['active_suspensions',T('حساب تعلیق‌شده','Suspended accounts'),'suspensions'],
+  ['reviews_24h',T('نظر در ۲۴ ساعت اخیر','Reviews in 24 h'),'reviews'],['my_actions_7d',T('کارهای من در ۷ روز','My actions in 7 days'),'audit']]){
+  const c=make('button','apCard apCardBtn'+(key==='open_reports'&&Number(stats?.[key])>0?' live':''));c.type='button';
+  c.append(make('strong','',num(stats?.[key])),make('span','',label));c.onclick=()=>show(go);cards.appendChild(c);
+ }
+ root.appendChild(cards);
+ const can=make('ul','apCan');
+ for(const t of [T('حذف نظرهای نامناسب و رسیدگی به گزارش‌ها','Delete inappropriate reviews and handle reports'),
+  T('تعلیق حساب از ۱ ساعت تا ۱۰ سال، همیشه با نوشتن دلیل؛ و برداشتن تعلیق‌هایی که خودت یا مودریتورها گذاشته‌اید','Suspend accounts from 1 hour up to 10 years, always with a reason; lift suspensions set by you or other moderators'),
+  T('اصلاح اطلاعات و پوستر فیلم‌ها برای همهٔ کاربران','Correct film details and posters for everyone'),
+  T('دیدن گزارش فعالیت همهٔ مدیریت','Read the staff activity log')])can.appendChild(make('li','',t));
+ const lim=make('ul','apCannot');
+ for(const t of [T('ایمیل کامل کاربران را نمی‌بیند و فهرست اعضا را باز نمی‌کند','Cannot see full e-mails or the member list'),
+  T('نقش‌ها را تغییر نمی‌دهد، حساب حذف نمی‌کند و اعلان سایت نمی‌گذارد','Cannot change roles, delete accounts or post announcements'),
+  T('ادمین‌ها و مودریتورها را نمی‌تواند تعلیق کند؛ حداکثر ۲۵ تعلیق در ۲۴ ساعت','Cannot suspend admins or moderators; at most 25 suspensions per 24 hours')])lim.appendChild(make('li','',t));
+ const two=make('div','apTwo');
+ two.append(section(T('کارهایی که می‌توانی انجام دهی','What you can do'),can),section(T('محدودیت‌های نقش مودریتور','Limits of the moderator role'),lim));
+ root.appendChild(two);
+ const hist=make('div');for(const e of mine||[])hist.appendChild(auditLine(e));
+ if(!(mine||[]).length)hist.appendChild(empty(T('هنوز کاری ثبت نشده.','Nothing logged yet.')));
+ root.appendChild(section(T('آخرین کارهای تو','Your latest actions'),hist));
+ main.replaceChildren(root);
+}
+
+async function reportsView(serial){
+ const root=make('div','apStack'),bar=make('div','apBar');
+ const sel=make('select');for(const [v,f,e] of [['open','باز','Open'],['all','همه (با سابقه)','All (with history)']]){const o=make('option','',T(f,e));o.value=v;sel.appendChild(o);}
+ sel.value=reportFilter;bar.append(sel);
+ const list=make('div');root.append(bar,list);main.replaceChildren(root);
+ sel.onchange=()=>{reportFilter=sel.value;load().catch(e=>say(explain(e),true));};
+ async function load(){
+  list.replaceChildren(make('div','fsSkeleton'));
+  const rows=await rpc('film_staff_reports',{p_status:reportFilter,p_limit:100});
+  if(!live(serial))return;
+  await fillNames((rows||[]).map(r=>r.author));
+  const wrap=make('div','apReviews');
+  for(const r of rows||[]){
+   const card=make('article','fsCard apReview');
+   const top=make('div','apLine');top.append(userCell(r.author));
+   const fb=make('button','fsFilm',r.film_title||('#'+r.film_id));fb.type='button';fb.onclick=()=>{dialog.close();window.filmDiscovery?.openFilm?.(Number(r.film_id));};
+   const st=make('span','apBadge apSt-'+r.status,{open:T('باز','Open'),removed:T('نظر حذف شد','Review removed'),dismissed:T('رد شد','Dismissed')}[r.status]||r.status);
+   top.append(fb,make('span','apGrow'),make('small','',T(num(r.reports_on_review)+' گزارش',r.reports_on_review+' report(s)')),make('small','',when(r.created_at)),st);
+   card.appendChild(top);
+   card.appendChild(make('p','apText',r.snippet||'—'));
+   card.appendChild(make('p','apHint',T('دلیل گزارش: ','Reason: ')+r.reason));
+   if(r.status==='open'){
+    const acts=make('div','apLine'),slot=make('div');
+    if(r.review_exists)acts.appendChild(confirmButton(T('حذف نظر','Delete review'),async()=>{
+     await rpc('film_staff_resolve_report',{p_id:r.id,p_action:'delete'});say(T('نظر حذف شد و در گزارش ثبت شد.','Review deleted and logged.'));load().catch(()=>{});},'btn danger'));
+    acts.appendChild(confirmButton(T('رد گزارش','Dismiss report'),async()=>{
+     await rpc('film_staff_resolve_report',{p_id:r.id,p_action:'dismiss'});say(T('گزارش رد شد.','Report dismissed.'));load().catch(()=>{});},'btn'));
+    if(r.author&&r.author!==ses.id){
+     const sus=make('button','btn',T('تعلیق نویسنده…','Suspend author…'));sus.type='button';
+     sus.onclick=()=>{if(slot.firstChild){slot.replaceChildren();return;}slot.appendChild(suspendForm(r.author,()=>load().catch(()=>{})));};
+     acts.appendChild(sus);
+    }
+    card.append(acts,slot);
+   }
+   wrap.appendChild(card);
+  }
+  if(!(rows||[]).length)wrap.appendChild(empty(reportFilter==='open'?T('گزارش بازی نیست. 🎉','No open reports. 🎉'):T('هنوز گزارشی ثبت نشده.','No reports yet.')));
+  list.replaceChildren(wrap);
+ }
+ await load();
+}
+
+async function suspensionsView(serial){
+ const root=make('div','apStack');
+ // find a member (by public name) and suspend them
+ const finder=make('div','apBar');
+ const q=make('input');q.type='search';q.placeholder=T('نام عمومی عضو را برای تعلیق جست‌وجو کن (دست‌کم ۲ حرف)…','Search a member’s public name to suspend (2+ letters)…');
+ const go=make('button','btn primary',T('جست‌وجو','Search'));go.type='button';
+ finder.append(q,go);
+ const found=make('div'),activeBox=make('div');
+ root.append(section(T('تعلیق یک عضو','Suspend a member'),(()=>{const w=make('div');w.append(finder,found);return w;})()),activeBox);
+ main.replaceChildren(root);
+ async function runSearch(){
+  const term=q.value.trim();found.replaceChildren();
+  if(term.length<2)return;
+  const rows=await rpc('film_staff_find_users',{p_search:term,p_limit:20});
+  if(!live(serial))return;
+  await fillNames((rows||[]).map(r=>r.user_id));
+  if(!(rows||[]).length){found.appendChild(empty(T('عضوی با این نام نیست.','No member with that name.')));return;}
+  for(const u of rows){
+   const row=make('div','apFound'),line=make('div','apLine');
+   const protectedUser=(u.roles||[]).some(r=>r==='admin'||(r==='moderator'&&!isAdmin()))||u.user_id===ses.id;
+   line.append(userCell(u.user_id),make('small','apLtr',u.email||''),badges(u.roles),make('span','apGrow'),make('small','',T(num(u.review_count)+' نظر',u.review_count+' reviews')));
+   const slot=make('div');
+   if(u.suspended_until){
+    line.appendChild(make('span','apBadge apSt-open','⏳ '+remaining(u.suspended_until)));
+    line.appendChild(confirmButton(T('رفع تعلیق','Lift suspension'),async()=>{await rpc('film_staff_lift',{p_user:u.user_id});say(T('تعلیق برداشته شد.','Suspension lifted.'));show('suspensions');},'btn primary'));
+   }else if(protectedUser){
+    line.appendChild(make('small','',u.user_id===ses.id?T('خودت','You'):T('قابل تعلیق نیست','Cannot be suspended')));
+   }else{
+    const b=make('button','btn danger',T('تعلیق…','Suspend…'));b.type='button';
+    b.onclick=()=>{if(slot.firstChild){slot.replaceChildren();return;}slot.appendChild(suspendForm(u.user_id,()=>show('suspensions')));};
+    line.appendChild(b);
+   }
+   row.append(line,slot);found.appendChild(row);
+  }
+ }
+ go.onclick=()=>runSearch().catch(e=>say(explain(e),true));
+ q.onkeydown=e=>{if(e.key==='Enter')go.onclick();};
+ // current suspensions (and history)
+ async function loadActive(){
+  activeBox.replaceChildren(make('div','fsSkeleton'));
+  const rows=await rpc('film_staff_suspensions',{p_active_only:!showHistory,p_limit:150});
+  if(!live(serial))return;
+  await fillNames((rows||[]).flatMap(r=>[r.user_id,r.imposed_by]));
+  const box=make('section','apBox');
+  const head=make('div','apLine');head.append(make('h3','apGrow',(showHistory?T('همهٔ تعلیق‌ها (سابقه)','All suspensions (history)'):T('تعلیق‌های فعال','Active suspensions'))+' — '+num((rows||[]).length)));
+  const toggle=make('button','btn',showHistory?T('فقط فعال‌ها','Active only'):T('نمایش سابقه','Show history'));toggle.type='button';
+  toggle.onclick=()=>{showHistory=!showHistory;loadActive().catch(e=>say(explain(e),true));};head.appendChild(toggle);box.appendChild(head);
+  if(!(rows||[]).length)box.appendChild(empty(T('تعلیقی نیست.','No suspensions.')));
+  else{
+   const trs=[];
+   for(const r of rows){
+    const tr=make('tr',r.is_active?'':'apMuted');
+    tr.append(cell(userCell(r.user_id)),cell(r.email||'','apLtr'),cell(r.reason||''),cell(when(r.starts_at)),
+     cell(r.is_active?when(r.until)+' · '+remaining(r.until):(r.lifted_at?T('برداشته شد ','Lifted ')+when(r.lifted_at):T('تمام شد','Expired'))),
+     cell(r.imposed_by?labelOf(r.imposed_by):'—'));
+    const act=make('td');
+    if(r.is_active)act.appendChild(confirmButton(T('رفع تعلیق','Lift'),async()=>{await rpc('film_staff_lift',{p_user:r.user_id});say(T('تعلیق برداشته شد.','Suspension lifted.'));loadActive().catch(()=>{});},'btn'));
+    tr.appendChild(act);trs.push(tr);
+   }
+   box.appendChild(table([T('عضو','Member'),T('ایمیل','E-mail'),T('دلیل','Reason'),T('شروع','Start'),T('پایان / وضعیت','End / status'),T('توسط','By'),''],trs));
+  }
+  activeBox.replaceChildren(box);
+ }
+ await loadActive();
+}
+let reportFilter='open',showHistory=false;
 
 /* ---------- announcements (admin) ---------- */
 async function announceView(serial){
@@ -402,7 +596,13 @@ async function reviewsView(serial){
     if(!gone?.length)throw Error('403');
     say(T('نظر حذف شد و در گزارش ثبت شد.','Review deleted and logged.'));card.remove();
    },'btn danger'));
-   card.appendChild(acts);wrap.appendChild(card);
+   const slot=make('div'),theirs=rolesMap.get(r.user_id)||[];
+   if(r.user_id!==ses.id&&!theirs.includes('admin')&&!(theirs.includes('moderator')&&!isAdmin())){
+    const sus=make('button','btn',T('تعلیق نویسنده…','Suspend author…'));sus.type='button';
+    sus.onclick=()=>{if(slot.firstChild){slot.replaceChildren();return;}slot.appendChild(suspendForm(r.user_id));};
+    acts.appendChild(sus);
+   }
+   card.append(acts,slot);wrap.appendChild(card);
   }
   if(!(rows||[]).length)wrap.appendChild(empty(T('نظری با این فیلتر نیست.','No reviews match.')));
   const nav=make('div','apPager');
@@ -506,7 +706,8 @@ function auditLine(e,short){
   catalog_edit:T(`${actor} اطلاعات فیلم ${film} را اصلاح کرد`,`${actor} corrected film ${film}`)+(e.detail?.fields?.length?' ('+e.detail.fields.join(', ')+')':'')+(e.detail?.hidden?T(' · مخفی شد',' · hidden'):''),
   catalog_reset:T(`${actor} اصلاح فیلم ${film} را برگرداند`,`${actor} reset film ${film}`),
   user_deleted:T(`${actor} حساب ${e.detail?.email||target} را حذف کرد`,`${actor} deleted the account ${e.detail?.email||target}`),
-  user_suspended:T(`${actor} حساب ${e.detail?.email||target} را تعلیق کرد`,`${actor} suspended ${e.detail?.email||target}`),
+  user_suspended:T(`${actor} حساب ${e.detail?.email||target} را ${e.detail?.hours?durationLabel(e.detail.hours):''} تعلیق کرد`,`${actor} suspended ${e.detail?.email||target}${e.detail?.hours?' for '+durationLabel(e.detail.hours):''}`)+(e.detail?.reason?` — «${String(e.detail.reason).slice(0,80)}»`:''),
+  report_dismissed:T(`${actor} گزارش یک نظر را رد کرد`,`${actor} dismissed a review report`),
   user_restored:T(`${actor} حساب ${e.detail?.email||target} را بازگرداند`,`${actor} restored ${e.detail?.email||target}`),
   announcement_insert:T(`${actor} اعلان تازه گذاشت: «${e.detail?.message||''}»`,`${actor} posted an announcement: “${e.detail?.message||''}”`),
   announcement_update:T(`${actor} اعلان «${e.detail?.message||''}» را ${e.detail?.active?'فعال':'غیرفعال'} کرد`,`${actor} ${e.detail?.active?'enabled':'disabled'} the announcement “${e.detail?.message||''}”`),

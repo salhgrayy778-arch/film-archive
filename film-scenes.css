@@ -1,0 +1,196 @@
+/* ROUND 9 — new animated backgrounds, one "film world" per section (see film-scenes.js for the list and references).
+ * Original abstract artwork made only of CSS gradients; only transform/opacity are animated. Loaded after the older
+ * layers, which are switched off here so nothing double-paints. */
+
+/* the old layers: projector beam + atmosphere image, grid, sprocket holes, floating reels/camera/moon */
+body::before,body::after,html::after{display:none!important}
+.fx{display:none!important}
+html,body{background:var(--bg)!important}
+
+#filmScene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;contain:strict}
+main{position:relative;z-index:1}
+
+/* theme-aware knobs: dark themes glow (screen), light themes ink (multiply) */
+#filmScene,.sceneIn{--c1:var(--accent2);--c2:var(--gold);--blend:screen;--dim:1;--dot:#fff;--scene-o:1;--gl:75%;--bld-a:color-mix(in srgb,var(--bg) 40%,#000);--bld-b:color-mix(in srgb,var(--bg) 78%,#000)}
+:root[data-theme="light"] #filmScene,:root[data-theme="forest"] #filmScene,:root[data-theme="desert"] #filmScene,
+:root[data-theme="light"] .sceneIn,:root[data-theme="forest"] .sceneIn,:root[data-theme="desert"] .sceneIn{--blend:multiply;--dim:.62;--dot:var(--ink);--scene-o:.9;--gl:32%;--bld-a:color-mix(in srgb,var(--bg) 68%,var(--c1));--bld-b:color-mix(in srgb,var(--bg) 88%,var(--c1))}
+@media (prefers-color-scheme:light){
+ :root:not([data-theme]) #filmScene,:root:not([data-theme]) .sceneIn{--blend:multiply;--dim:.62;--dot:var(--ink);--scene-o:.9;--gl:32%;--bld-a:color-mix(in srgb,var(--bg) 68%,var(--c1));--bld-b:color-mix(in srgb,var(--bg) 88%,var(--c1))}
+}
+
+.sc{position:absolute;inset:0;display:none;opacity:0;overflow:hidden;transition:opacity .9s ease}
+.sc.on{opacity:var(--scene-o)}
+.sc *{position:absolute;display:block}
+.sc-glow{inset:0}
+.sceneIn{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;opacity:.6;border-radius:inherit}
+.sceneIn .sc{display:block;opacity:1}
+body.cinema #filmScene,body.roomFocus #filmScene{display:none}
+
+/* stop all motion when the tab is hidden, a dialog covers the page, or the visitor asks for less motion */
+html.sceneIdle .sc,html.sceneIdle .sc *{animation-play-state:paused!important}
+body:has(dialog[open]) #filmScene .sc *{animation-play-state:paused!important}
+@media (prefers-reduced-motion:reduce){.sc,.sc *{animation:none!important}}
+@media (max-width:700px){.sc .lite{display:none}}
+
+/* ---------- 1) news: Premiere Night ---------- */
+.sc-news .sc-glow{background:
+ radial-gradient(120% 70% at 50% 112%,color-mix(in srgb,var(--c2) 26%,transparent),transparent 62%),
+ radial-gradient(90% 60% at 50% -12%,color-mix(in srgb,var(--c1) 20%,transparent),transparent 70%),
+ linear-gradient(180deg,color-mix(in srgb,var(--bg) 84%,var(--c1) 16%),var(--bg) 72%)}
+.news-beam{left:var(--x);bottom:-5vh;width:24vw;margin-left:-12vw;height:128vh;transform-origin:50% 100%;
+ animation:scNews var(--d) ease-in-out var(--w) infinite alternate;will-change:transform}
+.news-beam i{inset:0;background:linear-gradient(0deg,color-mix(in srgb,var(--c2) 62%,transparent),transparent 88%);
+ clip-path:polygon(45% 100%,55% 100%,100% 0,0 0);mix-blend-mode:var(--blend);opacity:calc(.5*var(--dim))}
+@keyframes scNews{from{transform:rotate(var(--a))}to{transform:rotate(var(--b))}}
+.news-flash{left:var(--x);top:var(--y);width:var(--s);height:var(--s);margin:calc(var(--s)/-2) 0 0 calc(var(--s)/-2);border-radius:50%;
+ background:radial-gradient(circle,#fff 0 14%,color-mix(in srgb,var(--c2) 70%,transparent) 32%,transparent 68%);opacity:0;
+ animation:scFlash var(--d) linear var(--w) infinite}
+@keyframes scFlash{0%,86%,100%{opacity:0;transform:scale(.3)}90%{opacity:var(--dim);transform:scale(1.6)}95%{opacity:0;transform:scale(2.4)}}
+.news-tape{left:-12%;width:124%;height:22px;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--c2) 34%,transparent) 0 26px,transparent 26px 76px);
+ opacity:calc(.22*var(--dim))}
+.news-tape.t1{bottom:9vh;animation:scTape 11s linear infinite}
+.news-tape.t2{bottom:13vh;height:10px;animation:scTape 17s linear infinite reverse}
+@keyframes scTape{from{transform:translate3d(0,0,0)}to{transform:translate3d(-76px,0,0)}}
+
+/* ---------- 2) search: Noir Detective ---------- */
+.sc-search .sc-glow{background:
+ radial-gradient(70% 55% at 22% 18%,color-mix(in srgb,var(--c2) 18%,transparent),transparent 70%),
+ linear-gradient(165deg,color-mix(in srgb,var(--bg) 86%,var(--c1) 14%),var(--bg) 60%,color-mix(in srgb,var(--bg) 88%,#000))}
+.noir-blinds{inset:-30% -10%;-webkit-mask-image:radial-gradient(60% 55% at 32% 30%,#000,transparent 78%);mask-image:radial-gradient(60% 55% at 32% 30%,#000,transparent 78%);
+ mix-blend-mode:var(--blend);opacity:calc(.85*var(--dim))}
+.noir-blinds i{inset:0;background:repeating-linear-gradient(180deg,transparent 0 46px,color-mix(in srgb,var(--c2) 26%,transparent) 46px 82px);
+ transform:rotate(-16deg);animation:scBlinds 26s linear infinite}
+@keyframes scBlinds{from{transform:rotate(-16deg) translateY(0)}to{transform:rotate(-16deg) translateY(82px)}}
+.noir-smoke{left:var(--x);bottom:-30%;width:var(--s);height:var(--s);margin-left:calc(var(--s)/-2);border-radius:50%;opacity:0;
+ background:radial-gradient(circle,color-mix(in srgb,var(--ink) 15%,transparent),transparent 66%);animation:scSmoke var(--d) ease-in var(--w) infinite}
+@keyframes scSmoke{0%{transform:translate3d(0,0,0) scale(.6);opacity:0}15%{opacity:calc(.8*var(--dim))}100%{transform:translate3d(9vw,-125vh,0) scale(1.7);opacity:0}}
+.noir-rain{left:var(--x);top:-110px;width:1px;height:var(--h);background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--ink) 36%,transparent));
+ animation:scRain var(--d) linear var(--w) infinite}
+@keyframes scRain{from{transform:translate3d(0,-8vh,0) rotate(14deg)}to{transform:translate3d(-30vh,118vh,0) rotate(14deg)}}
+.noir-lens{left:10%;top:28%;width:min(26vmin,230px);aspect-ratio:1;border:3px solid color-mix(in srgb,var(--c2) 60%,transparent);border-radius:50%;
+ box-shadow:inset 0 0 40px color-mix(in srgb,var(--c2) 20%,transparent);opacity:calc(.4*var(--dim));animation:scLens 38s ease-in-out infinite alternate}
+.noir-lens i{right:-30%;bottom:-16%;width:44%;height:7px;border-radius:6px;background:color-mix(in srgb,var(--c2) 60%,transparent);transform:rotate(45deg);transform-origin:0 50%}
+@keyframes scLens{from{transform:translate3d(0,0,0) rotate(-8deg)}to{transform:translate3d(58vw,16vh,0) rotate(10deg)}}
+
+/* ---------- 3) film page: Deep Space ---------- */
+.sc-film .sc-glow{background:
+ radial-gradient(60% 50% at 78% 28%,color-mix(in srgb,var(--c2) 18%,transparent),transparent 70%),
+ radial-gradient(90% 70% at 12% 100%,color-mix(in srgb,var(--c1) 16%,transparent),transparent 70%),
+ linear-gradient(180deg,color-mix(in srgb,var(--bg) 80%,#000),var(--bg))}
+.space-stars{left:0;top:0;border-radius:50%;background:currentColor;color:var(--dot);animation:scDrift 240s linear infinite}
+.space-stars.s2{animation-duration:150s}.space-stars.s3{animation-duration:90s}
+.space-stars.twin{top:-100vh}
+@keyframes scDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,100vh,0)}}
+.space-hole{right:7%;top:12%;width:min(46vmin,420px);aspect-ratio:1;perspective:900px;opacity:calc(.9*var(--dim))}
+.space-hole .halo{inset:8%;border-radius:50%;background:radial-gradient(circle,transparent 40%,color-mix(in srgb,var(--c2) 60%,transparent) 46%,transparent 66%);animation:scPulse 9s ease-in-out infinite alternate}
+.space-hole .disc{inset:-14% -34%;border-radius:50%;
+ background:conic-gradient(from 0deg,transparent,color-mix(in srgb,var(--c2) 80%,transparent),color-mix(in srgb,var(--c1) 55%,transparent),transparent 52%,color-mix(in srgb,var(--c2) 80%,transparent),transparent);
+ -webkit-mask-image:radial-gradient(closest-side,transparent 50%,#000 56%,#000 66%,transparent 74%);mask-image:radial-gradient(closest-side,transparent 50%,#000 56%,#000 66%,transparent 74%);
+ transform:rotateX(74deg);animation:scDisc 46s linear infinite}
+.space-hole .core{inset:27%;border-radius:50%;background:#04060a;box-shadow:0 0 60px 8px color-mix(in srgb,var(--c2) 38%,transparent)}
+@keyframes scDisc{from{transform:rotateX(74deg) rotateZ(0)}to{transform:rotateX(74deg) rotateZ(360deg)}}
+@keyframes scPulse{from{transform:scale(.96);opacity:.7}to{transform:scale(1.05);opacity:1}}
+.space-slab{left:11%;bottom:-2vh;width:min(9vmin,72px);height:min(27vmin,220px);background:linear-gradient(90deg,#000,#141a22 42%,#000);
+ border:1px solid color-mix(in srgb,var(--c1) 40%,transparent);box-shadow:0 0 44px color-mix(in srgb,var(--c1) 28%,transparent);opacity:calc(.8*var(--dim));animation:scSlab 15s ease-in-out infinite alternate}
+@keyframes scSlab{from{transform:translate3d(0,0,0) rotate(-1deg)}to{transform:translate3d(0,-16px,0) rotate(1.2deg)}}
+.space-comet{top:-6vh;left:72%;width:2px;height:130px;background:linear-gradient(180deg,transparent,var(--dot));opacity:0;animation:scComet 13s linear infinite}
+.space-comet.c2{left:28%;animation-delay:-6s}
+@keyframes scComet{0%,88%{opacity:0;transform:translate3d(0,0,0) rotate(35deg)}90%{opacity:calc(.9*var(--dim))}100%{opacity:0;transform:translate3d(-48vh,68vh,0) rotate(35deg)}}
+
+/* ---------- 4) diary: Projection Booth ---------- */
+.sc-diary .sc-glow{background:
+ radial-gradient(80% 60% at 85% 0%,color-mix(in srgb,var(--c2) 24%,transparent),transparent 70%),
+ linear-gradient(180deg,color-mix(in srgb,var(--bg) 82%,var(--c2) 18%),var(--bg) 70%)}
+.booth-cone{top:-6vh;right:-6vw;width:80vw;height:118vh;background:linear-gradient(255deg,color-mix(in srgb,var(--c2) 44%,transparent),transparent 64%);
+ clip-path:polygon(100% 0,100% 7%,0 100%,0 40%);mix-blend-mode:var(--blend);opacity:calc(.55*var(--dim));animation:scFlicker 7s ease-in-out infinite}
+@keyframes scFlicker{0%,100%{opacity:calc(.55*var(--dim))}18%{opacity:calc(.46*var(--dim))}22%{opacity:calc(.58*var(--dim))}60%{opacity:calc(.5*var(--dim))}}
+.booth-dust{left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:color-mix(in srgb,var(--c2) 70%,#fff);opacity:0;animation:scDust var(--d) ease-in-out var(--w) infinite}
+@keyframes scDust{0%{transform:translate3d(0,0,0);opacity:0}20%{opacity:calc(.85*var(--dim))}50%{transform:translate3d(var(--dx),-18vh,0)}80%{opacity:calc(.6*var(--dim))}100%{transform:translate3d(calc(var(--dx)*-.6),-38vh,0);opacity:0}}
+.booth-strip{top:-6vh;bottom:-6vh;width:76px;overflow:hidden;opacity:calc(.3*var(--dim))}
+.booth-strip.left{left:2vw}.booth-strip.right{right:2vw}
+.booth-strip .run{inset:0 0 -160px 0;border-inline:2px solid color-mix(in srgb,var(--ink) 55%,transparent);animation:scFilm 5s linear infinite;
+ background:
+  linear-gradient(180deg,transparent 12px,color-mix(in srgb,var(--ink) 70%,transparent) 12px 28px,transparent 28px) left 6px top 0/10px 40px repeat-y,
+  linear-gradient(180deg,transparent 12px,color-mix(in srgb,var(--ink) 70%,transparent) 12px 28px,transparent 28px) right 6px top 0/10px 40px repeat-y,
+  linear-gradient(180deg,color-mix(in srgb,var(--ink) 16%,transparent) 0 144px,transparent 144px 160px) center top/40px 160px repeat-y}
+.booth-strip .run.rev{animation-direction:reverse}
+@keyframes scFilm{from{transform:translate3d(0,-160px,0)}to{transform:translate3d(0,0,0)}}
+
+/* ---------- 5) dashboard: Neon City ---------- */
+.sc-dash .sc-glow{background:
+ linear-gradient(180deg,color-mix(in srgb,var(--bg) 72%,var(--c1) 28%) 0%,color-mix(in srgb,var(--bg) 70%,var(--c2) 30%) 60%,var(--bg) 100%)}
+.neon-sun{left:0;right:0;margin-inline:auto;top:20%;width:min(40vmin,360px);aspect-ratio:1;border-radius:50%;
+ box-shadow:0 0 110px 10px color-mix(in srgb,var(--c2) 45%,transparent);animation:scSun 9s ease-in-out infinite alternate;opacity:calc(.95*var(--dim))}
+.neon-sun i{inset:0;border-radius:50%;background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 92%,#fff),color-mix(in srgb,var(--c1) 85%,#f0f));
+ -webkit-mask:linear-gradient(#000,#000) top/100% 52% no-repeat,repeating-linear-gradient(180deg,#000 0 12px,transparent 12px 20px) bottom/100% 48% no-repeat;
+ mask:linear-gradient(#000,#000) top/100% 52% no-repeat,repeating-linear-gradient(180deg,#000 0 12px,transparent 12px 20px) bottom/100% 48% no-repeat}
+@keyframes scSun{from{transform:scale(1)}to{transform:scale(1.06)}}
+.neon-skyline{left:0;right:0;bottom:33vh;height:130px}
+.neon-skyline>i{bottom:0;background:linear-gradient(180deg,var(--bld-a),var(--bld-b));border-top:1px solid color-mix(in srgb,var(--c1) 40%,transparent)}
+.neon-skyline u{width:3px;height:3px;background:var(--c2);box-shadow:0 0 7px var(--c2);animation:scBlink var(--d) steps(2,end) var(--w) infinite}
+@keyframes scBlink{0%{opacity:.15}50%{opacity:.95}}
+.neon-floor{left:0;right:0;bottom:0;height:33vh;overflow:hidden;perspective:340px;perspective-origin:50% 0;
+ -webkit-mask-image:linear-gradient(180deg,transparent,#000 35%);mask-image:linear-gradient(180deg,transparent,#000 35%);
+ background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 60%,#000),var(--bg))}
+.neon-floor i{left:-60%;right:-60%;top:0;height:200%;transform-origin:50% 0;transform:rotateX(68deg);
+ background:linear-gradient(90deg,color-mix(in srgb,var(--c1) var(--gl),transparent) 2px,transparent 2px) 0 0/64px 64px,
+            linear-gradient(0deg,color-mix(in srgb,var(--c1) var(--gl),transparent) 2px,transparent 2px) 0 0/64px 64px;
+ animation:scGrid 1.7s linear infinite}
+@keyframes scGrid{from{transform:rotateX(68deg) translateY(-64px)}to{transform:rotateX(68deg) translateY(0)}}
+.neon-rain{left:var(--x);top:-140px;width:2px;height:var(--h);background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--c1) 70%,transparent));opacity:calc(.5*var(--dim));animation:scNRain var(--d) linear var(--w) infinite}
+@keyframes scNRain{from{transform:translate3d(0,-6vh,0)}to{transform:translate3d(-6vh,118vh,0)}}
+
+/* ---------- 6) group watch: Grand Theatre ---------- */
+.sc-room .sc-glow{background:
+ radial-gradient(70% 55% at 50% 0%,color-mix(in srgb,var(--c2) 18%,transparent),transparent 70%),
+ linear-gradient(180deg,color-mix(in srgb,#7a1020 30%,var(--bg)),var(--bg) 78%)}
+.hall-curtain{top:-2vh;bottom:18vh;width:19vw;min-width:96px;transform-origin:50% 0;
+ background:repeating-linear-gradient(90deg,color-mix(in srgb,#7d1428 82%,#000) 0 16px,color-mix(in srgb,#b5233c 78%,#000) 16px 34px,color-mix(in srgb,#7d1428 82%,#000) 34px 52px);
+ box-shadow:inset -18px 0 36px rgba(0,0,0,.35);opacity:calc(.5*var(--dim) + .08)}
+.hall-curtain.left{left:0;border-radius:0 0 70% 0/0 0 9% 0;animation:scSwayL 10s ease-in-out infinite alternate}
+.hall-curtain.right{right:0;border-radius:0 0 0 70%/0 0 0 9%;animation:scSwayR 12s ease-in-out infinite alternate}
+.hall-curtain i{top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--c2),transparent 85%)}
+.hall-curtain.left i{right:0}.hall-curtain.right i{left:0}
+@keyframes scSwayL{from{transform:skewX(-1.2deg) scaleX(1)}to{transform:skewX(1.6deg) scaleX(1.035)}}
+@keyframes scSwayR{from{transform:skewX(1.2deg) scaleX(1)}to{transform:skewX(-1.6deg) scaleX(1.035)}}
+.hall-spot{top:-6vh;left:14%;width:34vw;height:112vh;transform-origin:50% 0;background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 55%,transparent),transparent 78%);
+ clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);mix-blend-mode:var(--blend);opacity:calc(.34*var(--dim));animation:scSpot 13s ease-in-out infinite alternate}
+.hall-spot.b{left:52%;animation-duration:17s;animation-delay:-5s}
+@keyframes scSpot{from{transform:rotate(-15deg)}to{transform:rotate(15deg)}}
+.hall-corn{left:var(--x);bottom:-34px;width:var(--s);height:var(--s);border-radius:46% 54% 50% 50%;background:radial-gradient(circle at 35% 35%,#fff7d6,#f3d27a 70%,#d9a441);opacity:0;animation:scCorn var(--d) linear var(--w) infinite}
+@keyframes scCorn{0%{transform:translate3d(0,0,0) rotate(0);opacity:0}8%{opacity:calc(.85*var(--dim))}92%{opacity:calc(.7*var(--dim))}100%{transform:translate3d(var(--dx),-112vh,0) rotate(var(--rot));opacity:0}}
+.hall-crowd{left:0;right:0;bottom:-4px;height:96px;display:flex;justify-content:space-around;align-items:flex-end;padding-inline:2vw}
+.hall-crowd i{position:relative;flex:none;width:var(--w2);height:var(--h);border-radius:50% 50% 8% 8%/70% 70% 6% 6%;background:color-mix(in srgb,#000 84%,var(--bg));animation:scBob var(--d) ease-in-out var(--w) infinite alternate}
+.hall-crowd i::before{content:"";position:absolute;left:50%;top:-52%;width:56%;aspect-ratio:1;margin-left:-28%;border-radius:50%;background:inherit}
+@keyframes scBob{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,-5px,0)}}
+
+/* ---------- 7) friends dialog: Lantern Night ---------- */
+.sc-friends .sc-glow{background:
+ radial-gradient(80% 60% at 50% 110%,color-mix(in srgb,var(--c2) 24%,transparent),transparent 70%),
+ linear-gradient(180deg,color-mix(in srgb,var(--bg) 66%,#3a2b86 34%),color-mix(in srgb,var(--bg) 84%,var(--c1) 16%))}
+.lan-star{left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:var(--dot);animation:scTwinkle var(--d) ease-in-out var(--w) infinite}
+@keyframes scTwinkle{0%,100%{opacity:.15}50%{opacity:calc(.95*var(--dim))}}
+.lan-lantern{left:var(--x);bottom:-70px;width:var(--s);height:calc(var(--s)*1.25);border-radius:30% 30% 40% 40%;opacity:0;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 88%,#fff),color-mix(in srgb,var(--c2) 70%,#f60));box-shadow:0 0 calc(var(--s)*1.3) color-mix(in srgb,var(--c2) 70%,transparent);animation:scLantern var(--d) ease-in var(--w) infinite}
+@keyframes scLantern{0%{transform:translate3d(0,0,0);opacity:0}10%{opacity:calc(.9*var(--dim))}50%{transform:translate3d(var(--dx),-55vh,0)}100%{transform:translate3d(calc(var(--dx)*-1),-118vh,0);opacity:0}}
+.lan-fly{left:var(--x);top:var(--y);width:4px;height:4px;border-radius:50%;background:color-mix(in srgb,var(--c2) 80%,#fff);box-shadow:0 0 9px 2px color-mix(in srgb,var(--c2) 70%,transparent);opacity:0;animation:scFly var(--d) ease-in-out var(--w) infinite}
+@keyframes scFly{0%,100%{transform:translate3d(0,0,0);opacity:0}25%{opacity:calc(.9*var(--dim))}50%{transform:translate3d(var(--dx),var(--dy),0)}75%{opacity:calc(.5*var(--dim))}}
+
+/* ---------- 8) critic desk: Walk of Fame ---------- */
+.sc-critic .sc-glow{background:
+ radial-gradient(70% 60% at 50% -5%,color-mix(in srgb,var(--c2) 26%,transparent),transparent 72%),
+ linear-gradient(180deg,color-mix(in srgb,var(--bg) 86%,var(--c2) 14%),var(--bg))}
+.fame-spot{top:-6vh;left:50%;width:70%;height:112%;margin-left:-35%;transform-origin:50% 0;clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);
+ background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 40%,transparent),transparent 80%);mix-blend-mode:var(--blend);opacity:calc(.4*var(--dim));animation:scSpot 14s ease-in-out infinite alternate}
+.fame-star{left:var(--x);top:-40px;width:var(--s);height:var(--s);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+ background:linear-gradient(135deg,color-mix(in srgb,var(--c2) 90%,#fff),color-mix(in srgb,var(--c2) 70%,#a60));opacity:0;animation:scStar var(--d) linear var(--w) infinite}
+@keyframes scStar{0%{transform:translate3d(0,0,0) rotate(0);opacity:0}8%{opacity:calc(.85*var(--dim))}92%{opacity:calc(.7*var(--dim))}100%{transform:translate3d(var(--dx),112vh,0) rotate(var(--rot));opacity:0}}
+
+/* ---------- 9) staff panel: Control Room ---------- */
+.sc-staff .sc-glow{background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 90%,var(--c1) 10%),var(--bg))}
+.ctl-radar{right:-14vmin;bottom:-14vmin;width:68vmin;aspect-ratio:1;border-radius:50%;opacity:calc(.5*var(--dim));
+ background:repeating-radial-gradient(circle,transparent 0 10%,color-mix(in srgb,var(--c1) 30%,transparent) 10% 10.7%)}
+.ctl-radar::after{content:"";inset:0;border-radius:50%;background:conic-gradient(from 0deg,color-mix(in srgb,var(--c1) 50%,transparent),transparent 26%);animation:scSpin 8s linear infinite}
+@keyframes scSpin{to{transform:rotate(360deg)}}
+.ctl-col{left:var(--x);top:-45vh;white-space:pre;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace;color:color-mix(in srgb,var(--c1) 80%,#9f9);opacity:calc(var(--o)*var(--dim));animation:scCode var(--d) linear var(--w) infinite}
+@keyframes scCode{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,160vh,0)}}

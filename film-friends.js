@@ -96,10 +96,45 @@ function openFilmPage(id){
  const dlg=$('filmFriendsDialog');if(dlg?.open)dlg.close();
  if(window.filmDiscovery?.openFilm)window.filmDiscovery.openFilm(Number(id));else location.href='?film='+encodeURIComponent(id);
 }
-function filmButton(id,title){
- const a=make('a','fsFilm',title||T('صفحه فیلم','Film page'));a.href='?film='+encodeURIComponent(id);
- a.onclick=e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;e.preventDefault();openFilmPage(id);};
+function filmButton(id,title,review){
+ const a=make('a','fsFilm',title||T('صفحه فیلم','Film page'));
+ a.href='?film='+encodeURIComponent(id)+(review&&review.id?'&review='+encodeURIComponent(review.id):'');
+ a.onclick=e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;e.preventDefault();if(review)goToReview(review);else openFilmPage(id);};
  return a;
+}
+/* ---------- jump to a review: film page, scroll to it, highlight it ---------- */
+let pendingFocus=null,focusFilm=0;
+function goToReview(r){
+ const film=Number(r&&r.film_id);if(!Number.isSafeInteger(film)||film<1)return;
+ pendingFocus=r.id?{id:Number(r.id),film}:null;
+ openFilmPage(film);
+ try{const u=new URL(location.href);u.searchParams.set('film',String(film));if(r.id)u.searchParams.set('review',String(r.id));else u.searchParams.delete('review');history.replaceState(history.state,'',u);}catch(e){}
+ // The film page may already be open with its reviews loaded: try right away, the render path tries again after loading.
+ setTimeout(()=>{if(reviewHost&&reviewHost.isConnected)focusPending(reviewHost,true);},350);
+}
+function focusPending(host,quiet){
+ if(!pendingFocus||pendingFocus.film!==focusFilm)return false;
+ const card=host.querySelector('.fsReview[data-rid="'+pendingFocus.id+'"]');
+ if(!card)return false;
+ pendingFocus=null;
+ card.classList.add('fsFlash');
+ try{card.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){card.scrollIntoView();}
+ setTimeout(()=>card.classList.remove('fsFlash'),3600);
+ return true;
+}
+/* Make a whole card (not just its small film link) open its review on the film page. */
+function reviewLink(el,r){
+ if(!r||!r.film_id)return el;
+ el.classList.add('fsClickable');el.tabIndex=0;el.setAttribute('role','link');
+ el.title=T('رفتن به این نظر در صفحهٔ فیلم','Open this review on the film page');
+ const go=()=>goToReview(r);
+ el.addEventListener('click',e=>{
+  if(e.target.closest&&e.target.closest('a,button,input,textarea,select,.fsLike,[role="button"]'))return;
+  try{if(String(window.getSelection()||'').length)return;}catch(_){}
+  go();
+ });
+ el.addEventListener('keydown',e=>{if(e.target!==el)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});
+ return el;
 }
 const relTime=iso=>{try{return new Date(iso).toLocaleDateString(typeof LOC!=='undefined'?LOC:undefined,{year:'numeric',month:'short',day:'numeric'});}catch(e){return '';}};
 const note=text=>{const n=$('filmFriendsMessage');if(n)n.textContent=text||'';};
@@ -225,16 +260,24 @@ function friendCard(uid,profile,role,lastReview){
   if(!url&&filmId&&window.filmDiscovery?.posterFor)url=window.filmDiscovery.posterFor({id:Number(filmId)})||'';
   if(url){const img=make('img');img.loading='lazy';img.alt='';img.src=url;img.onerror=()=>img.remove();cover.appendChild(img);}
   const info=make('span','fsMiniInfo');
-  info.appendChild(filmId?filmButton(filmId,last.title):make('b','',last.title||''));
+  const sameReview=lastReview&&filmId&&String(lastReview.film_id)===filmId?lastReview:null;
+  info.appendChild(filmId?filmButton(filmId,last.title,sameReview):make('b','',last.title||''));
   if(last.year)info.appendChild(make('small','fsDate',last.year));
   if(last.rating)info.appendChild(score(last.rating));
   row.append(cover,info);sec1.appendChild(row);
+  if(filmId){
+   row.classList.add('fsClickable');row.tabIndex=0;row.setAttribute('role','link');
+   const go=()=>{if(sameReview)goToReview(sameReview);else openFilmPage(filmId);};
+   row.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('a,button'))return;go();});
+   row.addEventListener('keydown',e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();go();}});
+  }
  }else sec1.appendChild(make('p','fsEmpty',profile?.watched===undefined?T('این بخش هنوز فعال نشده است.','Not available yet.'):T('هنوز فیلمی ثبت نکرده.','Nothing logged yet.')));
  const sec2=make('div','fsMini');sec2.appendChild(make('small','fsMiniLabel',T('آخرین نظر و امتیاز','Latest review & score')));
  if(lastReview){
-  const l=make('p','fsFilmLine');l.append(filmButton(lastReview.film_id,lastReview.film_title));if(lastReview.rating)l.append(' ',score(lastReview.rating));
+  const l=make('p','fsFilmLine');l.append(filmButton(lastReview.film_id,lastReview.film_title,lastReview));if(lastReview.rating)l.append(' ',score(lastReview.rating));
   l.appendChild(make('small','fsDate',relTime(lastReview.created_at)));sec2.appendChild(l);
   if(lastReview.review){const t=lastReview.review;sec2.appendChild(make('p','fsSnippet',t.length>170?t.slice(0,170)+'…':t));}
+ reviewLink(sec2,lastReview);
  }else sec2.appendChild(make('p','fsEmpty',T('هنوز نظری ننوشته.','No review yet.')));
  card.append(sec1,sec2);
  return card;
@@ -366,7 +409,7 @@ async function openProfile(id){
    ['top',T('۱۰ فیلم برتر','Top 10'),()=>renderPoster(panel,favs.map(m=>({id:m.id,title:m.title,year:m.year,poster:m.poster})),T('هنوز فیلم برتری ثبت نشده است.','No top films yet.'),true)],
    ['seen',T('دیده‌شده‌ها','Watched')+(watched?' ('+faNum(watched.length)+')':''),()=>{
      if(watched===null)emptyNote(panel.replaceChildren()||panel,T('این بخش هنوز فعال نشده است.','Not available yet.'));
-     else renderPoster(panel,watched,T('این کاربر فیلم دیده‌شده‌ای را عمومی نکرده است.','No public watched films.'),false);}],
+     else renderPoster(panel,watched,T('این کاربر فیلم دیده‌شده‌ای را عمومی نکرده است.','No public watched films.'),false,new Map(reviews.map(r=>[String(r.film_id),r])));}],
    ['reviews',T('نظرها','Reviews')+' ('+faNum(reviews.length)+')',()=>renderProfileReviews(panel,reviews)]
   ];
   if(mine){
@@ -414,12 +457,12 @@ function renderSettings(panel){
  const ob=make('button','btn danger',T('خروج از حساب','Sign out'));ob.onclick=async()=>{$('filmFriendsDialog').close();await A.signOut?.();};
  out.append(make('p','fsHint',T('با خروج، آرشیو روی همین دستگاه نمایش داده نمی‌شود؛ اطلاعات تو در حساب می‌ماند.','After signing out your archive is hidden on this device; your data stays in your account.')),ob);
 }
-function renderPoster(panel,items,emptyText,ranked){
+function renderPoster(panel,items,emptyText,ranked,reviewByFilm){
  panel.replaceChildren();
  const grid=make('div','fsPosters');
  items.forEach((m,i)=>{
   const raw=String(m.id||'');const filmId=/^tmdb:\d+$/.test(raw)?raw.split(':')[1]:'';
-  const tile=filmId?filmButton(filmId,''):make('div','fsFilm');tile.className='fsPosterTile';tile.textContent='';
+  const tile=filmId?filmButton(filmId,'',reviewByFilm&&reviewByFilm.get(filmId)):make('div','fsFilm');tile.className='fsPosterTile';tile.textContent='';
   const cover=make('div','fsCover');
   let url=safePoster(m.poster);
   if(!url&&filmId&&window.filmDiscovery?.posterFor)url=window.filmDiscovery.posterFor({id:Number(filmId)})||'';
@@ -437,10 +480,11 @@ function renderProfileReviews(panel,reviews){
  if(!reviews.length){emptyNote(panel,T('هنوز نظری منتشر نشده است.','No reviews yet.'));return;}
  for(const r of reviews){
   const card=make('article','fsCard fsInner');
-  const line=make('p','fsFilmLine');line.append(filmButton(r.film_id,r.film_title));if(r.rating)line.append(' ',score(r.rating));
+  const line=make('p','fsFilmLine');line.append(filmButton(r.film_id,r.film_title,r));if(r.rating)line.append(' ',score(r.rating));
   line.appendChild(make('small','fsDate',relTime(r.created_at)));card.appendChild(line);
   if(r.review)card.appendChild(make('p','fsText',r.review));
   if(r.id)card.appendChild(make('div','fsCardFoot')).appendChild(likeBar(r));
+  reviewLink(card,r);
   panel.appendChild(card);
  }
 }
@@ -467,6 +511,38 @@ function ensureReviewHost(){
  if(!reviewHost){reviewHost=make('section','fsReviews');reviewHost.id='filmReviews';reviewHost.setAttribute('aria-label',T('نظرها و امتیازها','Reviews and ratings'));}
  if(reviewHost.parentNode!==view)view.appendChild(reviewHost);
  return reviewHost;
+}
+/* A member can report someone else's review; moderators see the report in their desk (security/film-round9.sql). */
+function reportButton(r,card){
+ const b=make('button','fsReport','🚩');b.type='button';
+ b.title=T('گزارش این نظر به مودریتورها','Report this review to the moderators');b.setAttribute('aria-label',b.title);
+ let form=null;
+ b.onclick=()=>{
+  if(form){form.remove();form=null;return;}
+  form=make('form','fsReportForm');
+  const why=make('input');why.maxLength=200;why.required=true;why.placeholder=T('چرا این نظر نامناسب است؟','Why is this review a problem?');why.setAttribute('aria-label',why.placeholder);
+  const send=make('button','btn primary',T('ارسال گزارش','Send report'));send.type='submit';
+  const msg=make('small','fsReportMsg');form.append(why,send,msg);
+  form.onsubmit=async e=>{
+   e.preventDefault();const reason=why.value.trim();
+   if(reason.length<3){msg.textContent=T('دلیل را کمی کامل‌تر بنویس.','Please write a little more.');return;}
+   send.disabled=true;
+   try{
+    await write('/rpc/film_report_review',{method:'POST',body:JSON.stringify({p_review:Number(r.id),p_reason:reason})});
+    form.replaceChildren(make('small','fsReportMsg',T('گزارش ثبت شد؛ مودریتورها بررسی می‌کنند. ممنون 🙏','Report received; the moderators will take a look. Thank you 🙏')));
+    b.disabled=true;
+   }catch(err){
+    send.disabled=false;
+    const t=String(err&&err.message||err);
+    msg.textContent=/54000|too many/.test(t)?T('امروز بیش از حد گزارش داده‌ای؛ فردا دوباره.','Too many reports today; try tomorrow.')
+     :/42501|verified/.test(t)?T('برای گزارش‌دادن، ایمیلت باید تأیید شده باشد.','Your e-mail must be confirmed to report.')
+     :/404|PGRST|does not exist/.test(t)?T('گزارش‌دادن هنوز فعال نشده است (SQL امنیتی را اجرا کن).','Reporting is not enabled yet (run the security SQL).')
+     :T('ارسال نشد؛ دوباره امتحان کن.','Could not send; try again.');
+   }
+  };
+  card.appendChild(form);why.focus();
+ };
+ return b;
 }
 function trashButton(r,card){
  const mine=ready()&&r.user_id===ses.id;
@@ -550,11 +626,13 @@ async function saveMyReview(movie,rating,review,existingId){
 }
 function reviewCard(r,pm,role,opts){
  const card=make('article','fsCard fsReview'+(role==='critic'?' fsCritic':''));
+ if(r.id)card.dataset.rid=String(Number(r.id));
  const top=make('div','fsRow');
  top.append(avatar(pm.get(r.user_id),opts?.big?48:38),nameButton(r.user_id,pm.get(r.user_id),role));
  const grow=make('span','fsGrow');top.appendChild(grow);
  if(r.rating)top.appendChild(score(r.rating,role==='critic'?'fsScoreBig':''));
  if(opts?.onEdit&&ready()&&r.user_id===ses.id){const eb=make('button','fsEdit','✏️ '+T('ویرایش','Edit'));eb.type='button';eb.onclick=opts.onEdit;top.appendChild(eb);}
+ if(r.id&&ready()&&r.user_id!==ses.id)top.appendChild(reportButton(r,card));
  if(r.id&&((window.filmStaff?.isStaff?.())||(ready()&&r.user_id===ses.id)))top.appendChild(trashButton(r,card));
  card.appendChild(top);
  if(r.review)card.appendChild(make('p','fsText',r.review));
@@ -574,7 +652,7 @@ function summaryBox(label,stat,cls){
 }
 async function renderReviews(movie){
  const host=ensureReviewHost();if(!host||!movie?.id)return;
- const id=Number(movie.id),serial=++reviewSerial;
+ const id=Number(movie.id),serial=++reviewSerial;focusFilm=id;
  host.replaceChildren();host.hidden=false;
  host.appendChild(make('h2','fsReviewsTitle',T('نظرها و امتیازها','Reviews & ratings')));
  const bodyEl=make('div','fsReviewsBody');bodyEl.appendChild(make('div','fsSkeleton'));host.appendChild(bodyEl);
@@ -642,7 +720,17 @@ async function renderReviews(movie){
  };
  if(!members.length)emptyNote(us,T('هنوز نظری ثبت نشده؛ اولین نفر باش.','No member reviews yet — be the first.'));
  more.onclick=paint;us.appendChild(more);await paint();
-
+ // Coming from a clicked review: make sure it is on screen (it may sit beyond the first ten), then scroll + highlight it.
+ if(pendingFocus&&pendingFocus.film===id){
+  const idx=members.findIndex(r=>Number(r.id)===pendingFocus.id);
+  while(idx>=shownCount&&shownCount<members.length&&serial===reviewSerial)await paint();
+  if(serial!==reviewSerial)return;
+  if(!focusPending(host)){
+   const gone=pendingFocus;pendingFocus=null;
+   if(gone&&typeof toast==='function')toast(T('این نظر دیگر موجود نیست.','That review no longer exists.'));
+   host.scrollIntoView({block:'start',behavior:'smooth'});
+  }
+ }
 }
 function composer(movie,mineReview,onCancel){
  const box=make('form','fsCard fsCompose');
@@ -686,9 +774,18 @@ function composer(movie,mineReview,onCancel){
 }
 window.addEventListener('film-detail-loaded',e=>{
  const m=e.detail?.movie;if(!m?.id)return;
- if(shown.get('id')===m.id&&reviewHost?.isConnected&&reviewHost.childElementCount>1)return;
+ if(shown.get('id')===m.id&&reviewHost?.isConnected&&reviewHost.childElementCount>1){
+  if(pendingFocus&&pendingFocus.film===Number(m.id)&&!focusPending(reviewHost))renderReviews(m);
+  return;
+ }
  shown.set('id',m.id);renderReviews(m);
 });
+/* The film page can finish painting before this script has loaded (a fast, cached catalog); catch up once. */
+function catchUpReviews(){
+ const m=window.filmDiscovery?.getCurrentMovie?.();
+ if(m?.id&&!(reviewHost?.isConnected&&reviewHost.childElementCount>1)){shown.set('id',m.id);renderReviews(m);}
+}
+window.addEventListener('load',()=>setTimeout(catchUpReviews,0));
 function refreshReviews(){const m=window.filmDiscovery?.getCurrentMovie?.();if(m&&reviewHost?.isConnected&&!reviewHost.hidden)renderReviews(m);}
 window.addEventListener('film-account-state',refreshReviews);
 window.addEventListener('film-staff-state',refreshReviews);
@@ -725,6 +822,8 @@ window.addEventListener('popstate',()=>{
  const id=new URL(location.href).searchParams.get('user');
  if(validId(id))show(id);
 });
+{const q=new URL(location.href).searchParams,rv=Number(q.get('review')),fv=Number(q.get('film'));
+ if(Number.isSafeInteger(rv)&&rv>0&&Number.isSafeInteger(fv)&&fv>0)pendingFocus={id:rv,film:fv};}
 const initial=new URL(location.href).searchParams.get('user');
 if(validId(initial))show(initial);
 window.filmFriends={open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar,refresh:refreshReviews,saveMyReview,likeBar,fetchLikes};

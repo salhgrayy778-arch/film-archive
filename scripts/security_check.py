@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
                     "group-watch.js","group-watch-account.js","sidebar-ui.js","add-film-ui.js",
-                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql","security/film-email-guard.sql","security/film-hardening.sql","film-notes-sync.js","critic-panel.js","site-announce.js","security/film-round8.sql","security/film-all-in-one.sql")}
+                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql","security/film-email-guard.sql","security/film-hardening.sql","film-notes-sync.js","critic-panel.js","site-announce.js","security/film-round8.sql","security/film-round9.sql","film-wiki.js","film-scenes.js","film-fonts.css","film-scenes.css","film-discovery.js","security/film-all-in-one.sql")}
 index=files["index.html"]
 errors=[]
 def check(ok,message):
@@ -90,6 +90,21 @@ r8=files["security/film-round8.sql"]
 for needle in ("film_review_likes","enable row level security","film_email_verified()","film_announcements","film_is_admin()","film_admin_set_ban","cannot suspend yourself","remove the admin role first","revoke all on function public.film_admin_set_ban"):
     check(needle in r8,"film-round8.sql is missing: "+needle)
 check("film-round8" in files["security/film-all-in-one.sql"] and "film_review_likes" in files["security/film-all-in-one.sql"],"film-all-in-one.sql is out of date (run scripts/build_all_in_one.py)")
+# Round 9: moderator desk, VPN-free metadata fallback, self-hosted fonts, animated scenes
+r9=files["security/film-round9.sql"]
+for needle in ("film_suspensions","film_review_reports","enable row level security","revoke all on public.film_suspensions",
+               "film_staff_suspend","film_staff_lift","film_staff_reports","film_staff_resolve_report","film_report_review",
+               "raise exception 'staff only'","only an admin can suspend a moderator","cannot suspend an admin","cannot suspend yourself",
+               "daily suspension limit","film_mask_email","reason required","revoke all on function public.film_staff_suspend"):
+    check(needle in r9,"film-round9.sql is missing: "+needle)
+check("film-round9" in files["security/film-all-in-one.sql"] and "film_staff_suspend" in files["security/film-all-in-one.sql"],"film-all-in-one.sql is out of date (run scripts/build_all_in_one.py)")
+for name in ("film-wiki.js","film-scenes.js"):
+    check("innerHTML" not in files[name] and "eval(" not in files[name] and "document.write" not in files[name],name+" must not use innerHTML/eval")
+check("upload\\.wikimedia\\.org" in files["film-wiki.js"] and "POSTER_OK" in files["film-wiki.js"],"film-wiki.js must only accept Wikimedia poster addresses")
+check("https://www.wikidata.org" in index.split("Content-Security-Policy")[1][:1800],"CSP connect-src must allow Wikidata for the VPN-free fallback")
+check("fonts.googleapis.com" not in index and "fonts.gstatic.com" not in index,"Fonts must be self-hosted (no Google Fonts)")
+check('href="film-fonts.css"' in index and 'href="film-scenes.css"' in index and 'src="film-scenes.js"' in index and 'src="film-wiki.js"' in index,"Round 9 assets are not linked in index.html")
+check("prefers-reduced-motion" in files["film-scenes.css"],"Animated scenes must respect prefers-reduced-motion")
 check("innerHTML" not in files["film-notes-sync.js"] and "eval(" not in files["film-notes-sync.js"],"film-notes-sync.js must not use innerHTML/eval")
 check("https://cdnjs.cloudflare.com" not in index and "@supabase/supabase-js@2" not in index,"Third-party CDN scripts must be vendored (assets/vendor)")
 check("https://*.supabase.co" not in index.split("Content-Security-Policy")[1][:1500],"CSP connect-src must name the project host, not a wildcard")

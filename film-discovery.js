@@ -147,7 +147,26 @@ function posterOf(m){
  const path=String(m.poster_path||'');
  if(/^\/[a-zA-Z0-9_-]{8,90}\.(?:jpg|png|webp)$/i.test(path))
   return 'https://image.tmdb.org/t/p/w342'+path;
- return '';
+ return wikiPosterOf(m);
+}
+/* Poster found through Wikipedia (reachable without a VPN): only upload.wikimedia.org addresses are accepted. */
+function wikiPosterOf(m){
+ const v=String(m.poster_ext||'');
+ return /^https:\/\/upload\.wikimedia\.org\/[A-Za-z0-9_.\/%,()'!~+-]{10,480}$/.test(v)?v:'';
+}
+/* TMDB's image server is blocked for many visitors: when a TMDB poster fails, look for the Wikipedia poster of the
+   very same TMDB id before showing the typographic placeholder. */
+function rescuePoster(m,img,element,placeholder){
+ const id=idNumber(m.id);
+ if(!id||!window.filmWiki||m._wikiTried){img.remove();placeholder();return;}
+ m._wikiTried=true;
+ window.filmWiki.lookup(id).then(w=>{
+  const url=w&&w.poster_ext&&/^https:\/\/upload\.wikimedia\.org\//.test(w.poster_ext)?w.poster_ext:'';
+  if(!url){img.remove();placeholder();return;}
+  m.poster_ext=url;
+  img.onerror=()=>{img.remove();placeholder();};
+  img.src=url;
+ }).catch(()=>{img.remove();placeholder();});
 }
 function createPoster(m,cls,eager){
  const element=node('div',cls),url=posterOf(m);
@@ -164,9 +183,21 @@ function createPoster(m,cls,eager){
  if(url){
   const img=node('img');img.src=url;img.loading=eager?'eager':'lazy';img.decoding='async';if(eager)img.fetchPriority='high';
   img.alt=L('پوستر رسمی ','Official movie poster: ')+titleOf(m);
-  img.onerror=()=>{img.remove();placeholder();};
+  img.onerror=()=>{
+   if(url.startsWith('https://image.tmdb.org/'))rescuePoster(m,img,element,placeholder);
+   else{img.remove();placeholder();}
+  };
   element.appendChild(img);
- }else placeholder();
+ }else{
+  placeholder();
+  // Title-only film (no poster known): when it is on screen, look for its Wikipedia poster in the background.
+  if(eager&&window.filmWiki&&idNumber(m.id)&&!m._wikiTried){
+   m._wikiTried=true;
+   window.filmWiki.lookup(idNumber(m.id)).then(w=>{
+    if(w&&w.poster_ext&&element.isConnected){m.poster_ext=w.poster_ext;element.replaceWith(createPoster(m,cls));}
+   }).catch(()=>{});
+  }
+ }
  return element;
 }
 /* Corrections made by moderators/admins (table film_catalog_overrides). Public, read-only here.
@@ -197,30 +228,35 @@ function applyOverrides(){
  catalog=catalog.filter(m=>!overrides.get(m.id)?.hidden).map(m=>{const o=overrides.get(m.id);return o?{...m,...o.patch,_edited:true}:m;});
  for(const [id,m] of [...extra]){const o=overrides.get(id);if(o)o.hidden?extra.delete(id):extra.set(id,{...m,...o.patch,_edited:true});}
 }
+let extrasPromise=Promise.resolve();
 async function loadCatalog(){
  if(catalogPromise)return catalogPromise;
  catalogPromise=(async()=>{
-  // Both files are requested at once (before: one after the other) so the first film page opens sooner.
+  // The small core catalog (about 0.8 MB) opens the page. The 5 MB supplement streams in afterwards, in the background,
+  // so a film page or search never waits for it. Both are requested at once.
   const extraRequest=fetch(new URL('data/tmdb-extra.json',BASE),{cache:'default'}).catch(()=>null);
   const overrideRequest=loadOverrides();
   const r=await fetch(new URL('data/tmdb-catalog.json',BASE),{cache:'default'});
   if(!r.ok)throw Error('Catalog HTTP '+r.status);
   const d=await r.json();if(!Array.isArray(d.movies))throw Error('Invalid catalog');
   const verified=d.movies.filter(m=>idNumber(m?.id)).map(m=>({...m,_source:'catalog'}));
-  let extras=[];
-  try{
-    const response=await extraRequest;
-    if(response&&response.ok){
-      const supplement=await response.json();
-      if(Array.isArray(supplement.movies))
-        extras=supplement.movies.filter(m=>idNumber(m?.id)&&m.details_ok&&posterOf(m))
-          .map(m=>({...m,_source:'extra'}));
-    }
-  }catch(error){console.warn('Extended TMDB poster metadata not yet available',error);}
-  const known=new Set(verified.map(m=>m.id));
-  catalog=verified.concat(extras.filter(m=>!known.has(m.id)));
+  catalog=verified;
   await overrideRequest;applyOverrides();
-  catalogLoaded=true;return catalog;
+  catalogLoaded=true;
+  extrasPromise=(async()=>{
+   try{
+    const response=await extraRequest;
+    if(!response||!response.ok)return;
+    const supplement=await response.json();
+    if(!Array.isArray(supplement.movies))return;
+    const known=new Set(catalog.map(m=>m.id));
+    const extras=supplement.movies.filter(m=>idNumber(m?.id)&&m.details_ok&&posterOf(m)&&!known.has(m.id))
+      .map(m=>({...m,_source:'extra'}));
+    catalog=catalog.concat(extras);applyOverrides();
+    if(state.tab==='search')renderSearch();
+   }catch(error){console.warn('Extended TMDB poster metadata not yet available',error);}
+  })();
+  return catalog;
  })().catch(error=>{catalogLoaded=true;catalogFailed=true;console.warn('Film index unavailable',error);return [];});
  return catalogPromise;
 }
@@ -285,9 +321,9 @@ const posterObserver=typeof IntersectionObserver==='function'?new IntersectionOb
 function queuePoster(id,card){
  if(!id||!card.isConnected)return;
  const popularity=Number(card.dataset.popularity||0);
- if(popularity<20)return; // Do not fetch posters for obscure title-only results.
+ if(popularity<6)return; // Do not fetch posters for obscure title-only results.
  const cached=extra.get(id);
- if(cached?.poster_path){
+ if(cached?.poster_path||cached?.poster_ext){
   const holder=card.querySelector('.filmResultPoster');
   if(holder)holder.replaceWith(createPoster(cached,'filmResultPoster'));
   return;
@@ -303,7 +339,7 @@ function requestPoster(id){
 function paintPoster(card,m){
  if(!m||!card.isConnected)return;
  const holder=card.querySelector('.filmResultPoster');
- if(holder&&posterOf(m))holder.replaceWith(createPoster(m,'filmResultPoster'));
+ if(holder&&posterOf(m))holder.replaceWith(createPoster({...(extra.get(m.id)||{}),...m},'filmResultPoster'));
  if(!EN&&faValue(m.fa_title)){
   const title=card.querySelector('strong');
   if(title){title.textContent=m.fa_title;title.dir='rtl';}
@@ -314,13 +350,22 @@ async function drainPosterQueue(){
   const job=posterQueue.shift();posterActive++;
   (async()=>{
    try{
-    const d=await tm('/movie/'+job.id,{language:'fa-IR'});
-    if(d?.id!==job.id||Number(d.vote_count||0)<1000)return null;
-    const record={id:job.id,title:d.title||d.original_title,
-      original_title:d.original_title||d.title,poster_path:d.poster_path||'',vote_count:Number(d.vote_count)||0,
-      fa_title:faValue(d.title)?d.title:'',overview_fa:faValue(d.overview)?d.overview:''};
-    const previous=extra.get(job.id)||{};
-    extra.set(job.id,{...previous,...record});
+    if(typeof tmReachable!=='function'||tmReachable()){
+     try{
+      const d=await tm('/movie/'+job.id,{language:'fa-IR'});
+      if(d?.id===job.id&&Number(d.vote_count||0)>=300&&d.poster_path){
+       const record={id:job.id,title:d.title||d.original_title,
+        original_title:d.original_title||d.title,poster_path:d.poster_path||'',vote_count:Number(d.vote_count)||0,
+        fa_title:faValue(d.title)?d.title:'',overview_fa:faValue(d.overview)?d.overview:''};
+       extra.set(job.id,{...(extra.get(job.id)||{}),...record});
+       return record;
+      }
+     }catch(e){/* TMDB unreachable: continue with Wikipedia */}
+    }
+    const w=window.filmWiki?await window.filmWiki.lookup(job.id):null;
+    if(!w||!w.poster_ext)return null;
+    const record={id:job.id,title:w.title||'',poster_ext:w.poster_ext,fa_title:faValue(w.fa_title)?w.fa_title:''};
+    extra.set(job.id,{...(extra.get(job.id)||{}),...record});
     return record;
    }catch(e){return null;}
   })().then(job.resolve).finally(()=>{posterActive--;drainPosterQueue();});
@@ -502,7 +547,7 @@ function paintSynopsis(){
  button.textContent=showFa?L('↩ متن اصلی','↩ Original'):L('ترجمه فارسی','Persian translation');
  button.setAttribute('aria-pressed',String(showFa));
  $('filmSynopsisNote').textContent=showFa?(valid
-  ?m.overview_translation_source==='tmdb'?L('خلاصه فارسی TMDB','TMDB Persian synopsis'):L('ترجمه ماشینی، ممکن است خطا داشته باشد.','Machine translation; may contain errors.')
+  ?m.overview_translation_source==='tmdb'?L('خلاصه فارسی TMDB','TMDB Persian synopsis'):m.overview_translation_source==='wikipedia'?L('خلاصه فارسی ویکی‌پدیا','Persian Wikipedia summary'):L('ترجمه ماشینی، ممکن است خطا داشته باشد.','Machine translation; may contain errors.')
   :L('ترجمه فارسی هنوز موجود نیست؛ متن اصلی نمایش داده می‌شود.','No Persian translation cached; original text shown.')):'';
 }
 function accountEntry(){
@@ -547,6 +592,7 @@ function showFilm(m){
  if(Number(m.runtime)>0)stats.appendChild(node('span','',String(m.runtime)+' '+L('دقیقه','min')));
  const gs=(m.genre_ids||[]).map(id=>GENRES[id]).filter(Boolean);
  if(gs.length)stats.appendChild(node('span','',[...new Set(gs)].slice(0,3).join(' · ')));
+ else if(m.genres_text)stats.appendChild(node('span','',String(m.genres_text).slice(0,120)));
  const cast=$('filmDetailCast');cast.replaceChildren();
  for(const [label,value] of [[L('کارگردان: ','Director: '),m.director],[L('بازیگران: ','Cast: '),m.cast],[L('کشور: ','Country: '),m.country]]){
   if(!value)continue;const line=node('span');line.appendChild(node('strong','',label));line.appendChild(document.createTextNode(String(value).slice(0,350)));cast.appendChild(line);
@@ -554,26 +600,50 @@ function showFilm(m){
  paintSynopsis();updateAccountButtons();document.title=titleOf(m)+' | My Film Archive';
  window.dispatchEvent(new CustomEvent('film-detail-loaded',{detail:{movie:{...m}}}));
 }
-async function fetchLiveDetail(id){
- try{
-  const d=await tm('/movie/'+id,{language:'en-US',append_to_response:'credits'});
-  if(idNumber(d?.id)!==id)return null;
-  const m={id,title:d.title||d.original_title,original_title:d.original_title||d.title,
-   release_date:d.release_date||'',vote_average:d.vote_average||0,overview:d.overview||'',
-   genre_ids:(d.genres||[]).map(g=>g.id),runtime:d.runtime||0,poster_url:'',poster_path:d.poster_path||'',
-   director:(d.credits?.crew||[]).filter(c=>c.job==='Director').map(c=>c.name).join(', '),
-   cast:(d.credits?.cast||[]).slice(0,6).map(c=>c.name).join(', '),
-   country:(d.production_countries||[]).map(c=>c.name).join(', ')};
-  // A localized TMDB title/overview is available only when actually translated.
-  try{
-   const fa=await tm('/movie/'+id,{language:'fa-IR'});
-   if(fa?.id===id){
-    if(faValue(fa.title))m.fa_title=fa.title;
-    if(faValue(fa.overview)){m.overview_fa=fa.overview;m.overview_source_for_fa=m.overview;m.overview_translation_source='tmdb';}
-   }
-  }catch(error){ /* Preserve the English original when Persian data is absent. */ }
-  extra.set(id,m);return m;
- }catch(error){console.warn('Movie not locally cached and direct TMDB unavailable',error);return null;}
+/* Build a film record from a Wikidata/Wikipedia lookup of the exact TMDB id (works without a VPN). */
+function fromWiki(id,w,base){
+ const faText=faValue(w.overview_fa)?w.overview_fa:'';
+ const m={...(base||{}),id,
+  title:w.title||base?.title||'',original_title:base?.original_title||w.title||base?.title||'',
+  release_date:w.release_date||base?.release_date||'',runtime:w.runtime||base?.runtime||0,
+  overview:w.overview||faText||base?.overview||'',
+  director:w.director||base?.director||'',cast:w.cast||base?.cast||'',country:w.country||base?.country||'',
+  genre_ids:Array.isArray(base?.genre_ids)?base.genre_ids:[],genres_text:w.genres_text||base?.genres_text||'',poster_ext:w.poster_ext||base?.poster_ext||''};
+ if(faValue(w.fa_title))m.fa_title=w.fa_title;
+ if(faText&&m.overview&&faText!==m.overview){
+  m.overview_fa=faText;m.overview_source_for_fa=m.overview;m.overview_translation_source='wikipedia';
+ }
+ return m;
+}
+async function fetchLiveDetail(id,base){
+ // Run TMDB (when reachable) and Wikipedia side by side: the page is filled by whichever answers first with real data.
+ const viaTmdb=(async()=>{
+  if(typeof tmReachable==='function'&&!tmReachable())return null;
+  const [en,fa]=await Promise.all([
+   tm('/movie/'+id,{language:'en-US',append_to_response:'credits'}),
+   tm('/movie/'+id,{language:'fa-IR'}).catch(()=>null)
+  ]);
+  if(idNumber(en?.id)!==id)return null;
+  const m={id,title:en.title||en.original_title,original_title:en.original_title||en.title,
+   release_date:en.release_date||'',vote_average:en.vote_average||0,overview:en.overview||'',
+   genre_ids:(en.genres||[]).map(g=>g.id),runtime:en.runtime||0,poster_url:'',poster_path:en.poster_path||'',
+   director:(en.credits?.crew||[]).filter(c=>c.job==='Director').map(c=>c.name).join(', '),
+   cast:(en.credits?.cast||[]).slice(0,6).map(c=>c.name).join(', '),
+   country:(en.production_countries||[]).map(c=>c.name).join(', ')};
+  if(fa?.id===id){
+   if(faValue(fa.title))m.fa_title=fa.title;
+   if(faValue(fa.overview)){m.overview_fa=fa.overview;m.overview_source_for_fa=m.overview;m.overview_translation_source='tmdb';}
+  }
+  return m;
+ })().catch(()=>null);
+ const viaWiki=window.filmWiki?window.filmWiki.lookup(id).then(w=>w?fromWiki(id,w,base):null).catch(()=>null):Promise.resolve(null);
+ const first=await Promise.race([
+  viaTmdb.then(v=>v||viaWiki),
+  viaWiki.then(v=>v||viaTmdb)
+ ]);
+ if(!first)return null;
+ extra.set(id,{...(extra.get(id)||{}),...first});
+ return first;
 }
 async function showDetail(id){
  const seq=++loadSerial;detailStructure(id);
@@ -582,13 +652,25 @@ async function showDetail(id){
  if(seq!==loadSerial||state.tab!=='film')return;
  let movie=findFilm(id);
  if(!movie){
-  $('filmDetailTitle').textContent=L('این فیلم در فهرست ذخیره‌شده نیست.','Film unavailable in the local index.');
-  $('filmDetailSynopsis').textContent=L('برای مشاهده این فیلم ممکن است دسترسی مستقیم TMDB لازم باشد.','Direct TMDB access may be needed.');
-  movie=await lookupUniverseMovie(id);
-  // The one-million-title index does not include poster paths. Request verified
-  // full metadata for the movie being viewed, and keep the title-only fallback.
-  const live=await fetchLiveDetail(id);
-  if(live)movie=live;
+  $('filmDetailSynopsis').textContent=L('در حال دریافت اطلاعات فیلم…','Fetching film details…');
+  // Start the details request at once, in parallel with the title index, so neither waits for the other.
+  const liveTask=fetchLiveDetail(id,null);
+  await Promise.race([extrasPromise,new Promise(r=>setTimeout(r,2500))]);
+  movie=findFilm(id);
+  if(!movie){
+   movie=await lookupUniverseMovie(id);
+   if(seq!==loadSerial||state.tab!=='film')return;
+   // Show the title at once; details and poster follow.
+   if(movie)showFilm(movie);
+  }
+  const live=await liveTask;
+  if(seq!==loadSerial||state.tab!=='film')return;
+  if(live)movie={...(movie||{}),...live,title:live.title||movie?.title,original_title:live.original_title||movie?.original_title,
+   fa_title:live.fa_title||movie?.fa_title};
+  if(!movie){
+   $('filmDetailTitle').textContent=L('اطلاعات این فیلم در دسترس نیست.','Details for this film are unavailable.');
+   $('filmDetailSynopsis').textContent=L('این فیلم در فهرست سایت نیست و منبع‌های بیرونی هم پاسخ ندادند؛ کمی بعد دوباره امتحان کنید.','Not in the local list and outside sources did not answer. Try again shortly.');
+  }
  }
  if(seq===loadSerial&&state.tab==='film'&&movie){
   showFilm(movie);
@@ -606,13 +688,25 @@ async function showDetail(id){
       const live=await fetchLiveDetail(id);
       if(live)update={...live};
      }else{
-      const fa=await tm('/movie/'+id,{language:'fa-IR'});
+      let fa=null;
+      try{fa=await tm('/movie/'+id,{language:'fa-IR'});}catch(e){/* blocked: try Wikipedia below */}
       if(idNumber(fa?.id)===id){
        if(faValue(fa.title))update.fa_title=fa.title;
        if(faValue(fa.overview)){
         update.overview_fa=fa.overview;
         update.overview_source_for_fa=initial.overview;
         update.overview_translation_source='tmdb';
+       }
+      }else if(window.filmWiki){
+       const w=await window.filmWiki.lookup(id);
+       if(w){
+        if(faValue(w.fa_title))update.fa_title=w.fa_title;
+        if(faValue(w.overview_fa)&&initial.overview){
+         update.overview_fa=w.overview_fa;
+         update.overview_source_for_fa=initial.overview;
+         update.overview_translation_source='wikipedia';
+        }
+        if(!posterOf(initial)&&w.poster_ext)update.poster_ext=w.poster_ext;
        }
       }
      }
@@ -622,7 +716,7 @@ async function showDetail(id){
      const enriched={...initial,...Object.fromEntries(Object.entries(update).filter(([k,v])=>
        v!==null&&v!==undefined&&v!==''&&(!Array.isArray(v)||v.length>0)))};
      if(!enriched.overview_fa&&initial.overview_fa)enriched.overview_fa=initial.overview_fa;
-     if(faValue(enriched.overview_fa)&&enriched.overview_translation_source==='tmdb')
+     if(faValue(enriched.overview_fa)&&['tmdb','wikipedia'].includes(enriched.overview_translation_source))
       enriched.overview_source_for_fa=enriched.overview;
      extra.set(id,enriched);showFilm(enriched);
     }catch(error){console.warn('Additional TMDB translation unavailable',error);}

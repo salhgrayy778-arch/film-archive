@@ -108,3 +108,16 @@ button.fsStat{cursor:pointer}button.fsStat:hover span{text-decoration:underline}
 .bellItem.fresh{background:color-mix(in srgb,#d92d20 9%,transparent)}
 .bellItem small{display:block;color:var(--mute)}
 .bellEmpty{padding:18px 12px;color:var(--mute);text-align:center}
+
+/* Round 9: a review you jumped to, and cards that open a review when clicked */
+.fsClickable{cursor:pointer;transition:border-color .15s,background-color .15s,transform .15s}
+.fsClickable:hover{border-color:color-mix(in srgb,var(--gold) 70%,var(--line));background-color:color-mix(in srgb,var(--gold) 6%,var(--panel))}
+.fsClickable:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.fsMini.fsClickable,.fsMiniRow.fsClickable{border-radius:12px}
+.fsFlash{animation:fsFlash 1.2s ease-in-out 3;scroll-margin-block:90px}
+@keyframes fsFlash{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 70%,transparent),0 0 32px color-mix(in srgb,var(--gold) 45%,transparent)}}
+@media (prefers-reduced-motion:reduce){.fsFlash{animation:none;outline:3px solid var(--gold)}}
+.fsReport{background:none;border:0;padding:2px 6px;border-radius:8px;cursor:pointer;opacity:.55;font-size:15px}.fsReport:hover,.fsReport:focus-visible{opacity:1;background:color-mix(in srgb,var(--danger) 14%,transparent)}
+.fsReportForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding:10px;border:1px dashed var(--line);border-radius:12px}
+.fsReportForm input{flex:1;min-width:180px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.fsReportMsg{color:var(--mute)}

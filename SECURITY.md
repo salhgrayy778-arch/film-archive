@@ -152,3 +152,22 @@ code changes and CI workflow status do not prove production account security.
   closes the member's sessions and is logged as `user_suspended` / `user_restored`. A suspended member also
   fails `film_email_verified()`, so they cannot post reviews or likes with an old token.
 - The critic desk (`critic-panel.js`) is a UI; reviews it publishes go through the same RLS as every review.
+
+## Round 9: moderator desk, VPN-free film details, fonts, backgrounds
+
+- `security/film-round9.sql` (included in `film-all-in-one.sql`). A **moderator is not an admin**: no full e-mails
+  (masked as `ab***@host`), no member list, no role changes, no account deletion, no announcements.
+- Suspensions: `film_staff_suspend(user, hours, reason)` – staff only, 1 hour to 10 years for moderators (admins up to 100 years),
+  a reason of 3–200 characters is mandatory, never yourself or an admin, only an admin can suspend a moderator, a
+  moderator cannot change a suspension an admin set, and a moderator is limited to 25 suspensions per 24 hours.
+  History lives in `film_suspensions` (no direct table access); every action is also written to `film_audit`.
+  `banned_until` expires by itself, and `film_email_verified()` already rejects banned members.
+- Reports: `film_report_review` (confirmed e-mail, not your own review, 20 per day) → `film_review_reports`
+  (no direct access) → moderators resolve with `film_staff_resolve_report` (delete the review or dismiss).
+- Film details without a VPN: `film-wiki.js` looks up the exact TMDB id in Wikidata (`P4947`) and reads Wikipedia;
+  only `upload.wikimedia.org` poster addresses are accepted, results are cached in the browser, and the CSP lists
+  `https://www.wikidata.org`. TMDB itself fails fast (5 s, then skipped for 3 minutes after two failures).
+- Fonts are self-hosted from `assets/fonts` (SIL OFL); the Google Fonts hosts were removed from the CSP.
+- The animated backgrounds (`film-scenes.js/css`) are CSS only, original artwork, and honour `prefers-reduced-motion`.
+- Tests: `tests/film-wiki-test.cjs` (mocked network) and `tests/round9-moderation.sql` (run on a scratch Postgres after
+  `film-all-in-one.sql`).
