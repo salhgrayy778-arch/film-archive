@@ -135,7 +135,7 @@ function drawOptions(movies){
   const year=String(m.release_date||'').slice(0,4);
   const title=String(EN?m.title:(m.fa_title||m.title)||m.original_title);
   const secondary=String(m.original_title||'');
-  return '<button type="button" role="option" class="tmSuggestItem" id="tmOption-'+i+'" data-tmdb-id="'+m.id+'" aria-selected="false">'
+  return '<button type="button" role="option" class="tmSuggestItem" id="tmOption-'+i+'" data-tmdb-id="'+Number(m.id)+'" aria-selected="false">'
    +'<span class="tmSuggestCover">'+(poster?'<img loading="lazy" decoding="async" src="'+escapeHTML(poster)+'" alt="">'
     :'<span class="tmTitleOnlyCover" dir="auto" title="'+L('پوستر اصلی موجود نیست','Original poster unavailable')+'">'+escapeHTML(title.slice(0,42))+'</span>')+'</span>'
    +'<span class="tmSuggestCopy"><strong dir="auto">'+escapeHTML(title)+'</strong>'

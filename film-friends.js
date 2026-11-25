@@ -650,5 +650,5 @@ window.addEventListener('popstate',()=>{
 });
 const initial=new URL(location.href).searchParams.get('user');
 if(validId(initial))show(initial);
-window.filmFriends={open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar};
+window.filmFriends={open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar,refresh:refreshReviews};
 })();

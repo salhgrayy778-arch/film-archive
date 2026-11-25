@@ -1,6 +1,8 @@
 -- ONE FILE, run once in Supabase SQL Editor (safe to re-run). Does everything in order:
 -- 1) public profiles/follows/reviews  2) roles + reviews rules  3) staff panel  4) admin can delete member accounts
--- 5) makes saleh@gmail.com admin (change the e-mail on the last lines if needed)
+-- 5) fake / throw-away e-mails are blocked and only confirmed e-mails can post
+-- 6) size limits, spam throttles, reserved staff-like names
+-- 7) makes saleh@gmail.com admin (change the e-mail on the last lines if needed)
 
 -- ===== film-social-rls =====
 -- Execute once in Supabase SQL Editor. Private archives remain private.
@@ -393,6 +395,334 @@ begin
 end $$;
 revoke all on function public.film_admin_delete_user(uuid) from public;
 grant execute on function public.film_admin_delete_user(uuid) to authenticated;
+
+-- ===== film-email-guard =====
+-- Run once in the Supabase SQL Editor AFTER film-admin-v4.sql (safe to re-run).
+-- Goal: only real, owned e-mail addresses can use the social features.
+--  1) Sign-ups with malformed or throw-away (disposable) e-mail domains are rejected by the database itself.
+--  2) Posting reviews, following people and publishing a public profile require a CONFIRMED e-mail
+--     (the person must have clicked the link we sent to that address).
+-- IMPORTANT: also switch on  Authentication -> Sign In / Providers -> Email -> "Confirm email"  in Supabase,
+-- otherwise Supabase marks every address as confirmed without checking it.
+create table if not exists public.film_blocked_email_domains (domain text primary key check (domain = lower(domain)));
+alter table public.film_blocked_email_domains enable row level security;
+revoke all on public.film_blocked_email_domains from anon, authenticated;
+insert into public.film_blocked_email_domains(domain) values
+  ('10minutemail.co.uk'),
+  ('10minutemail.com'),
+  ('10minutemail.net'),
+  ('1secmail.com'),
+  ('1secmail.net'),
+  ('1secmail.org'),
+  ('20minutemail.com'),
+  ('33mail.com'),
+  ('anonbox.net'),
+  ('anonymbox.com'),
+  ('armyspy.com'),
+  ('bheps.com'),
+  ('bugmenot.com'),
+  ('burnermail.io'),
+  ('byom.de'),
+  ('cock.li'),
+  ('cool.fr.nf'),
+  ('courriel.fr.nf'),
+  ('crazymailing.com'),
+  ('cuvox.de'),
+  ('dayrep.com'),
+  ('dcctb.com'),
+  ('deadaddress.com'),
+  ('discard.email'),
+  ('discardmail.com'),
+  ('discardmail.de'),
+  ('disposableinbox.com'),
+  ('dispostable.com'),
+  ('dropmail.me'),
+  ('dropmail.ml'),
+  ('e4ward.com'),
+  ('easytrashmail.com'),
+  ('eelmail.com'),
+  ('einrot.com'),
+  ('einrot.de'),
+  ('email-fake.com'),
+  ('emailfake.com'),
+  ('emailondeck.com'),
+  ('emailsensei.com'),
+  ('emailtemporanea.net'),
+  ('emltmp.com'),
+  ('esiix.com'),
+  ('ezztt.com'),
+  ('fakeinbox.com'),
+  ('fakemail.net'),
+  ('fakemailgenerator.com'),
+  ('fastacura.com'),
+  ('fastchevy.com'),
+  ('fastmazda.com'),
+  ('fexbox.org'),
+  ('fexbox.ru'),
+  ('fleckens.hu'),
+  ('generator.email'),
+  ('get2mail.fr'),
+  ('getairmail.com'),
+  ('getnada.com'),
+  ('gmailnator.com'),
+  ('grr.la'),
+  ('guerillamail.com'),
+  ('guerrillamail.biz'),
+  ('guerrillamail.com'),
+  ('guerrillamail.de'),
+  ('guerrillamail.net'),
+  ('guerrillamail.org'),
+  ('guerrillamailblock.com'),
+  ('gustr.com'),
+  ('harakirimail.com'),
+  ('icznn.com'),
+  ('inboxbear.com'),
+  ('inboxkitten.com'),
+  ('incognitomail.com'),
+  ('instant-mail.de'),
+  ('jetable.fr.nf'),
+  ('jourrapide.com'),
+  ('kzccv.com'),
+  ('laafd.com'),
+  ('lroid.com'),
+  ('luxusmail.org'),
+  ('mail-temp.com'),
+  ('mail.gw'),
+  ('mail.tm'),
+  ('mailbox.in.ua'),
+  ('mailbox92.biz'),
+  ('mailcatch.com'),
+  ('maildrop.cc'),
+  ('mailexpire.com'),
+  ('mailforspam.com'),
+  ('mailinator.com'),
+  ('mailmoat.com'),
+  ('mailnesia.com'),
+  ('mailnull.com'),
+  ('mailpoof.com'),
+  ('mailsac.com'),
+  ('mailscrap.com'),
+  ('mailslite.com'),
+  ('mailtemp.info'),
+  ('mailtothis.com'),
+  ('mailzi.ru'),
+  ('mailzilla.com'),
+  ('mega.zik.dj'),
+  ('meltmail.com'),
+  ('mintemail.com'),
+  ('minuteinbox.com'),
+  ('moakt.cc'),
+  ('moakt.com'),
+  ('mohmal.com'),
+  ('moncourrier.fr.nf'),
+  ('monemail.fr.nf'),
+  ('monmail.fr.nf'),
+  ('mt2014.com'),
+  ('mt2015.com'),
+  ('myspaceinc.com'),
+  ('mytemp.email'),
+  ('nada.email'),
+  ('nada.ltd'),
+  ('nepwk.com'),
+  ('noclickemail.com'),
+  ('nomail.xl.cx'),
+  ('nospam.ze.tc'),
+  ('nowmymail.com'),
+  ('objectmail.com'),
+  ('onewaymail.com'),
+  ('owlymail.com'),
+  ('pjjkp.com'),
+  ('pokemail.net'),
+  ('pookmail.com'),
+  ('qiott.com'),
+  ('quickinbox.com'),
+  ('rcpt.at'),
+  ('receiveee.com'),
+  ('rhyta.com'),
+  ('rmqkr.net'),
+  ('s0ny.net'),
+  ('safetymail.info'),
+  ('selfdestructingmail.com'),
+  ('sharedmailbox.org'),
+  ('sharklasers.com'),
+  ('shieldedmail.com'),
+  ('smashmail.de'),
+  ('snakemail.com'),
+  ('sneakemail.com'),
+  ('sogetthis.com'),
+  ('soodonims.com'),
+  ('spam4.me'),
+  ('spamavert.com'),
+  ('spambog.com'),
+  ('spambox.us'),
+  ('spamex.com'),
+  ('spamfree24.org'),
+  ('spamgourmet.com'),
+  ('spamhereplease.com'),
+  ('spaml.com'),
+  ('speed.1s.fr'),
+  ('stuffmail.de'),
+  ('supermailer.jp'),
+  ('superrito.com'),
+  ('tafmail.com'),
+  ('techemail.com'),
+  ('teleworm.us'),
+  ('temp-mail.io'),
+  ('temp-mail.org'),
+  ('temp-mail.ru'),
+  ('tempail.com'),
+  ('tempe-mail.com'),
+  ('tempinbox.com'),
+  ('tempm.com'),
+  ('tempmail.com'),
+  ('tempmail.dev'),
+  ('tempmail.email'),
+  ('tempmail.net'),
+  ('tempmail.plus'),
+  ('tempmailaddress.com'),
+  ('tempmailo.com'),
+  ('temporary-mail.net'),
+  ('temporaryemail.net'),
+  ('temporaryforwarding.com'),
+  ('tempr.email'),
+  ('tempsky.com'),
+  ('thankyou2010.com'),
+  ('thisisnotmyrealemail.com'),
+  ('throwam.com'),
+  ('throwawaymail.com'),
+  ('tmail.ws'),
+  ('tmails.net'),
+  ('tmpeml.com'),
+  ('tmpmail.net'),
+  ('tmpmail.org'),
+  ('tradermail.info'),
+  ('trash-mail.com'),
+  ('trashmail.com'),
+  ('trashmail.de'),
+  ('trashmail.io'),
+  ('trashmail.me'),
+  ('trashmail.net'),
+  ('trbvm.com'),
+  ('trialmail.de'),
+  ('twinmail.de'),
+  ('txcct.com'),
+  ('uroid.com'),
+  ('vjuum.com'),
+  ('vomoto.com'),
+  ('webemail.me'),
+  ('wegwerfemail.de'),
+  ('wegwerfmail.de'),
+  ('wegwerfmail.net'),
+  ('wegwerfmail.org'),
+  ('wh4f.org'),
+  ('wuuvo.com'),
+  ('wwjmp.com'),
+  ('xagloo.com'),
+  ('xojxe.com'),
+  ('yep.it'),
+  ('yopmail.com'),
+  ('yopmail.fr'),
+  ('yopmail.net'),
+  ('zehnminuten.de'),
+  ('zippymail.info'),
+  ('zoemail.org')
+on conflict do nothing;
+
+create or replace function public.film_guard_email() returns trigger
+  language plpgsql security definer set search_path = public, auth as $$
+declare e text; d text;
+begin
+  e := lower(btrim(coalesce(new.email, '')));
+  if e = '' then return new; end if;  -- phone / anonymous users are not used by this site
+  if length(e) > 254 or e !~ '^[a-z0-9._%+-]{1,64}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,24}$' then
+    raise exception 'invalid email address' using errcode = '22023';
+  end if;
+  d := split_part(e, '@', 2);
+  if exists (select 1 from public.film_blocked_email_domains b where d = b.domain or d like '%.' || b.domain) then
+    raise exception 'disposable email address not allowed' using errcode = '22023';
+  end if;
+  return new;
+end $$;
+revoke all on function public.film_guard_email() from public;
+drop trigger if exists film_guard_email on auth.users;
+create trigger film_guard_email before insert or update of email on auth.users
+  for each row execute function public.film_guard_email();
+
+create or replace function public.film_email_verified() returns boolean
+  language sql stable security definer set search_path = public, auth as $$
+  select coalesce((select email_confirmed_at is not null from auth.users where id = auth.uid()), false)
+$$;
+revoke all on function public.film_email_verified() from public;
+grant execute on function public.film_email_verified() to authenticated;
+
+drop policy if exists "film profiles insert own" on public.film_public_profiles;
+create policy "film profiles insert own" on public.film_public_profiles for insert to authenticated
+  with check (user_id = (select auth.uid()) and public.film_email_verified());
+drop policy if exists "film profiles update own" on public.film_public_profiles;
+create policy "film profiles update own" on public.film_public_profiles for update to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()) and public.film_email_verified());
+drop policy if exists "film follows insert own" on public.film_follows;
+create policy "film follows insert own" on public.film_follows for insert to authenticated
+  with check (follower_id = (select auth.uid()) and public.film_email_verified());
+drop policy if exists "film reviews insert own" on public.film_public_reviews;
+create policy "film reviews insert own" on public.film_public_reviews for insert to authenticated
+  with check (user_id = (select auth.uid()) and public.film_email_verified());
+drop policy if exists "film reviews edit own" on public.film_public_reviews;
+create policy "film reviews edit own" on public.film_public_reviews for update to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()) and public.film_email_verified());
+
+-- ===== film-hardening =====
+-- Run once in the Supabase SQL Editor AFTER film-email-guard.sql (safe to re-run).
+-- Extra protection against abuse: size/format limits, spam throttles and look-alike staff names.
+
+-- 1) Public profile content limits (the database enforces them even if someone bypasses the website)
+alter table public.film_public_profiles drop constraint if exists film_profile_avatar_format;
+alter table public.film_public_profiles add constraint film_profile_avatar_format
+  check (avatar = '' or avatar ~ '^data:image/jpeg;base64,[A-Za-z0-9+/=]+$');
+alter table public.film_public_profiles drop constraint if exists film_profile_json_size;
+alter table public.film_public_profiles add constraint film_profile_json_size
+  check (octet_length(favorites::text) <= 20000 and octet_length(watched::text) <= 90000);
+alter table public.film_public_reviews drop constraint if exists film_reviews_title_len;
+alter table public.film_public_reviews add constraint film_reviews_title_len check (char_length(film_title) between 1 and 200);
+
+-- 2) Spam throttles: follows and reviews per hour, and a cap on total follows
+create or replace function public.film_throttle() returns trigger
+  language plpgsql security definer set search_path = public as $$
+begin
+  if tg_table_name = 'film_follows' then
+    if (select count(*) from public.film_follows where follower_id = new.follower_id and created_at > now() - interval '1 hour') >= 60 then
+      raise exception 'too many follows, try again later' using errcode = '54000';
+    end if;
+    if (select count(*) from public.film_follows where follower_id = new.follower_id) >= 3000 then
+      raise exception 'follow limit reached' using errcode = '54000';
+    end if;
+  elsif tg_table_name = 'film_public_reviews' then
+    if (select count(*) from public.film_public_reviews where user_id = new.user_id and created_at > now() - interval '1 hour') >= 400 then
+      raise exception 'too many reviews, try again later' using errcode = '54000';
+    end if;
+  end if;
+  return new;
+end $$;
+revoke all on function public.film_throttle() from public;
+drop trigger if exists film_follows_throttle on public.film_follows;
+create trigger film_follows_throttle before insert on public.film_follows for each row execute function public.film_throttle();
+drop trigger if exists film_reviews_throttle on public.film_public_reviews;
+create trigger film_reviews_throttle before insert on public.film_public_reviews for each row execute function public.film_throttle();
+
+-- 3) Ordinary members cannot call themselves admin / moderator / support (staff have a badge for that)
+create or replace function public.film_guard_display_name() returns trigger
+  language plpgsql security definer set search_path = public as $$
+begin
+  if not public.film_is_staff()
+     and lower(btrim(new.display_name)) ~ '(^|[^a-z])(admin|administrator|moderator|staff|support|official)([^a-z]|$)|مدیر|ادمین|مودریتور|پشتیبان|ناظر سایت' then
+    raise exception 'reserved display name' using errcode = '22023';
+  end if;
+  return new;
+end $$;
+revoke all on function public.film_guard_display_name() from public;
+drop trigger if exists film_guard_display_name on public.film_public_profiles;
+create trigger film_guard_display_name before insert or update of display_name on public.film_public_profiles
+  for each row execute function public.film_guard_display_name();
 
 -- ===== make yourself admin =====
 insert into public.film_roles(user_id, role)
