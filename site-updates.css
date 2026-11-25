@@ -37,3 +37,7 @@ html[dir=ltr] .piBar{direction:ltr}
 @media (prefers-reduced-motion:reduce){.piBar{animation:none}}
 
 .piNote{margin:4px 22px 6px;font-size:13px;line-height:1.8;color:var(--mute)}
+
+.piBell{display:grid;place-items:center;font-size:30px;background:color-mix(in srgb,var(--gold) 18%,var(--panel));width:46px;height:46px;border-radius:12px;flex:none}
+
+.piGo:disabled{opacity:.6}

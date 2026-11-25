@@ -17,7 +17,7 @@ async function nameOf(id: string) {
 
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return new Response('method not allowed', { status: 405 });
-  if (req.headers.get('x-push-secret') !== Deno.env.get('PUSH_SECRET')) return new Response('forbidden', { status: 403 });
+  if (req.headers.get('x-push-secret') !== Deno.env.get('PUSH_SECRET')) { console.log('REJECTED: wrong or missing x-push-secret'); return new Response('forbidden', { status: 403 }); }
   let body: any;
   try { body = await req.json(); } catch { return new Response('bad json', { status: 400 }); }
   const rec = body?.record || {};
@@ -28,17 +28,17 @@ Deno.serve(async (req: Request) => {
     text = (await nameOf(rec.follower_id)) + ' تو را دنبال کرد';
   } else if (body.table === 'film_review_likes' && rec.review_id && rec.user_id) {
     const { data: rv } = await db.from('film_public_reviews').select('user_id,film_title').eq('id', rec.review_id).maybeSingle();
-    if (!rv || rv.user_id === rec.user_id) return new Response('skip', { status: 200 });
+    if (!rv || rv.user_id === rec.user_id) { console.log('SKIP like: review missing or liked by its own author'); return new Response('skip', { status: 200 }); }
     to = rv.user_id; title = 'نظرت لایک شد ❤️';
     text = (await nameOf(rec.user_id)) + ' نظرت دربارهٔ «' + clip(rv.film_title, 60) + '» را لایک کرد';
   } else if (body.table === 'film_roles' && rec.user_id && ROLE_FA[rec.role]) {
-    if (rec.granted_by === rec.user_id) return new Response('skip', { status: 200 });
+    if (rec.granted_by === rec.user_id) { console.log('SKIP role: user gave it to self'); return new Response('skip', { status: 200 }); }
     to = rec.user_id; title = 'نقش تازه 🎬';
     text = 'حالا در سایت «' + ROLE_FA[rec.role] + '» هستی';
-  } else return new Response('ignored', { status: 200 });
+  } else { console.log('IGNORED: table', body?.table); return new Response('ignored', { status: 200 }); }
 
   const { data: subs } = await db.from('film_push_subs').select('id,endpoint,p256dh,auth').eq('user_id', to);
-  if (!subs?.length) return new Response('no subscribers', { status: 200 });
+  if (!subs?.length) { console.log('NO SUBSCRIBERS: ' + body.table + ' -> user ' + to + ' has not turned on phone notifications'); return new Response('no subscribers', { status: 200 }); }
   const payload = JSON.stringify({ title, body: text, url: './', tag: body.table });
   let sent = 0;
   await Promise.all(subs.map(async (s) => {
@@ -46,8 +46,10 @@ Deno.serve(async (req: Request) => {
       await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, { TTL: 86400 });
       sent++;
     } catch (e: any) {
+      console.log('PUSH FAILED: status ' + e?.statusCode + ' ' + clip(e?.body || e?.message, 160));
       if (e?.statusCode === 404 || e?.statusCode === 410) await db.from('film_push_subs').delete().eq('id', s.id);
     }
   }));
+  console.log('DONE: ' + body.table + ' -> user ' + to + ', devices ' + subs.length + ', delivered to push service ' + sent);
   return new Response(JSON.stringify({ sent }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 });
