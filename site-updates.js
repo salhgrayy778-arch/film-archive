@@ -9,6 +9,12 @@ const make=(tag,cls,text)=>{const e=doc.createElement(tag);if(cls)e.className=cl
 
 /* newest first */
 const UPDATES=[
+ {id:'2026-11-25-e',date:'2026-11-25',
+  fa:'تنظیم اعلان‌ها و اعلامیه‌های مدیر',en:'Notification settings and admin announcements',
+  items:[
+   ['🎚️','حالا می‌توانی انتخاب کنی چه اعلانی بگیری: دنبال‌کردن، لایک نظرها، نقش تازه یا اعلامیهٔ مدیر (ابزارها ← اعلان روی گوشی).','Choose what you get notified about: follows, likes, new roles or admin announcements (Tools → Phone notifications).'],
+   ['📢','اعلامیه‌های مدیر سایت به همهٔ کسانی که اعلان را روشن کرده‌اند می‌رسد.','Admin announcements reach everyone who turned notifications on.']
+  ]},
  {id:'2026-11-25-d',date:'2026-11-25',
   fa:'اعلان زنده روی گوشی و کامپیوتر',en:'Live notifications on phone and desktop',
   items:[
