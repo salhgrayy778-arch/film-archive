@@ -113,12 +113,12 @@ function backendProblem(error){
 /* ---------- dialog ---------- */
 let active='feed',selected=null,profileSerial=0;
 function createDialog(){
- const launch=make('button','fsLaunch','🎬 '+T('فیلم‌بازها','Film fans'));launch.id='filmFriendsLaunch';launch.type='button';
- launch.onclick=()=>show();document.body.appendChild(launch);
- const d=make('dialog','fsDialog');d.id='filmFriendsDialog';d.setAttribute('aria-label',T('فیلم‌بازها','Film fans'));
- const head=make('div','fsHead');head.appendChild(make('h2','',T('فیلم‌بازها','Film fans')));
+ const launch=make('button','fsLaunch','👥 '+T('دوستان فیلم‌باز','Film friends'));launch.id='filmFriendsLaunch';launch.type='button';
+ launch.onclick=()=>{const dlg=$('filmFriendsDialog');if(!dlg.open)dlg.showModal();if(!ready())gate();else openFeed();};document.body.appendChild(launch);
+ const d=make('dialog','fsDialog');d.id='filmFriendsDialog';d.setAttribute('aria-label',T('دوستان فیلم‌باز','Film friends'));
+ const head=make('div','fsHead');head.appendChild(make('h2','',T('👥 دوستان فیلم‌باز','👥 Film friends')));
  const controls=make('div','fsHeadActions');
- const feed=make('button','btn',T('نظر دنبال‌شونده‌ها','Following feed'));feed.onclick=()=>openFeed();
+ const feed=make('button','btn',T('دوستان من','My friends'));feed.onclick=()=>openFeed();
  const mine=make('button','btn',T('پروفایل من','My profile'));mine.onclick=()=>{if(ready())openProfile(ses.id);else gate();};
  const close=make('button','btn','✕');close.setAttribute('aria-label',T('بستن','Close'));close.onclick=()=>d.close();
  controls.append(feed,mine,close);head.appendChild(controls);d.appendChild(head);
@@ -183,31 +183,94 @@ window.addEventListener('film-account-profile-updated',schedulePublish);
 window.addEventListener('film-account-state',e=>{if(e.detail?.ready)schedulePublish();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&ready())publishMyProfile().catch(()=>{});});
 
-/* ---------- following feed ---------- */
-async function openFeed(){
+/* ---------- friends page ---------- */
+function followToggle(uid,small){
+ const b=make('button','btn'+(small?' fsSmall':''));b.type='button';
+ const paint=on=>{b.textContent=on?T('✓ دنبال می‌کنی','✓ Following'):T('＋ دنبال‌کردن','＋ Follow');b.classList.toggle('primary',!on);};
+ myFollowing().then(set=>paint(set.has(uid)));paint(false);
+ b.onclick=async()=>{
+  if(!ready()){$('filmFriendsDialog').close();openAuth('login');return;}
+  b.disabled=true;
+  try{
+   const set=await myFollowing();
+   if(set.has(uid))await write('/film_follows?follower_id=eq.'+ses.id+'&followed_id=eq.'+uid,{method:'DELETE'});
+   else await write('/film_follows',{method:'POST',body:JSON.stringify({follower_id:ses.id,followed_id:uid})});
+   await myFollowing(true);paint((await myFollowing()).has(uid));refreshReviews();
+  }catch(e){backendProblem(e);}
+  b.disabled=false;
+ };
+ return b;
+}
+async function peopleList(parent,ids,emptyText){
+ if(!ids.length){emptyNote(parent,emptyText);return;}
+ const pm=await getProfiles(ids);await getRoles(ids);
+ const list=make('div','fsList');
+ for(const uid of ids){
+  const row=make('div','fsRow fsPerson');row.append(avatar(pm.get(uid),42),nameButton(uid,pm.get(uid),roles.get(uid)));
+  if(ready()&&uid!==ses.id){const sp=make('span','fsGrow');row.append(sp,followToggle(uid,true));}
+  list.appendChild(row);
+ }
+ parent.appendChild(list);
+}
+function friendCard(uid,profile,role,lastReview){
+ const card=make('article','fsFriend');
+ const top=make('div','fsRow');top.append(avatar(profile,48),nameButton(uid,profile,role));card.appendChild(top);
+ const watched=Array.isArray(profile?.watched)?profile.watched:[];
+ const last=watched[0];
+ const sec1=make('div','fsMini');sec1.appendChild(make('small','fsMiniLabel',T('آخرین فیلم دیده‌شده','Last watched')));
+ if(last){
+  const row=make('div','fsMiniRow');
+  const raw=String(last.id||'');const filmId=/^tmdb:\d+$/.test(raw)?raw.split(':')[1]:'';
+  const cover=make('span','fsMiniCover');let url=safePoster(last.poster);
+  if(!url&&filmId&&window.filmDiscovery?.posterFor)url=window.filmDiscovery.posterFor({id:Number(filmId)})||'';
+  if(url){const img=make('img');img.loading='lazy';img.alt='';img.src=url;img.onerror=()=>img.remove();cover.appendChild(img);}
+  const info=make('span','fsMiniInfo');
+  info.appendChild(filmId?filmButton(filmId,last.title):make('b','',last.title||''));
+  if(last.year)info.appendChild(make('small','fsDate',last.year));
+  if(last.rating)info.appendChild(score(last.rating));
+  row.append(cover,info);sec1.appendChild(row);
+ }else sec1.appendChild(make('p','fsEmpty',profile?.watched===undefined?T('این بخش هنوز فعال نشده است.','Not available yet.'):T('هنوز فیلمی ثبت نکرده.','Nothing logged yet.')));
+ const sec2=make('div','fsMini');sec2.appendChild(make('small','fsMiniLabel',T('آخرین نظر و امتیاز','Latest review & score')));
+ if(lastReview){
+  const l=make('p','fsFilmLine');l.append(filmButton(lastReview.film_id,lastReview.film_title));if(lastReview.rating)l.append(' ',score(lastReview.rating));
+  l.appendChild(make('small','fsDate',relTime(lastReview.created_at)));sec2.appendChild(l);
+  if(lastReview.review){const t=lastReview.review;sec2.appendChild(make('p','fsSnippet',t.length>170?t.slice(0,170)+'…':t));}
+ }else sec2.appendChild(make('p','fsEmpty',T('هنوز نظری ننوشته.','No review yet.')));
+ card.append(sec1,sec2);
+ return card;
+}
+async function openFeed(tab){
+ if(typeof tab!=='string')tab='friends';
  active='feed';selected=null;
  const body=$('filmFriendsBody');body.replaceChildren();
  if(!ready()){gate();return;}
- note(T('در حال دریافت نظرها…','Loading reviews…'));
+ const nav=make('div','fsTabs fsNav');nav.setAttribute('role','tablist');
+ const content=make('div','fsPage');
+ body.append(nav,content);
+ const serial=++profileSerial;
+ const defs=[['friends',T('دوستان من','My friends')],['followers',T('دنبال‌کننده‌ها','Followers')],['find',T('پیدا کردن فیلم‌باز','Find people')]];
+ for(const [key,label] of defs){const b=make('button','fsTab',label);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(key===tab));b.onclick=()=>openFeed(key);nav.appendChild(b);}
+ note(T('در حال دریافت…','Loading…'));
  try{
-  const following=[...await myFollowing(true)];
-  note('');
-  if(!following.length)emptyNote(body,T('هنوز کسی را دنبال نکرده‌ای. از بخش جستجو شروع کن.','You are not following anyone yet. Start with the search below.'));
-  else{
-   const ids=following.slice(0,200);
-   const reviews=await get('/film_public_reviews?select=id,user_id,film_id,film_title,rating,review,created_at&user_id=in.('+ids.join(',')+')&order=created_at.desc&limit=60');
-   const pm=await getProfiles(reviews.map(r=>r.user_id));await getRoles(reviews.map(r=>r.user_id));
-   if(!reviews.length)emptyNote(body,T('هنوز نظری از دنبال‌شونده‌هایت منتشر نشده است.','The people you follow have not posted reviews yet.'));
-   for(const r of reviews){
-    const card=make('article','fsCard');
-    const top=make('div','fsRow');top.append(avatar(pm.get(r.user_id),40),nameButton(r.user_id,pm.get(r.user_id),roles.get(r.user_id)));
-    top.appendChild(make('small','fsDate',relTime(r.created_at)));card.appendChild(top);
-    const line=make('p','fsFilmLine');line.append(filmButton(r.film_id,r.film_title));if(r.rating)line.append(' ',score(r.rating));card.appendChild(line);
-    if(r.review)card.appendChild(make('p','fsText',r.review));
-    body.appendChild(card);
-   }
+  if(tab==='find'){note('');content.appendChild(userSearch());return;}
+  if(tab==='followers'){
+   const rows=await get('/film_follows?select=follower_id&followed_id=eq.'+ses.id+'&order=created_at.desc&limit=200');
+   if(serial!==profileSerial)return;note('');
+   await peopleList(content,rows.map(r=>r.follower_id),T('هنوز کسی تو را دنبال نکرده است.','Nobody follows you yet.'));
+   markFollowersSeen();return;
   }
-  body.appendChild(userSearch());
+  const following=[...await myFollowing(true)].slice(0,150);
+  if(serial!==profileSerial)return;
+  if(!following.length){note('');emptyNote(content,T('هنوز کسی را دنبال نکرده‌ای. از «پیدا کردن فیلم‌باز» شروع کن؛ بعد اینجا آخرین فیلم و نظر هر دوستت را می‌بینی.','You are not following anyone yet. Start with “Find people”; then you will see each friend’s last film and review here.'));return;}
+  const [pm,reviews]=await Promise.all([getProfiles(following,true),
+   get('/film_public_reviews?select=id,user_id,film_id,film_title,rating,review,created_at&user_id=in.('+following.join(',')+')&order=created_at.desc&limit=400').catch(()=>[])]);
+  await getRoles(following);
+  if(serial!==profileSerial)return;note('');
+  const latest=new Map();for(const r of reviews)if(!latest.has(r.user_id))latest.set(r.user_id,r);
+  const order=following.slice().sort((a,b)=>String(latest.get(b)?.created_at||'').localeCompare(String(latest.get(a)?.created_at||'')));
+  const grid=make('div','fsFriends');
+  for(const uid of order)grid.appendChild(friendCard(uid,pm.get(uid),roles.get(uid),latest.get(uid)));
+  content.appendChild(grid);
  }catch(e){backendProblem(e);}
 }
 function userSearch(){
@@ -224,12 +287,13 @@ function userSearch(){
    const rows=await get('/film_public_profiles?select=user_id,display_name,avatar&display_name=ilike.'+encodeURIComponent('*'+q+'*')+'&limit=30');
    await getRoles(rows.map(r=>r.user_id));
    if(!rows.length)emptyNote(out,T('کاربری پیدا نشد','No users found'));
-   for(const p of rows){const row=make('div','fsRow fsPerson');row.append(avatar(p,38),nameButton(p.user_id,p,roles.get(p.user_id)));out.appendChild(row);}
+   for(const p of rows){const row=make('div','fsRow fsPerson');row.append(avatar(p,38),nameButton(p.user_id,p,roles.get(p.user_id)));if(ready()&&p.user_id!==ses.id){row.append(make('span','fsGrow'),followToggle(p.user_id,true));}out.appendChild(row);}
   }catch(e){backendProblem(e);}
  };
  input.addEventListener('keydown',e=>{if(e.key==='Enter')go.click();});
  box.append(bar,out);return box;
 }
+function markFollowersSeen(){try{window.filmFollowBell?.markSeen?.();}catch(e){}}
 
 /* ---------- profile page ---------- */
 async function openProfile(id){
@@ -260,15 +324,18 @@ async function openProfile(id){
   const bio=make('p','fsBio',profile.bio||T('هنوز بیوگرافی ننوشته است.','No bio yet.'));bio.dir='auto';
   text.append(nameRow,bio);
   const stats=make('div','fsStats');
+  if(mine)text.appendChild(make('p','fsEmail',ses.email||''));
   const stat=(n,label,fn)=>{const b=make(fn?'button':'span','fsStat');if(fn){b.type='button';b.onclick=fn;}b.append(make('b','',faNum(n)),make('span','',label));return b;};
-  stats.append(stat(reviews.length,T('نظر','Reviews')),
-   stat(followers.length,T('دنبال‌کننده','Followers'),()=>openConnections(id,'followers')),
-   stat(following.length,T('دنبال‌شونده','Following'),()=>openConnections(id,'following')));
+  const jump=key=>()=>{const t=tabs.querySelector('[data-key="'+key+'"]');if(t)t.click();else openConnections(id,key);};
+  stats.append(stat(reviews.length,T('نظر','Reviews'),jump('reviews')),
+   stat(followers.length,T('دنبال‌کننده','Followers'),jump('followers')),
+   stat(following.length,T('دنبال‌شونده','Following'),jump('following')));
   text.appendChild(stats);top.appendChild(text);card.appendChild(top);
   const actions=make('div','fsActions');
   if(mine){
    const edit=make('button','btn primary',T('ویرایش پروفایل','Edit profile'));edit.onclick=()=>{$('filmFriendsDialog').close();window.filmAccountProfile?.open();};
-   actions.appendChild(edit);
+   const out=make('button','btn danger',T('خروج از حساب','Sign out'));out.onclick=async()=>{$('filmFriendsDialog').close();await window.filmAccountActions?.signOut();};
+   actions.append(edit,out);
   }else{
    let following_=iFollow.has(id);
    const btn=make('button','btn primary',!ready()?T('ورود برای دنبال‌کردن','Sign in to follow'):following_?T('✓ دنبال می‌کنی','✓ Following'):T('＋ دنبال‌کردن','＋ Follow'));
@@ -302,6 +369,11 @@ async function openProfile(id){
      else renderPoster(panel,watched,T('این کاربر فیلم دیده‌شده‌ای را عمومی نکرده است.','No public watched films.'),false);}],
    ['reviews',T('نظرها','Reviews')+' ('+faNum(reviews.length)+')',()=>renderProfileReviews(panel,reviews)]
   ];
+  if(mine){
+   defs.push(['following',T('دنبال‌شونده‌ها','Following')+' ('+faNum(following.length)+')',()=>{peopleList(panel,following.map(r=>r.followed_id),T('هنوز کسی را دنبال نکرده‌ای.','You are not following anyone yet.')).catch(backendProblem);}],
+    ['followers',T('دنبال‌کننده‌ها','Followers')+' ('+faNum(followers.length)+')',()=>{peopleList(panel,followers.map(r=>r.follower_id),T('هنوز کسی تو را دنبال نکرده است.','Nobody follows you yet.')).catch(backendProblem);markFollowersSeen();}],
+    ['settings',T('⚙️ تنظیمات حساب','⚙️ Account settings'),()=>renderSettings(panel)]);
+  }
   const select=key=>{
    tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.key===key)));
    panel.replaceChildren();defs.find(x=>x[0]===key)[2]();
@@ -309,6 +381,38 @@ async function openProfile(id){
   for(const [key,label] of defs){const b=make('button','fsTab',label);b.type='button';b.dataset.key=key;b.setAttribute('role','tab');b.onclick=()=>select(key);tabs.appendChild(b);}
   card.append(tabs,panel);body.appendChild(card);select('top');
  }catch(e){backendProblem(e);body.replaceChildren();}
+}
+function renderSettings(panel){
+ panel.replaceChildren();
+ const A=window.filmAccountActions||{};
+ const st=A.status?.()||{};
+ const box=(title)=>{const c=make('section','fsCard fsInner fsSet');c.appendChild(make('h4','',title));panel.appendChild(c);return c;};
+ const acc=box(T('حساب','Account'));
+ acc.appendChild(make('p','fsEmail',ses.email||''));
+ const sync=make('p','fsHint',(st.message||'—')+(st.synced?' • '+T('آخرین همگام‌سازی: ','Last sync: ')+new Date(st.synced).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}):''));acc.appendChild(sync);
+ const row=make('div','fsActions');
+ const edit=make('button','btn primary',T('ویرایش نام، عکس و بیو','Edit name, photo & bio'));edit.onclick=()=>{$('filmFriendsDialog').close();window.filmAccountProfile?.open();};
+ const refresh=make('button','btn',T('به‌روزرسانی حساب','Refresh account'));refresh.onclick=()=>{Promise.resolve(A.refresh?.()).then(()=>note(T('درخواست به‌روزرسانی ارسال شد.','Refresh started.')));};
+ const imp=make('button','btn',T('انتقال آرشیو قدیمی این مرورگر','Import this browser’s old archive'));imp.onclick=()=>{$('filmFriendsDialog').close();A.importLegacy?.();};
+ row.append(edit,refresh,imp);acc.appendChild(row);
+ const sec=box(T('امنیت','Security'));
+ const pw=make('input');pw.type='password';pw.dir='ltr';pw.autocomplete='new-password';pw.placeholder=T('رمز جدید (حداقل ۶ نویسه)','New password (min. 6 characters)');pw.setAttribute('aria-label',T('رمز جدید','New password'));
+ const save=make('button','btn',T('تغییر رمز','Change password'));
+ save.onclick=async()=>{
+  save.disabled=true;
+  try{await A.changePassword(pw.value);pw.value='';note(T('رمز تغییر کرد.','Password changed.'));}
+  catch(e){note(String(e.message||e).slice(0,140));}
+  save.disabled=false;
+ };
+ const line=make('div','fsRow');line.append(pw,save);sec.appendChild(line);
+ if(window.filmStaff?.isStaff?.()){
+  const staff=box(T('مدیریت','Administration'));
+  const b=make('button','btn',T('🛡️ باز کردن پنل مدیریت','🛡️ Open staff panel'));b.onclick=()=>{$('filmFriendsDialog').close();window.filmStaff.open();};
+  staff.appendChild(b);
+ }
+ const out=box(T('خروج','Sign out'));
+ const ob=make('button','btn danger',T('خروج از حساب','Sign out'));ob.onclick=async()=>{$('filmFriendsDialog').close();await A.signOut?.();};
+ out.append(make('p','fsHint',T('با خروج، آرشیو روی همین دستگاه نمایش داده نمی‌شود؛ اطلاعات تو در حساب می‌ماند.','After signing out your archive is hidden on this device; your data stays in your account.')),ob);
 }
 function renderPoster(panel,items,emptyText,ranked){
  panel.replaceChildren();
@@ -534,11 +638,17 @@ if(typeof R!=='undefined'){
 }
 
 createDialog();
+document.addEventListener('click',e=>{
+ const b=e.target.closest?.('#acctBtn');
+ if(!b||!ready())return;
+ e.stopImmediatePropagation();e.preventDefault();
+ show(ses.id);
+},true);
 window.addEventListener('popstate',()=>{
  const id=new URL(location.href).searchParams.get('user');
  if(validId(id))show(id);
 });
 const initial=new URL(location.href).searchParams.get('user');
 if(validId(initial))show(initial);
-window.filmFriends={open:show,openProfile,openFeed,publishMyProfile,getProfiles};
+window.filmFriends={open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar};
 })();

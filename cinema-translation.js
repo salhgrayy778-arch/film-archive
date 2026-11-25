@@ -116,7 +116,7 @@ function applyNews(){
   let badge=info?.querySelector('.cnTranslationBadge');
   if(translated){
    translatedCount++;
-   if(!badge){badge=document.createElement('span');badge.className='cnTranslationBadge';badge.textContent=T('ترجمه ماشینی','Machine translation');info.appendChild(badge);}
+   if(!badge){badge=document.createElement('span');badge.className='cnTranslationBadge';badge.textContent=T('ترجمهٔ خودکار','Auto translation');info.appendChild(badge);}
   }else if(badge)badge.remove();
  }
  const btn=document.getElementById('cnTranslate-news');

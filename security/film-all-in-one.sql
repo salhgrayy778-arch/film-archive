@@ -1,6 +1,6 @@
 -- ONE FILE, run once in Supabase SQL Editor (safe to re-run). Does everything in order:
--- 1) public profiles/follows/reviews  2) roles + reviews rules  3) staff panel (moderator, history, presence, fixes)
--- 4) makes saleh@gmail.com admin (change the e-mail on the last lines if needed)
+-- 1) public profiles/follows/reviews  2) roles + reviews rules  3) staff panel  4) admin can delete member accounts
+-- 5) makes saleh@gmail.com admin (change the e-mail on the last lines if needed)
 
 -- ===== film-social-rls =====
 -- Execute once in Supabase SQL Editor. Private archives remain private.
@@ -369,10 +369,35 @@ create trigger film_override_guard_trg before insert or update or delete on publ
 --   select id, 'admin' from auth.users where email = 'you@example.com'
 --   on conflict (user_id, role) do nothing;
 
+-- ===== film-admin-v4 =====
+-- Run once in the Supabase SQL Editor AFTER security/film-admin-v3.sql (safe to re-run).
+-- Adds: admin-only deletion of a member account. Everything the member owns (archive, public
+-- profile, reviews, follows, roles, presence) is removed by the database cascade; an entry with
+-- the e-mail stays in the activity log. Admins cannot delete themselves or another admin
+-- (remove the admin role first), so the site can never be left without an admin.
+create or replace function public.film_admin_delete_user(p_user uuid) returns void
+  language plpgsql security definer set search_path = public, auth as $$
+declare victim_email text;
+begin
+  if not public.film_is_admin() then raise exception 'admin only' using errcode = '42501'; end if;
+  if p_user is null then raise exception 'no user'; end if;
+  if p_user = auth.uid() then raise exception 'cannot delete yourself'; end if;
+  if exists (select 1 from public.film_roles where user_id = p_user and role = 'admin') then
+    raise exception 'remove the admin role first';
+  end if;
+  select email into victim_email from auth.users where id = p_user;
+  if victim_email is null then raise exception 'user not found'; end if;
+  insert into public.film_audit(actor, action, target_user, detail)
+    values (auth.uid(), 'user_deleted', p_user, jsonb_build_object('email', victim_email));
+  delete from auth.users where id = p_user;
+end $$;
+revoke all on function public.film_admin_delete_user(uuid) from public;
+grant execute on function public.film_admin_delete_user(uuid) to authenticated;
+
 -- ===== make yourself admin =====
 insert into public.film_roles(user_id, role)
   select id, 'admin' from auth.users where email = 'saleh@gmail.com'
   on conflict (user_id, role) do nothing;
 
--- Result check: you should see one row with your e-mail and the role "admin"
+-- Result check: you should see one row per role, with your e-mail and the role "admin"
 select u.email, r.role from public.film_roles r join auth.users u on u.id = r.user_id order by r.role, u.email;

@@ -128,6 +128,7 @@ code changes and CI workflow status do not prove production account security.
 
 ## Staff panel (admin / moderator)
 
+- Run `security/film-all-in-one.sql` (or the separate files in order, ending with `film-admin-v4.sql`). `film_admin_delete_user` lets only an admin delete a member's account (never themselves or another admin; logged as `user_deleted`).
 - Run `security/film-admin-v3.sql` once after `film-social-v2.sql`. Roles (`critic`, `moderator`,
   `admin`, several per user) live in `film_roles`; they can only be changed through
   `film_set_role()` (admin only; the last admin cannot be removed). Every grant/revoke,

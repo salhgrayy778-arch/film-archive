@@ -359,7 +359,17 @@ main,.reel{position:relative;z-index:1}
 
 .reactLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}
 .flt{position:absolute;bottom:74px;width:44px;text-align:center;animation:floatUp 2.8s ease-out forwards;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
-.flt .ic{width:42px;height:42px}
+.flt .ic{width:54px;height:54px}.flt .emo{display:block;font-size:48px;line-height:54px;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+.rx .emo{font-size:26px;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+.chRow{position:relative}.chRow input{flex:1;min-width:0}.emoBtn{padding:6px 10px;font-size:18px;line-height:1}
+.emoPick{position:absolute;bottom:calc(100% + 6px);inset-inline-start:0;z-index:30;display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:0 14px 40px #000a;width:min(330px,92vw)}
+.emoPick[hidden]{display:none}
+.emoPick button{background:none;border:0;border-radius:8px;padding:5px 0;font-size:22px;line-height:1.2;cursor:pointer;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+.emoPick button:hover,.emoPick button:focus-visible{background:rgba(201,162,90,.22)}
+.reacts.rxFs{display:none;position:absolute;z-index:7;inset-inline-end:12px;top:50%;transform:translateY(-50%);flex-direction:column;gap:6px;margin:0;max-height:80%;overflow:auto;transition:opacity .25s}
+.stage:fullscreen .reacts.rxFs,.stage:-webkit-full-screen .reacts.rxFs{display:flex}
+.stage.idle .reacts.rxFs{opacity:0;pointer-events:none}
+.rxFs .rx{width:42px;height:42px;background:rgba(7,18,17,.72)}
 .flt small{display:block;font-size:11px;color:#F0E4D2;text-shadow:0 1px 4px #000;white-space:nowrap;margin:0 -20px}
 @keyframes floatUp{0%{transform:translate(0,0) scale(.3);opacity:0}10%{opacity:1;transform:translate(0,-16px) scale(1.15)}100%{transform:translate(var(--dx,0),-250px) scale(.9);opacity:0}}
 .reacts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
@@ -819,6 +829,7 @@ body{overflow-x:clip;padding-bottom:145px}
             <span>لینک مستقیم فیلم را بگذار، یا فایل را از دستگاه خودت انتخاب کن.</span>
           </div>
           <div class="reactLayer" id="reactLayer"></div>
+          <div class="reacts rxFs" id="reactsFs" aria-label="واکنش سریع"></div>
           <div class="fsmsg" id="fsmsg"></div>
           <div class="cdown" id="cdown" hidden>
             <svg viewBox="0 0 200 200" width="190" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="100" cy="100" r="84"/><circle cx="100" cy="100" r="66" stroke-width="1" opacity=".6"/><path d="M100 6v50M100 144v50M6 100h50M144 100h50" opacity=".7"/><text id="cdNum" x="100" y="128" text-anchor="middle" font-size="84" font-weight="900" fill="currentColor" stroke="none" font-family="Vazirmatn,Tahoma,sans-serif">۳</text></svg>
@@ -879,7 +890,7 @@ body{overflow-x:clip;padding-bottom:145px}
         <div class="rbox chatbox">
           <div class="rbh">گفتگو <span class="typing" id="typing" hidden><i></i><i></i><i></i></span></div>
           <div id="chLog" aria-live="polite"></div>
-          <div class="rrow"><input id="chIn" maxlength="300" placeholder="پیام…" autocomplete="off"><button class="btn primary" id="chSend" type="button" aria-label="ارسال"><svg class="ic flipx"><use href="#i-send"/></svg></button></div>
+          <div class="rrow chRow"><button class="btn emoBtn" id="chEmo" type="button" aria-label="ایموجی" aria-expanded="false" aria-controls="emoPick">😊</button><div class="emoPick" id="emoPick" hidden></div><input id="chIn" maxlength="300" placeholder="پیام…" autocomplete="off"><button class="btn primary" id="chSend" type="button" aria-label="ارسال"><svg class="ic flipx"><use href="#i-send"/></svg></button></div>
         </div>
       </aside>
     </div>
@@ -2321,15 +2332,21 @@ function checkDur(){
   if(R.durWarn || !R.pDur || !isFinite(d)) return;
   if(Math.abs(d - R.pDur) > 2){ R.durWarn = true; chat('هشدار: مدت فیلم تو با فیلم او فرق دارد؛ احتمالاً نسخه‌ها یکی نیست و همگامی دقیق نمی‌شود.', 'sys'); }
 }
-const RX = ['heart','laugh','wow','sad','flame','star'];
+const EMO = {clap:'👏',party:'🎉',like:'👍',love:'😍',mind:'🤯',popcorn:'🍿'};
+const RX = ['heart','laugh','wow','sad','flame','star','clap','party','like','love','mind','popcorn'];
+const CHAT_EMOJI = ['😀','😂','🤣','😍','😮','😢','😭','😡','🥹','😎','🤯','🥳','👍','👎','👏','🙏','💪','🔥','❤️','💔','⭐','🎉','🍿','🎬','🎥','😴','🤔','😅','🙄','😱','🤩','👀'];
+function reactFace(k){
+  if(EMO[k]) return `<span class="emo" aria-hidden="true">${EMO[k]}</span>`;
+  return `<svg class="ic"><use href="#r-${k}"/></svg>`;
+}
 function spawnReact(k, name){
   if(!RX.includes(k)) return;
-  const L = $('reactLayer'); while(L.children.length > 24) L.firstChild.remove();
+  const L = $('reactLayer'); if(!L) return; while(L.children.length > 30) L.firstChild.remove();
   const d = document.createElement('div'); d.className = 'flt';
-  d.style.left = (6 + Math.random()*82) + '%'; d.style.setProperty('--dx', (Math.random()*90 - 45) + 'px');
-  d.innerHTML = `<svg class="ic"><use href="#r-${k}"/></svg>`;
+  d.style.left = (6 + Math.random()*82) + '%'; d.style.setProperty('--dx', (Math.random()*110 - 55) + 'px');
+  d.innerHTML = reactFace(k);
   if(name){ const s = document.createElement('small'); s.textContent = name; d.appendChild(s); }
-  L.appendChild(d); setTimeout(()=>d.remove(), 2900);
+  L.appendChild(d); setTimeout(()=>d.remove(), 3100);
 }
 function react(k){ spawnReact(k, ''); rsend({t:'react', k, name:nm()}); }
 function countdown(fromPeer){
@@ -2422,8 +2439,28 @@ function initRoom(){
   });
   const el = rv(), st = $('stage');
   /* آیکون‌های واکنش */
-  $('reacts').innerHTML = RX.map(k=>`<button class="rx" type="button" data-k="${k}" aria-label="واکنش ${k}"><svg class="ic"><use href="#r-${k}"/></svg></button>`).join('');
-  $('reacts').addEventListener('click', e=>{ const b = e.target.closest('.rx'); if(b) react(b.dataset.k); });
+  const rxHtml = RX.map(k=>`<button class="rx" type="button" data-k="${k}" aria-label="${LX('واکنش','Reaction')} ${EMO[k]||k}">${reactFace(k)}</button>`).join('');
+  for(const id of ['reacts','reactsFs']){
+    const box = $(id); if(!box) continue;
+    box.innerHTML = rxHtml;
+    box.addEventListener('click', e=>{ const b = e.target.closest('.rx'); if(b){ e.stopPropagation(); react(b.dataset.k); } });
+    box.addEventListener('dblclick', e=>e.stopPropagation());
+  }
+  /* ایموجی در گفتگو */
+  const pick = $('emoPick'), emoBtn = $('chEmo');
+  if(pick && emoBtn){
+    pick.innerHTML = CHAT_EMOJI.map(x=>`<button type="button" data-e="${x}" aria-label="${x}">${x}</button>`).join('');
+    emoBtn.addEventListener('click', e=>{ e.stopPropagation(); const open = pick.hidden; pick.hidden = !open; emoBtn.setAttribute('aria-expanded', String(open)); });
+    pick.addEventListener('click', e=>{
+      const b = e.target.closest('button[data-e]'); if(!b) return;
+      const inp = $('chIn'), max = inp.maxLength > 0 ? inp.maxLength : 300;
+      const a = inp.selectionStart ?? inp.value.length, z = inp.selectionEnd ?? a;
+      const next = inp.value.slice(0,a) + b.dataset.e + inp.value.slice(z);
+      if(next.length <= max){ inp.value = next; const pos = a + b.dataset.e.length; inp.focus(); try{ inp.setSelectionRange(pos,pos); }catch(_){} inp.dispatchEvent(new Event('input')); }
+    });
+    document.addEventListener('click', e=>{ if(!pick.hidden && !pick.contains(e.target) && e.target!==emoBtn){ pick.hidden = true; emoBtn.setAttribute('aria-expanded','false'); } });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !pick.hidden){ pick.hidden = true; emoBtn.setAttribute('aria-expanded','false'); } });
+  }
   /* منوی سرعت */
   $('spdPop').innerHTML = [0.5,0.75,1,1.25,1.5,2].map(v=>`<button type="button" role="menuitemradio" data-v="${v}" aria-checked="${v===1}">${pd(String(v).replace('.','٫'))}×</button>`).join('');
   $('spdPop').addEventListener('click', e=>{ const b = e.target.closest('button'); if(!b) return; el.playbackRate = Number(b.dataset.v); closePops(); kickIdle(); });
@@ -3149,6 +3186,27 @@ function updateAcct(){
   $('syncLine').textContent=ses?('حساب: '+ses.email+(syncMsg?' • '+syncMsg:'')):LX('آرشیو شخصی با ورود به حساب فعال می‌شود','Sign in to access your personal movie archive');
 }
 function setSync(m){ syncMsg = m; updateAcct(); if($('auOv').classList.contains('open') && auView==='me') paintAuth(); }
+async function signOutAccount(){
+  await cloudQueue.catch(()=>{});
+  const token=ses?.access_token;
+  try{if(token)await fetch(sb.url.replace(/\/$/,'')+'/auth/v1/logout',{
+    method:'POST',headers:{apikey:sb.key,Authorization:'Bearer '+token}
+  });}catch(err){console.warn('Remote logout failed',err);}
+  ses=null;await kvSet(SES_KEY,'');clearPersonalView();closeAuth();
+  toast(LX('از حساب خارج شدی','Signed out'));
+}
+window.filmAccountActions={
+  signOut:signOutAccount,
+  refresh:()=>cloudReady?syncNow(true,false):loadAccountArchive(),
+  importLegacy:()=>importLegacyBrowserArchive(),
+  status:()=>({email:ses?.email||'',message:syncMsg||'',synced:acMeta.synced||0}),
+  async changePassword(password){
+    if(!ses)throw Error('no session');
+    if(String(password||'').length<6)throw Error(LX('رمز باید حداقل ۶ نویسه باشد','Password needs at least 6 characters'));
+    const token=await freshToken();if(!token)throw Error(LX('ورود منقضی شده است','Session expired'));
+    await authCall('/user',{password},'PUT',ses.access_token);
+  }
+};
 function closeAuth(){ closeModal('auOv'); }
 function auMsg(t, ok){ const e = $('auMsg'); if(e){ e.textContent = t; e.className = 'msg' + (ok ? ' ok' : ''); } }
 function openAuth(view, token){
@@ -3185,15 +3243,7 @@ function paintAuth(){
     on('auProfile',()=>window.filmAccountProfile?.open());
     on('auSync',()=>cloudReady?syncNow(true,false):loadAccountArchive());
     on('auLegacyImport',importLegacyBrowserArchive);
-    on('auOut', async ()=>{
-      await cloudQueue.catch(()=>{});
-      const token=ses?.access_token;
-      try{if(token)await fetch(sb.url.replace(/\/$/,'')+'/auth/v1/logout',{
-        method:'POST',headers:{apikey:sb.key,Authorization:'Bearer '+token}
-      });}catch(err){console.warn('Remote logout failed',err);}
-      ses=null;await kvSet(SES_KEY,'');clearPersonalView();closeAuth();
-      toast(LX('از حساب خارج شدی','Signed out'));
-    });
+    on('auOut', signOutAccount);
   } else if(v==='recover'){
     B.innerHTML = `<h2>رمز جدید</h2><div class="field"><label for="auPass">رمز جدید (حداقل ۶ نویسه)</label><input id="auPass" type="password" dir="ltr" autocomplete="new-password"></div>${msg}
       <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn primary" id="auGo" type="button">ذخیره رمز</button></div>`;
@@ -3297,6 +3347,7 @@ init();
 <script src="film-discovery.js"></script>
 <script src="film-similar.js"></script>
 <script src="film-friends.js"></script>
+<script src="follow-bell.js"></script>
 <script src="admin-panel.js"></script>
 </body>
 </html>

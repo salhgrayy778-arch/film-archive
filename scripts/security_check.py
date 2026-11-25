@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
                     "group-watch.js","group-watch-account.js","sidebar-ui.js","add-film-ui.js",
-                    "account-profile.js","admin-panel.js","security/film-admin-v3.sql")}
+                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql")}
 index=files["index.html"]
 errors=[]
 def check(ok,message):
@@ -71,6 +71,12 @@ for needle in ("film_is_staff()","film_is_admin()","enable row level security","
                "raise exception 'admin only'","cannot remove the last admin"):
     check(needle in admin_sql,"film-admin-v3.sql is missing: "+needle)
 check("service_role" not in panel and "service-role" not in panel.replace("service-role key","") ,"Staff panel must never hold a service key")
+
+for name in ("follow-bell.js","film-friends.js"):
+    check("innerHTML" not in files[name] and "eval(" not in files[name],name+" must not use innerHTML/eval")
+delete_sql=files["security/film-admin-v4.sql"]
+for needle in ("security definer","film_is_admin()","raise exception 'admin only'","cannot delete yourself","remove the admin role first","revoke all on function public.film_admin_delete_user"):
+    check(needle in delete_sql,"film-admin-v4.sql is missing: "+needle)
 
 if errors:
     print("Security checks failed:")
