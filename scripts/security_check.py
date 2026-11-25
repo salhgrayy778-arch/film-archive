@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
                     "group-watch.js","group-watch-account.js","sidebar-ui.js","add-film-ui.js",
-                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql","security/film-email-guard.sql","security/film-hardening.sql","film-notes-sync.js","critic-panel.js","site-announce.js","security/film-round8.sql","security/film-round9.sql","film-wiki.js","film-scenes.js","panel-dock.js","film-fonts.css","film-scenes.css","film-discovery.js","security/film-all-in-one.sql")}
+                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql","security/film-email-guard.sql","security/film-hardening.sql","film-notes-sync.js","critic-panel.js","site-announce.js","security/film-round8.sql","security/film-round9.sql","film-wiki.js","film-scenes.js","panel-dock.js","site-tour.js","film-fonts.css","film-scenes.css","film-discovery.js","security/film-all-in-one.sql")}
 index=files["index.html"]
 errors=[]
 def check(ok,message):
@@ -98,7 +98,7 @@ for needle in ("film_suspensions","film_review_reports","enable row level securi
                "daily suspension limit","film_mask_email","reason required","revoke all on function public.film_staff_suspend"):
     check(needle in r9,"film-round9.sql is missing: "+needle)
 check("film-round9" in files["security/film-all-in-one.sql"] and "film_staff_suspend" in files["security/film-all-in-one.sql"],"film-all-in-one.sql is out of date (run scripts/build_all_in_one.py)")
-for name in ("film-wiki.js","film-scenes.js","panel-dock.js"):
+for name in ("film-wiki.js","film-scenes.js","panel-dock.js","site-tour.js"):
     check("innerHTML" not in files[name] and "eval(" not in files[name] and "document.write" not in files[name],name+" must not use innerHTML/eval")
 check("upload\\.wikimedia\\.org" in files["film-wiki.js"] and "POSTER_OK" in files["film-wiki.js"],"film-wiki.js must only accept Wikimedia poster addresses")
 check("https://www.wikidata.org" in index.split("Content-Security-Policy")[1][:1800],"CSP connect-src must allow Wikidata for the VPN-free fallback")
