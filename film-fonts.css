@@ -38,3 +38,9 @@ h1,h2,h3,legend,.filmDetailHead h1,.filmDetailHead h2,#filmDetailTitle,.cpTitle,
 .brand{font-family:var(--font-tale)}
 .stage video::cue,.subov,.cb.txt,.numericRate{font-family:var(--font-soft)}
 ::placeholder{font-weight:400;opacity:.65}
+
+/* Round 12: a little more air for reading on desktop (Persian letters stay joined: only the spaces between words grow) */
+body{word-spacing:.08em;line-height:1.9}
+p,li,.fsText,.filmOverview,#filmDetailOverview{line-height:2;word-spacing:.1em}
+small,.fsDate,.fsMiniLabel,.bellItem small{font-size:max(1em,12.5px);line-height:1.8}
+@media (min-width:900px){body{font-size:16.5px}}
