@@ -52,7 +52,10 @@ toggle(notif,'ann','اعلان‌های سایت','Site announcements','نوار
 const show=group('نمایش','Display');
 toggle(show,'scenes','پس‌زمینهٔ سینمایی متحرک','Animated cinema backgrounds','نور پروژکتور و صحنه‌های پشت صفحه‌ها','Projector light and scenes behind the pages');
 
-const help=group('راهنما','Help');
+const help=group('راهنما و تازه‌ها','Help & updates');
+const upBtn=action(help,'✨','تازه‌های سایت','Site updates','آخرین به‌روزرسانی‌های مهم','The latest important updates',()=>{close.click();setTimeout(()=>window.filmUpdates?.open?.(),250);},'drawerUpdates');
+const upDot=()=>{const b=upBtn.querySelector('b');b.querySelector('.suDot')?.remove();if(window.filmUpdates?.unseen?.()){const d=el('i','suDot');d.setAttribute('aria-label',T('جدید','New'));b.appendChild(d);}};
+upDot();window.addEventListener('film-updates-state',upDot);new MutationObserver(upDot).observe(drawer,{attributes:true,attributeFilter:['class']});
 action(help,'🧭','نمایش دوبارهٔ آموزش سایت','Replay the site tour','معرفی کوتاه بخش‌های سایت','A short intro to every section',()=>{
   close.click();setTimeout(()=>{try{window.filmTour?.start(true);}catch(e){}},250);
 },'drawerTourReplay');
