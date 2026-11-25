@@ -40,6 +40,9 @@ jobs:
           node --check site-announce.js
           node --check account-profile.js
           node --check film-discovery.js
+          node --check film-wiki.js
+          node --check film-scenes.js
+          node tests/film-wiki-test.cjs
           node --check group-watch.js
           node --check group-watch-account.js
           node --check group-watch-realtime.js

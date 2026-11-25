@@ -1,0 +1,55 @@
+/* Round 9 typography: soft, rounded, storybook-like. All fonts are served from this site (assets/fonts), so nothing is
+   fetched from Google (which is slow or blocked for many visitors). Texts are unchanged; only the letterforms are.
+   Film Soft  = Baloo Bhaijaan 2 (rounded, friendly body text, Persian + Latin)
+   Film Tale  = Aref Ruqaa (calligraphic, fairy-tale headings, Persian + Latin)
+   Film Brand = Cormorant Garamond italic (the "My Film Archive" signature)
+   Licenses: SIL Open Font License 1.1 (see assets/fonts/LICENSE-*.txt). */
+@font-face{font-family:'Film Soft';font-style:normal;font-weight:400;font-display:swap;src:url('assets/fonts/baloo-bhaijaan-2-arabic-400-normal.woff2') format('woff2');
+  unicode-range:U+0600-06FF,U+0750-077F,U+0870-08FF,U+200C-200E,U+2010-2011,U+FB50-FDFF,U+FE70-FEFC;}
+@font-face{font-family:'Film Soft';font-style:normal;font-weight:400;font-display:swap;src:url('assets/fonts/baloo-bhaijaan-2-latin-400-normal.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:'Film Soft';font-style:normal;font-weight:500;font-display:swap;src:url('assets/fonts/baloo-bhaijaan-2-arabic-500-normal.woff2') format('woff2');
+  unicode-range:U+0600-06FF,U+0750-077F,U+0870-08FF,U+200C-200E,U+2010-2011,U+FB50-FDFF,U+FE70-FEFC;}
+@font-face{font-family:'Film Soft';font-style:normal;font-weight:500;font-display:swap;src:url('assets/fonts/baloo-bhaijaan-2-latin-500-normal.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:'Film Soft';font-style:normal;font-weight:600;font-display:swap;src:url('assets/fonts/baloo-bhaijaan-2-arabic-600-normal.woff2') format('woff2');
+  unicode-range:U+0600-06FF,U+0750-077F,U+0870-08FF,U+200C-200E,U+2010-2011,U+FB50-FDFF,U+FE70-FEFC;}
+@font-face{font-family:'Film Soft';font-style:normal;font-weight:600;font-display:swap;src:url('assets/fonts/baloo-bhaijaan-2-latin-600-normal.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:'Film Soft';font-style:normal;font-weight:700;font-display:swap;src:url('assets/fonts/baloo-bhaijaan-2-arabic-700-normal.woff2') format('woff2');
+  unicode-range:U+0600-06FF,U+0750-077F,U+0870-08FF,U+200C-200E,U+2010-2011,U+FB50-FDFF,U+FE70-FEFC;}
+@font-face{font-family:'Film Soft';font-style:normal;font-weight:700;font-display:swap;src:url('assets/fonts/baloo-bhaijaan-2-latin-700-normal.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:'Film Tale';size-adjust:116%;font-style:normal;font-weight:400;font-display:swap;src:url('assets/fonts/aref-ruqaa-arabic-400-normal.woff2') format('woff2');
+  unicode-range:U+0600-06FF,U+0750-077F,U+0870-08FF,U+200C-200E,U+2010-2011,U+FB50-FDFF,U+FE70-FEFC;}
+@font-face{font-family:'Film Tale';size-adjust:116%;font-style:normal;font-weight:400;font-display:swap;src:url('assets/fonts/aref-ruqaa-latin-400-normal.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:'Film Tale';size-adjust:116%;font-style:normal;font-weight:700;font-display:swap;src:url('assets/fonts/aref-ruqaa-arabic-700-normal.woff2') format('woff2');
+  unicode-range:U+0600-06FF,U+0750-077F,U+0870-08FF,U+200C-200E,U+2010-2011,U+FB50-FDFF,U+FE70-FEFC;}
+@font-face{font-family:'Film Tale';size-adjust:116%;font-style:normal;font-weight:700;font-display:swap;src:url('assets/fonts/aref-ruqaa-latin-700-normal.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:'Film Brand';font-style:italic;font-weight:600;font-display:swap;src:url('assets/fonts/cormorant-garamond-latin-600-italic.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+
+:root{
+  --font-soft:'Film Soft','Vazirmatn',Tahoma,'Segoe UI',system-ui,sans-serif;
+  --font-tale:'Film Tale','Film Soft',Tahoma,'Segoe UI',serif;
+  --font-brand:'Film Brand','Cormorant Garamond',Georgia,serif;
+}
+body,button,input,select,textarea{font-family:var(--font-soft);font-weight:500;font-synthesis:none;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{line-height:1.8}
+b,strong,th,.btn{font-weight:600}
+/* storybook headings */
+h1,h2,h3,legend,.filmDetailHead h1,.filmDetailHead h2,#filmDetailTitle,.cpTitle,.apTitle,.apHead h2,.authTitle,
+.filmHeroTitle,.pageTitle,.secTitle,.fdName,.filmSectionTitle,.newsTitle,.dialogTitle{
+  font-family:var(--font-tale);font-weight:700;letter-spacing:0;line-height:1.55}
+h4,h5,summary{font-family:var(--font-soft);font-weight:700;letter-spacing:0}
+.brand span,.sig{font-family:var(--font-brand);font-style:italic;font-weight:600}
+.brand{font-family:var(--font-tale)}
+/* Persian letters must stay joined: never letter-space them */
+:lang(fa) h1,:lang(fa) h2,:lang(fa) h3,:lang(fa) legend{letter-spacing:0}
+.stage video::cue,.subov,.cb.txt,.numericRate{font-family:var(--font-soft)}
+input,textarea,select{font-weight:500}
+::placeholder{font-weight:400;opacity:.7}
+@media (prefers-reduced-data:reduce){body{font-synthesis:none}}
