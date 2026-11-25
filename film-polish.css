@@ -150,18 +150,18 @@ body.roomFocus::before,body.cinema::before,body.cinema::after,body.roomFocus::af
 /* ---------- 5) reviews: edit button, hearts, my-review block ---------- */
 .fsCardFoot{display:flex;align-items:center;gap:10px;margin-top:6px}
 .fsCardFoot .fsDate{margin-inline-start:auto}
-.fsLike{display:inline-flex;align-items:center;gap:5px}
-.fsHeart{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:30px;padding:0 8px;border:1px solid transparent;border-radius:20px;background:transparent;color:var(--mute);font-size:19px;line-height:1;cursor:pointer;transition:color .15s,background .15s,transform .15s}
-.fsHeart:hover{background:color-mix(in srgb,#ff6b86 14%,transparent);color:#ff6b86}
-.fsHeart.on{color:#ff4d6d}.fsHeart.own{cursor:default;opacity:.75}.fsHeart.own:hover{background:none;color:var(--mute)}.fsHeart.own.on{color:#ff4d6d}
-.fsHeart.pop{animation:heartPop .4s ease}
+.fsRx{display:inline-flex;align-items:center;gap:5px}
+.fsRxBtn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:30px;padding:0 8px;border:1px solid transparent;border-radius:20px;background:transparent;color:var(--mute);font-size:19px;line-height:1;cursor:pointer;transition:color .15s,background .15s,transform .15s}
+.fsRxBtn:hover{background:color-mix(in srgb,#ff6b86 14%,transparent);color:#ff6b86}
+.fsRxBtn.on{color:#ff4d6d}.fsRxBtn.own{cursor:default;opacity:.75}.fsRxBtn.own:hover{background:none;color:var(--mute)}.fsRxBtn.own.on{color:#ff4d6d}
+.fsRxBtn.pop{animation:heartPop .4s ease}
 @keyframes heartPop{0%{transform:scale(1)}35%{transform:scale(1.45)}100%{transform:scale(1)}}
-.fsLikeCount{font-size:13px;font-weight:700;color:var(--mute);min-width:8px;direction:ltr}
-.fsLikeCount:empty{display:none}
+.fsRxNum{font-size:13px;font-weight:700;color:var(--mute);min-width:8px;direction:ltr}
+.fsRxNum:empty{display:none}
 .fsEdit{border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:13.5px;padding:4px 11px;cursor:pointer}.fsEdit:hover{border-color:var(--gold);color:var(--gold)}
 .fsMine .fsSection h3{color:var(--gold)}
 .fsMine .fsReview{border-color:color-mix(in srgb,var(--gold) 45%,var(--line));background:color-mix(in srgb,var(--gold) 6%,var(--bg))}
-@media(prefers-reduced-motion:reduce){.fsHeart.pop{animation:none}}
+@media(prefers-reduced-motion:reduce){.fsRxBtn.pop{animation:none}}
 
 /* ---------- 6) announcement bar, staff extras ---------- */
 .saWrap{position:relative;z-index:30;display:grid;gap:1px}
@@ -184,9 +184,9 @@ body.roomFocus::before,body.cinema::before,body.cinema::after,body.roomFocus::af
 .cpBody{max-width:none;width:100%;margin:0;padding-inline:18px}
 
 /* Round 10: the like heart is an SVG now */
-.fsHeart{gap:6px;font-size:14px}
-.fsHeartIcon{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;transition:fill .2s,transform .2s}
-.fsHeart:hover .fsHeartIcon{transform:scale(1.12)}
-.fsHeart.on .fsHeartIcon{fill:currentColor}
-.fsHeart.on{background:color-mix(in srgb,#ff4d6d 14%,transparent);border-color:color-mix(in srgb,#ff4d6d 40%,transparent)}
-.fsHeart.pop .fsHeartIcon{animation:heartPop .4s ease}
+.fsRxBtn{gap:6px;font-size:14px}
+.fsRxIcon{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;transition:fill .2s,transform .2s}
+.fsRxBtn:hover .fsRxIcon{transform:scale(1.12)}
+.fsRxBtn.on .fsRxIcon{fill:currentColor}
+.fsRxBtn.on{background:color-mix(in srgb,#ff4d6d 14%,transparent);border-color:color-mix(in srgb,#ff4d6d 40%,transparent)}
+.fsRxBtn.pop .fsRxIcon{animation:heartPop .4s ease}

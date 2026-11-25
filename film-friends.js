@@ -129,7 +129,7 @@ function reviewLink(el,r){
  el.title=T('رفتن به این نظر در صفحهٔ فیلم','Open this review on the film page');
  const go=()=>goToReview(r);
  el.addEventListener('click',e=>{
-  if(e.target.closest&&e.target.closest('a,button,input,textarea,select,.fsLike,[role="button"]'))return;
+  if(e.target.closest&&e.target.closest('a,button,input,textarea,select,.fsRx,[role="button"]'))return;
   try{if(String(window.getSelection()||'').length)return;}catch(_){}
   go();
  });
@@ -601,22 +601,22 @@ function paintBox(box,id){
  b.title=on?T('برداشتن لایک','Remove like'):T('پسندیدن این نظر','Like this review');
  b.setAttribute('aria-label',b.title+(total?' ('+total+')':''));
 }
-function repaintAllHearts(){document.querySelectorAll('.fsLike[data-rid]').forEach(box=>paintBox(box,box.dataset.rid));}
+function repaintAllHearts(){document.querySelectorAll('.fsRx[data-rid]').forEach(box=>paintBox(box,box.dataset.rid));}
 function paintHearts(id){
- document.querySelectorAll('.fsLike[data-rid="'+Number(id)+'"]').forEach(box=>paintBox(box,id));
+ document.querySelectorAll('.fsRx[data-rid="'+Number(id)+'"]').forEach(box=>paintBox(box,id));
 }
 /* A real heart drawn as SVG (the old text glyph looked like a tiny blob in many fonts): outline = not liked, filled = liked. */
 function heartIcon(){
  const NS='http://www.w3.org/2000/svg';
- const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('class','fsHeartIcon');svg.setAttribute('width','20');svg.setAttribute('height','20');svg.setAttribute('fill','none');svg.setAttribute('stroke','#8a948f');svg.setAttribute('stroke-width','1.9');svg.setAttribute('stroke-linejoin','round');svg.style.cssText='width:20px;height:20px;display:block;flex:none';svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
+ const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('class','fsRxIcon');svg.setAttribute('width','20');svg.setAttribute('height','20');svg.setAttribute('fill','none');svg.setAttribute('stroke','#8a948f');svg.setAttribute('stroke-width','1.9');svg.setAttribute('stroke-linejoin','round');svg.style.cssText='width:20px;height:20px;display:block;flex:none';svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
  const path=document.createElementNS(NS,'path');
  path.setAttribute('d','M12 20.6 4.6 13.4C2.2 11 2.3 7.4 4.5 5.5c2-1.7 4.8-1.3 6.4.6l1.1 1.3 1.1-1.3c1.6-1.9 4.4-2.3 6.4-.6 2.2 1.9 2.3 5.5-.1 7.9z');
  svg.appendChild(path);return svg;
 }
 function likeBar(r){
- const box=make('div','fsLike');box.dataset.rid=Number(r.id);
- const b=make('button','fsHeart');b.type='button';b.appendChild(heartIcon());b.setAttribute('aria-pressed','false');
- const count=make('span','fsLikeCount');box.append(b,count);
+ const box=make('div','fsRx');box.dataset.rid=Number(r.id);
+ const b=make('button','fsRxBtn');b.type='button';b.appendChild(heartIcon());b.setAttribute('aria-pressed','false');
+ const count=make('span','fsRxNum');box.append(b,count);
  const mine=()=>ready()&&r.user_id===ses.id;
  if(mine())b.classList.add('own');
  b.onclick=async()=>{
