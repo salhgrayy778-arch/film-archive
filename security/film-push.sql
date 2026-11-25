@@ -23,21 +23,33 @@ create policy "push subs update own" on public.film_push_subs for update to auth
 create policy "push subs delete own" on public.film_push_subs for delete to authenticated using (user_id = auth.uid());
 revoke all on public.film_push_subs from anon;
 
--- Database webhooks: every new follow / like / role calls the send-push Edge Function.
+-- Every new follow / like / role calls the send-push Edge Function through pg_net (enable it in Database -> Extensions).
+create or replace function public.film_push_notify()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform net.http_post(
+    url := 'https://qphlhhuxtlchejbrkeec.supabase.co/functions/v1/send-push',
+    body := jsonb_build_object('type', 'INSERT', 'table', TG_TABLE_NAME, 'record', to_jsonb(NEW)),
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-push-secret', '__PUSH_SECRET__'),
+    timeout_milliseconds := 4000
+  );
+  return NEW;
+exception when others then
+  return NEW;
+end;
+$$;
+revoke all on function public.film_push_notify() from public, anon, authenticated;
+
 drop trigger if exists film_push_follow on public.film_follows;
 create trigger film_push_follow after insert on public.film_follows
-  for each row execute function supabase_functions.http_request(
-    'https://qphlhhuxtlchejbrkeec.supabase.co/functions/v1/send-push', 'POST',
-    '{"Content-Type":"application/json","x-push-secret":"__PUSH_SECRET__"}', '{}', '4000');
-
+  for each row execute function public.film_push_notify();
 drop trigger if exists film_push_like on public.film_review_likes;
 create trigger film_push_like after insert on public.film_review_likes
-  for each row execute function supabase_functions.http_request(
-    'https://qphlhhuxtlchejbrkeec.supabase.co/functions/v1/send-push', 'POST',
-    '{"Content-Type":"application/json","x-push-secret":"__PUSH_SECRET__"}', '{}', '4000');
-
+  for each row execute function public.film_push_notify();
 drop trigger if exists film_push_role on public.film_roles;
 create trigger film_push_role after insert on public.film_roles
-  for each row execute function supabase_functions.http_request(
-    'https://qphlhhuxtlchejbrkeec.supabase.co/functions/v1/send-push', 'POST',
-    '{"Content-Type":"application/json","x-push-secret":"__PUSH_SECRET__"}', '{}', '4000');
+  for each row execute function public.film_push_notify();

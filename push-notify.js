@@ -24,6 +24,20 @@ async function state(){
  const r=await reg();const s=r?await r.pushManager.getSubscription():null;
  return s&&Notification.permission==='granted'?'on':'off';
 }
+/* which kinds of notifications this person wants (kept in this browser and next to each subscription on the server) */
+const KINDS=['follow','like','role','announce'];
+const prefKey=()=>'film-push-prefs-v1:'+(typeof ses!=='undefined'&&ses?ses.id:'');
+function prefs(){
+ let o={};try{o=JSON.parse(localStorage.getItem(prefKey())||'{}')||{};}catch(e){}
+ const out={};KINDS.forEach(k=>{out[k]=o[k]!==false;});return out;
+}
+async function setPref(kind,on){
+ if(!KINDS.includes(kind))return false;
+ const p=prefs();p[kind]=Boolean(on);
+ try{localStorage.setItem(prefKey(),JSON.stringify(p));}catch(e){}
+ try{await restCall('/film_push_subs?user_id=eq.'+encodeURIComponent(ses.id),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({prefs:p})});}catch(e){}
+ announce();return true;
+}
 async function enable(){
  const st=await state();if(st==='need-install'||st==='unsupported'||st==='signin'||st==='denied')return st;
  const perm=await Notification.requestPermission();
@@ -33,8 +47,10 @@ async function enable(){
   try{(await r.pushManager.getSubscription())?.unsubscribe();}catch(e){}
   const sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key64(VAPID)});
   const j=sub.toJSON();
-  await restCall('/film_push_subs?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
-   body:JSON.stringify({user_id:ses.id,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth})});
+  const row={user_id:ses.id,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth};
+  const send=body=>restCall('/film_push_subs?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
+  try{await send({...row,prefs:prefs()});}
+  catch(e){if(e?.status===400)await send(row);else throw e;} // the settings column may not exist yet on the server
   setFlag(true);announce();return 'on';
  }catch(e){
   try{(await (await reg())?.pushManager.getSubscription())?.unsubscribe();}catch(_){}
@@ -89,5 +105,5 @@ window.addEventListener('film-account-state',async()=>{
  closeBar();
  const r=supported()?await reg():null;try{(await r?.pushManager.getSubscription())?.unsubscribe();}catch(e){}announce();
 });
-window.filmPush={ask:maybeAsk,state,enable,disable,supported,isIOS,standalone};
+window.filmPush={prefs,setPref,KINDS,ask:maybeAsk,state,enable,disable,supported,isIOS,standalone};
 })();

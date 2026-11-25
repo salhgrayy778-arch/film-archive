@@ -161,3 +161,6 @@ html[dir=rtl] .tsGo{transform:scaleX(-1)}
 .tsSwitchRow[aria-checked=true] .tsSwitch{background:var(--gold)}
 .tsSwitchRow[aria-checked=true] .tsSwitch i{inset-inline-start:21px}
 @media (prefers-reduced-motion:reduce){.tsSwitch,.tsSwitch i{transition:none}}
+
+.tsSub{padding-inline-start:30px;opacity:.95}.tsSub .tsText b{font-size:13.5px;font-weight:600}
+.tsRow[hidden]{display:none}

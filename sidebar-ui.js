@@ -47,6 +47,22 @@ action(look,'🌐',isEN?'فارسی':'English',isEN?'Switch to Persian':'Switch 
 
 const notif=group('اعلان‌ها','Notifications');
 toggle(notif,'bell','اعلان‌های زنگوله','Bell notifications','دنبال‌کننده‌های تازه و لایک نظرهایت','New followers and likes on your reviews');
+// what to be notified about (visible only while notifications are on)
+{
+  const KS=[['follow','دنبال‌کردن','Follows'],['like','لایک نظرها','Likes on reviews'],['role','نقش تازه','New roles'],['announce','اعلامیهٔ مدیر','Admin announcements']];
+  const rows=KS.map(([k,fa,en])=>{
+    const b=el('button','tsRow tsSwitchRow tsSub');b.type='button';b.setAttribute('role','switch');b.dataset.kind=k;b.hidden=true;
+    const t=el('span','tsText');t.append(el('b','',T(fa,en)));const sw=el('span','tsSwitch');sw.appendChild(el('i'));b.append(t,sw);
+    b.addEventListener('click',async()=>{const on=b.getAttribute('aria-checked')!=='true';b.setAttribute('aria-checked',String(on));await window.filmPush?.setPref?.(k,on);});
+    notif.appendChild(b);return b;
+  });
+  const paintSub=async()=>{
+    const on=window.filmPush&&(await window.filmPush.state())==='on';const p=on?window.filmPush.prefs():{};
+    rows.forEach(b=>{b.hidden=!on;if(on)b.setAttribute('aria-checked',String(p[b.dataset.kind]!==false));});
+  };
+  paintSub();window.addEventListener('film-push-state',paintSub);
+  new MutationObserver(paintSub).observe(drawer,{attributes:true,attributeFilter:['class']});
+}
 toggle(notif,'ann','اعلان‌های سایت','Site announcements','نوار اعلان مدیران بالای صفحه','The announcement bar at the top');
 
 // real phone notifications (follow / like / role): switch + live hint

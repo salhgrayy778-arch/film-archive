@@ -634,24 +634,24 @@ body{overflow-x:clip;padding-bottom:145px}
 #dashboard #grid{padding-top:3px}
 @media(max-width:560px){.dashNav{gap:6px;margin-top:13px}.dashNavBtn{font-size:12px;padding:9px 12px}.dashLibraryHeading h2{font-size:19px}}
 </style>
-<link rel="stylesheet" href="cinema-news.css?v=20261125l">
-<link rel="stylesheet" href="sidebar.css?v=20261125l">
-<link rel="stylesheet" href="theme-picker.css?v=20261125l">
-<link rel="stylesheet" href="film-context.css?v=20261125l">
-<link rel="stylesheet" href="site-updates.css?v=20261125l">
-<link rel="stylesheet" href="add-film.css?v=20261125l">
-<link rel="stylesheet" href="cinematic-shell.css?v=20261125l">
-<link rel="stylesheet" href="account-profile.css?v=20261125l">
-<link rel="stylesheet" href="film-discovery.css?v=20261125l">
-<link rel="stylesheet" href="room-experience.css?v=20261125l">
-<link rel="stylesheet" href="film-social.css?v=20261125l">
-<link rel="stylesheet" href="admin-panel.css?v=20261125l">
-<link rel="stylesheet" href="critic-panel.css?v=20261125l">
-<link rel="stylesheet" href="film-polish.css?v=20261125l">
-<link rel="stylesheet" href="film-fonts.css?v=20261125l">
-<link rel="stylesheet" href="film-scenes.css?v=20261125l">
-<link rel="stylesheet" href="panel-dock.css?v=20261125l">
-<link rel="stylesheet" href="site-tour.css?v=20261125l">
+<link rel="stylesheet" href="cinema-news.css?v=20261125m">
+<link rel="stylesheet" href="sidebar.css?v=20261125m">
+<link rel="stylesheet" href="theme-picker.css?v=20261125m">
+<link rel="stylesheet" href="film-context.css?v=20261125m">
+<link rel="stylesheet" href="site-updates.css?v=20261125m">
+<link rel="stylesheet" href="add-film.css?v=20261125m">
+<link rel="stylesheet" href="cinematic-shell.css?v=20261125m">
+<link rel="stylesheet" href="account-profile.css?v=20261125m">
+<link rel="stylesheet" href="film-discovery.css?v=20261125m">
+<link rel="stylesheet" href="room-experience.css?v=20261125m">
+<link rel="stylesheet" href="film-social.css?v=20261125m">
+<link rel="stylesheet" href="admin-panel.css?v=20261125m">
+<link rel="stylesheet" href="critic-panel.css?v=20261125m">
+<link rel="stylesheet" href="film-polish.css?v=20261125m">
+<link rel="stylesheet" href="film-fonts.css?v=20261125m">
+<link rel="stylesheet" href="film-scenes.css?v=20261125m">
+<link rel="stylesheet" href="panel-dock.css?v=20261125m">
+<link rel="stylesheet" href="site-tour.css?v=20261125m">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -2580,7 +2580,7 @@ async function tmEnrich(f){
 async function pxAutoOne(id){
   try{
     const f = state.films.find(x=>x.id === id); if(!f) return;
-    if(tmKey && !f.tmdb && !f.tmMiss){
+    if(tmReady() && !f.tmdb && !f.tmMiss){
       try{
         const r = await tmEnrich(f);
         if(r === 'ok'){ render(); await saveFilms(); toast('اطلاعات فیلم از TMDB کامل شد'); return; }
@@ -2600,7 +2600,7 @@ let pxRun = false, pxStop = false;
 async function pxBulk(){
   const btn = $('pxAll'), stt = $('pxState');
   if(pxRun){ pxStop = true; btn.textContent = 'در حال توقف…'; return; }
-  const need = f => (tmKey && !f.tmdb && !f.tmMiss) || (!f.poster && !f.pxMiss);
+  const need = f => (tmReady() && !f.tmdb && !f.tmMiss) || (!f.poster && !f.pxMiss);
   const todo = state.films.filter(need);
   if(!todo.length){ toast(state.films.some(f=>(f.pxMiss || f.tmMiss) && !f.poster) ? 'برای بقیه چیزی پیدا نشد؛ «امتحان دوبارهٔ پیدانشده‌ها» را بزن' : 'همهٔ فیلم‌ها پوستر دارند'); return; }
   pxRun = true; pxStop = false;
@@ -2609,7 +2609,7 @@ async function pxBulk(){
     if(pxStop) break;
     btn.textContent = `در حال جستجو… ${fa(done)} از ${fa(todo.length)} — برای توقف بزن`;
     const f = state.films.find(x=>x.id === f0.id) || f0;
-    if(tmKey && !tmBad && !f.tmdb && !f.tmMiss){
+    if(tmReady() && !tmBad && !f.tmdb && !f.tmMiss){
       try{
         const r = await tmEnrich(f); tmFail = 0;
         if(r === 'ok'){
@@ -2686,15 +2686,18 @@ function initPosters(){
   });
 }
 /* ---------- TMDB، فیلتر پیشرفته، صفحهٔ فیلم، پیشنهاد تصادفی ---------- */
-const TM_DEFAULT = 'f5c6c191ef375213a7a3e1f48e49d46e';
+/* No TMDB key lives in the site any more: lookups go through the site's own server function (tmdb-proxy), which
+   keeps the key as a secret. A key the visitor saves in their own browser is still honoured (direct TMDB). */
+const TM_DEFAULT = '';
 let tmKey = TM_DEFAULT;
+const tmReady = () => Boolean(tmKey) || !tmProxy.off;
 const TMG = {18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'جنایی و معمایی',53:'جنایی و معمایی',27:'ترسناک',878:'علمی‌تخیلی',14:'علمی‌تخیلی',28:'اکشن',12:'اکشن',10749:'عاشقانه',99:'مستند',16:'انیمیشن',36:'تاریخی و جنگی',10752:'تاریخی و جنگی'};
 /* TMDB is often unreachable from Iran without a VPN. Fail fast instead of hanging for 12 s per call: after two
    network failures in a row the direct API is skipped for three minutes (callers fall back to the local cache and
    to Wikidata/Wikipedia); one successful call re-enables it immediately. */
 const tmHealth = { fails:0, until:0 };
 function tmDirectOk(){ return Date.now() >= tmHealth.until; }
-function tmReachable(){ return tmDirectOk() || !tmProxy.off; }
+function tmReachable(){ return (Boolean(tmKey) && tmDirectOk()) || !tmProxy.off; }
 /* Route 1 (works inside Iran): the site's own Supabase Edge Function "tmdb-proxy", which holds the key as a secret.
    Route 2: TMDB directly (works for visitors abroad / with a VPN). If the proxy isn't deployed (404) it is skipped
    for this session. */
@@ -2717,7 +2720,7 @@ async function tmViaProxy(path, params){
 async function tm(path, params){
   const viaProxy = await tmViaProxy(path, params);
   if(viaProxy) return viaProxy;
-  if(!tmDirectOk()) throw new Error('tmdb-blocked');
+  if(!tmKey || !tmDirectOk()) throw new Error('tmdb-blocked');
   const u = new URL('https://api.themoviedb.org/3' + path);
   Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
   const o = {signal: (AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined)};
@@ -2808,18 +2811,18 @@ function initPlus(){
   $('rndBtn').addEventListener('click', randomPick);
   $('bkNow').addEventListener('click', exportData);
 
-  kvGet(TM_KEY).then(k=>{ tmKey = k || TM_DEFAULT; $('tmState').textContent = k ? 'کلید ذخیره شده است.' : 'کلید پیش‌فرض سایت فعال است.'; });
+  kvGet(TM_KEY).then(k=>{ tmKey = k || TM_DEFAULT; $('tmState').textContent = k ? 'کلید ذخیره شده است.' : 'از سرور خود سایت استفاده می‌شود.'; });
   $('tmKeySave').addEventListener('click', async ()=>{
     const k = $('tmKeyIn').value.trim();
     if(!/^[\w.\-]{20,}$/.test(k)){ toast('کلید معتبر به نظر نمی‌رسد'); return; }
     tmKey = k; await kvSet(TM_KEY, k); $('tmKeyIn').value = ''; $('tmState').textContent = 'کلید ذخیره شد.';
   });
-  $('tmKeyDel').addEventListener('click', async ()=>{ tmKey = TM_DEFAULT; await kvSet(TM_KEY, ''); $('tmState').textContent = 'کلید پیش‌فرض سایت فعال است.'; });
+  $('tmKeyDel').addEventListener('click', async ()=>{ tmKey = TM_DEFAULT; await kvSet(TM_KEY, ''); $('tmState').textContent = 'از سرور خود سایت استفاده می‌شود.'; });
 
   $('tmSearch').addEventListener('click', async ()=>{
     const q = $('fTitle').value.trim();
     if(!q){ toast('نام فیلم را بنویس'); return; }
-    if(!tmKey){ toast('کلید TMDB نداری؟ از «جستجوی خودکار پوستر» پایین‌تر استفاده کن'); return; }
+    if(!tmReady()){ toast('کلید TMDB نداری؟ از «جستجوی خودکار پوستر» پایین‌تر استفاده کن'); return; }
     $('tmRes').innerHTML = '<div class="hint">در حال جستجو…</div>';
     try{
       const d = await tm('/search/movie', {query:q, language:LOC});
@@ -3324,33 +3327,33 @@ function startAccount(){
 startLang();
 init();
 </script>
-<script src="group-watch.js?v=20261125l"></script>
+<script src="group-watch.js?v=20261125m"></script>
 <script src="assets/vendor/supabase-js-2.119.2.js"></script>
-<script src="group-watch-realtime.js?v=20261125l"></script>
-<script src="room-experience.js?v=20261125l"></script>
-<script src="group-watch-account.js?v=20261125l"></script>
-<script src="mkv-support.js?v=20261125l"></script>
-<script src="cinema-news.js?v=20261125l"></script>
-<script src="cinema-translation.js?v=20261125l"></script>
-<script src="sidebar-ui.js?v=20261125l"></script>
-<script src="film-context.js?v=20261125l"></script>
-<script src="site-updates.js?v=20261125l"></script>
-<script src="pwa-install.js?v=20261125l"></script>
-<script src="tmdb-image.js?v=20261125l"></script>
-<script src="push-notify.js?v=20261125l"></script>
-<script src="add-film-ui.js?v=20261125l"></script>
-<script src="account-profile.js?v=20261125l"></script>
-<script src="film-wiki.js?v=20261125l"></script>
-<script src="film-discovery.js?v=20261125l"></script>
-<script src="film-similar.js?v=20261125l"></script>
-<script src="film-friends.js?v=20261125l"></script>
-<script src="follow-bell.js?v=20261125l"></script>
-<script src="film-notes-sync.js?v=20261125l"></script>
-<script src="admin-panel.js?v=20261125l"></script>
-<script src="critic-panel.js?v=20261125l"></script>
-<script src="site-announce.js?v=20261125l"></script>
-<script src="film-scenes.js?v=20261125l"></script>
-<script src="panel-dock.js?v=20261125l"></script>
-<script src="site-tour.js?v=20261125l"></script>
+<script src="group-watch-realtime.js?v=20261125m"></script>
+<script src="room-experience.js?v=20261125m"></script>
+<script src="group-watch-account.js?v=20261125m"></script>
+<script src="mkv-support.js?v=20261125m"></script>
+<script src="cinema-news.js?v=20261125m"></script>
+<script src="cinema-translation.js?v=20261125m"></script>
+<script src="sidebar-ui.js?v=20261125m"></script>
+<script src="film-context.js?v=20261125m"></script>
+<script src="site-updates.js?v=20261125m"></script>
+<script src="pwa-install.js?v=20261125m"></script>
+<script src="tmdb-image.js?v=20261125m"></script>
+<script src="push-notify.js?v=20261125m"></script>
+<script src="add-film-ui.js?v=20261125m"></script>
+<script src="account-profile.js?v=20261125m"></script>
+<script src="film-wiki.js?v=20261125m"></script>
+<script src="film-discovery.js?v=20261125m"></script>
+<script src="film-similar.js?v=20261125m"></script>
+<script src="film-friends.js?v=20261125m"></script>
+<script src="follow-bell.js?v=20261125m"></script>
+<script src="film-notes-sync.js?v=20261125m"></script>
+<script src="admin-panel.js?v=20261125m"></script>
+<script src="critic-panel.js?v=20261125m"></script>
+<script src="site-announce.js?v=20261125m"></script>
+<script src="film-scenes.js?v=20261125m"></script>
+<script src="panel-dock.js?v=20261125m"></script>
+<script src="site-tour.js?v=20261125m"></script>
 </body>
 </html>
