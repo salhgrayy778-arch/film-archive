@@ -586,6 +586,9 @@ function paintBox(box,id){
  const on=!!me&&set.has(me);
  const b=box.querySelector('button');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));
  box.querySelector('span').textContent=set.size?faNum(set.size):'';
+ /* paint the heart with its own attributes so it can never turn invisible (stale CSS, theme colours): red + filled when liked */
+ const sv=b.querySelector('svg');if(sv){sv.setAttribute('fill',on?'#ff4d6d':'none');sv.setAttribute('stroke',on?'#ff4d6d':'#8a948f');}
+ const cn=box.querySelector('span');cn.style.cssText='display:inline;min-width:8px;font-weight:700;font-size:13px;color:'+(on?'#ff4d6d':'inherit');
  b.title=on?T('برداشتن لایک','Remove like'):T('پسندیدن این نظر','Like this review');
  b.setAttribute('aria-label',b.title+(set.size?' ('+set.size+')':''));
 }
@@ -595,7 +598,7 @@ function paintHearts(id){
 /* A real heart drawn as SVG (the old text glyph looked like a tiny blob in many fonts): outline = not liked, filled = liked. */
 function heartIcon(){
  const NS='http://www.w3.org/2000/svg';
- const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('class','fsHeartIcon');svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
+ const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('class','fsHeartIcon');svg.setAttribute('width','20');svg.setAttribute('height','20');svg.setAttribute('fill','none');svg.setAttribute('stroke','#8a948f');svg.setAttribute('stroke-width','1.9');svg.setAttribute('stroke-linejoin','round');svg.style.cssText='width:20px;height:20px;display:block;flex:none';svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
  const path=document.createElementNS(NS,'path');
  path.setAttribute('d','M12 20.6 4.6 13.4C2.2 11 2.3 7.4 4.5 5.5c2-1.7 4.8-1.3 6.4.6l1.1 1.3 1.1-1.3c1.6-1.9 4.4-2.3 6.4-.6 2.2 1.9 2.3 5.5-.1 7.9z');
  svg.appendChild(path);return svg;
