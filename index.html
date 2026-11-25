@@ -3298,7 +3298,7 @@ function paintAuth(){
       $('auGo').disabled = true; auMsg('');
       try{
         if(auView==='signup'){
-          const j = await authCall('/signup', { email, password:pass });
+          const j = await authCall('/signup?redirect_to='+encodeURIComponent(location.origin+location.pathname), { email, password:pass });
           if(j.access_token){
             // The server logged us in without checking the address: "Confirm email" is switched off there.
             try{await fetch(sb.url.replace(/\/$/,'')+'/auth/v1/logout',{method:'POST',headers:{apikey:sb.key,Authorization:'Bearer '+j.access_token}});}catch(_){}
@@ -3350,6 +3350,16 @@ function startAccount(){
     acRec={access_token:hp.get('access_token'),refresh_token:hp.get('refresh_token')||'',expires_in:+hp.get('expires_in')||3600};
     history.replaceState(null,'',location.pathname+location.search);
     openAuth('recover',acRec.access_token);
+  }else if(hp.get('type')==='signup'||hp.get('error_code')){
+    // Back from the confirmation e-mail: never keep tokens/errors in the address bar
+    const expired=Boolean(hp.get('error_code'));
+    history.replaceState(null,'',location.pathname+location.search);
+    if(!ses&&sb.url){
+      openAuth('login');
+      setTimeout(()=>auMsg(expired
+        ?LX('این لینک قبلاً استفاده شده یا منقضی شده است. اگر ایمیلت را قبلاً تأیید کرده‌ای، همین‌جا وارد شو.','This link was already used or has expired. If you already confirmed your e-mail, just sign in here.')
+        :LX('ایمیلت تأیید شد ✓ حالا وارد شو.','E-mail confirmed ✓ Now sign in.'),!expired),50);
+    }
   }else if(ses)loadAccountArchive();
 }
 
