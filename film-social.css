@@ -72,3 +72,5 @@ button.fsStat{cursor:pointer}button.fsStat:hover span{text-decoration:underline}
 .pe.clickable:hover,.pe.clickable:focus-visible{transform:translateY(-2px);outline:2px solid var(--gold);outline-offset:3px}
 .pe i.hasPhoto{padding:0;overflow:hidden;background:none}.pe i .peAvatar{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 @media(max-width:640px){.fsDialog{width:100vw;max-height:100dvh;border-radius:0}.fsBody{padding:14px}}
+
+.fsTrash{border:1px solid var(--line);border-radius:10px;background:var(--bg);color:#e5736d;font:inherit;font-size:14px;padding:4px 9px;cursor:pointer}.fsTrash:hover{border-color:#b3412f}.fsTrash.armed{background:#b3412f;color:#fff;border-color:#b3412f}
