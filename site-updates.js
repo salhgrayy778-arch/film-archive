@@ -13,6 +13,7 @@ const UPDATES=[
   fa:'نصب مثل اپ، لایک پایدار و اطلاعات فیلم بدون فیلترشکن',en:'Install as an app, steady likes and film info without a VPN',
   items:[
    ['📲','حالا می‌توانی سایت را مثل یک اپ روی گوشی نصب کنی: دکمهٔ «نصب» یا «ابزارها ← نصب روی گوشی».','You can now install the site like an app on your phone: tap "Install" or Tools → Install on your phone.'],
+   ['🔔','اعلان روی گوشی: وقتی کسی دنبالت کند، نظرت را لایک کند یا نقشی بگیری، روی گوشی خبردار می‌شوی (ابزارها ← اعلان روی گوشی).','Phone notifications: get told on your phone when someone follows you, likes your review or you get a role (Tools → Phone notifications).'],
    ['❤️','قلب لایک دیگر ناپدید نمی‌شود؛ هر وقت خواستی برش می‌داری و دوباره می‌زنی.','The like heart no longer disappears; remove it and tap it again any time.'],
    ['🎬','اطلاعات و پوستر فیلم‌ها از مسیر خود سایت گرفته می‌شود، پس بدون فیلترشکن هم کار می‌کند.','Film details now come through the site itself, so they work without a VPN.']
   ]},
@@ -91,6 +92,7 @@ function open(all){
 /* show it automatically once the page has settled and nothing else is in the way */
 let tries=0,timer=0;
 function auto(){
+ if((window.visualViewport?.scale||1)>1.05||doc.activeElement?.matches?.('input,textarea')){clearTimeout(timer);if(++tries<30)timer=setTimeout(auto,2500);return;}
  clearTimeout(timer);
  if(box||!hasUnseen())return;
  const tourDone=(()=>{try{return localStorage.getItem('film-site-tour-v1')==='1';}catch(e){return true;}})();

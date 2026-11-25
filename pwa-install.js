@@ -51,6 +51,7 @@ function showGuide(){
  const x=make('button','suX','✕');x.type='button';x.setAttribute('aria-label',T('بستن','Close'));x.onclick=closeGuide;head.appendChild(x);
  const body=make('div','suBody');const ol=make('ol','piSteps');
  g.steps.forEach(s=>ol.appendChild(make('li','',s[0])));body.appendChild(ol);
+ body.appendChild(make('p','piNote',T('بعد از نصب، از «ابزارها ← اعلان روی گوشی» اعلان دنبال‌کردن و لایک را روشن کن.','After installing, turn on follow and like alerts in Tools → Phone notifications.')));
  const foot=make('div','suFoot');const ok=make('button','suOk',T('متوجه شدم','Got it'));ok.type='button';ok.onclick=closeGuide;foot.appendChild(ok);
  card.append(head,body,foot);guide.appendChild(card);
  guide.addEventListener('pointerdown',e=>{if(e.target===guide)closeGuide();});
@@ -70,7 +71,7 @@ function showBanner(){
  const icon=make('img','piIcon');icon.alt='';icon.src='assets/icons/icon-192.png';
  const txt=make('div','piText');
  txt.append(make('b','',T('سایت را مثل یک اپ روی گوشی داشته باش','Keep the site on your phone like an app')),
-  make('small','',T('با یک ضربه نصب می‌شود؛ بدون فروشگاه و بدون حجم اضافه.','One tap to install; no store, no extra storage.')));
+  make('small','',T('با نصب، اعلان دنبال‌کردن و لایک را روی گوشی می‌گیری. بدون فروشگاه.','Install to get follow and like notifications on your phone. No store.')));
  const go=make('button','piGo',T('نصب','Install'));go.type='button';go.onclick=install;
  const later=make('button','piLater','✕');later.type='button';later.setAttribute('aria-label',T('بعداً','Later'));
  later.onclick=()=>{put(KEY,String(Date.now()));closeBanner();};
