@@ -620,21 +620,21 @@ body{overflow-x:clip;padding-bottom:145px}
 #dashboard #grid{padding-top:3px}
 @media(max-width:560px){.dashNav{gap:6px;margin-top:13px}.dashNavBtn{font-size:12px;padding:9px 12px}.dashLibraryHeading h2{font-size:19px}}
 </style>
-<link rel="stylesheet" href="cinema-news.css?v=20261125c">
-<link rel="stylesheet" href="sidebar.css?v=20261125c">
-<link rel="stylesheet" href="add-film.css?v=20261125c">
-<link rel="stylesheet" href="cinematic-shell.css?v=20261125c">
-<link rel="stylesheet" href="account-profile.css?v=20261125c">
-<link rel="stylesheet" href="film-discovery.css?v=20261125c">
-<link rel="stylesheet" href="room-experience.css?v=20261125c">
-<link rel="stylesheet" href="film-social.css?v=20261125c">
-<link rel="stylesheet" href="admin-panel.css?v=20261125c">
-<link rel="stylesheet" href="critic-panel.css?v=20261125c">
-<link rel="stylesheet" href="film-polish.css?v=20261125c">
-<link rel="stylesheet" href="film-fonts.css?v=20261125c">
-<link rel="stylesheet" href="film-scenes.css?v=20261125c">
-<link rel="stylesheet" href="panel-dock.css?v=20261125c">
-<link rel="stylesheet" href="site-tour.css?v=20261125c">
+<link rel="stylesheet" href="cinema-news.css?v=20261125d">
+<link rel="stylesheet" href="sidebar.css?v=20261125d">
+<link rel="stylesheet" href="add-film.css?v=20261125d">
+<link rel="stylesheet" href="cinematic-shell.css?v=20261125d">
+<link rel="stylesheet" href="account-profile.css?v=20261125d">
+<link rel="stylesheet" href="film-discovery.css?v=20261125d">
+<link rel="stylesheet" href="room-experience.css?v=20261125d">
+<link rel="stylesheet" href="film-social.css?v=20261125d">
+<link rel="stylesheet" href="admin-panel.css?v=20261125d">
+<link rel="stylesheet" href="critic-panel.css?v=20261125d">
+<link rel="stylesheet" href="film-polish.css?v=20261125d">
+<link rel="stylesheet" href="film-fonts.css?v=20261125d">
+<link rel="stylesheet" href="film-scenes.css?v=20261125d">
+<link rel="stylesheet" href="panel-dock.css?v=20261125d">
+<link rel="stylesheet" href="site-tour.css?v=20261125d">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -916,15 +916,6 @@ body{overflow-x:clip;padding-bottom:145px}
 <div class="dbg" id="dBg" hidden></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-labelledby="drawerTitle" inert>
   <div class="dhead"><h2 id="drawerTitle">ابزارها و داده‌ها</h2><button class="btn" id="drawerClose" type="button" aria-label="بستن"><svg class="ic" style="margin:0"><use href="#i-close"/></svg></button></div>
-  <section class="backup">
-    <b>آوردن فیلم‌ها از Letterboxd</b><br>
-    در سایت لترباکس (نسخه وب): Settings ← Data ← Export your data. فایل zip که دانلود می‌شود را همین‌جا انتخاب کن؛ فیلم‌ها، امتیازها، یادداشت‌ها و فهرست انتظارت وارد می‌شود.
-    <div class="row">
-      <button class="btn primary" id="lbBtn">انتخاب فایل Letterboxd</button>
-      <input type="file" id="lbFile" accept=".zip,.csv" multiple hidden>
-    </div>
-  </section>
-
   <section class="settingsGroup" aria-labelledby="settingsHeading"><h3 id="settingsHeading">تنظیمات و نگهداری آرشیو</h3>
   <section class="backup">
     <b>نسخه پشتیبان</b><br>
@@ -935,7 +926,7 @@ body{overflow-x:clip;padding-bottom:145px}
       <input type="file" id="importFile" accept=".json,application/json" hidden>
     </div>
   </section>
-<section class="backup"><b>پوستر خودکار (بدون نیاز به کلید)</b><br>پوستر را از iTunes و ویکی‌پدیا پیدا می‌کند و برای همهٔ فیلم‌های بدون پوستر می‌گذارد؛ بعد از وارد کردن فیلم‌ها از Letterboxd یک‌بار بزن. حدود ۳ ثانیه برای هر فیلم طول می‌کشد (سرویس اپل در دقیقه حدود ۲۰ درخواست می‌پذیرد)، هر لحظه می‌توانی متوقفش کنی و صفحه را هم باز بگذار. اگر نشد، فیلترشکن روشن باشد.
+<section class="backup"><b>پوستر خودکار (بدون نیاز به کلید)</b><br>پوستر را از iTunes و ویکی‌پدیا پیدا می‌کند و برای همهٔ فیلم‌های بدون پوستر می‌گذارد. حدود ۳ ثانیه برای هر فیلم طول می‌کشد (سرویس اپل در دقیقه حدود ۲۰ درخواست می‌پذیرد)، هر لحظه می‌توانی متوقفش کنی و صفحه را هم باز بگذار. اگر نشد، فیلترشکن روشن باشد.
   <div class="row"><button class="btn primary" id="pxAll" type="button">پیدا کردن پوستر برای همهٔ فیلم‌ها</button><button class="btn" id="pxReset" type="button">امتحان دوبارهٔ پیدانشده‌ها</button></div>
   <div class="hint">با کلید TMDB، اطلاعات فیلم‌ها (کارگردان، بازیگران، کشور، مدت و ژانر) هم کامل می‌شود و پوستر اول از TMDB گرفته می‌شود؛ اگر پیدا نشد، از iTunes و ویکی‌پدیا.</div>
   <div class="hint" id="pxState"></div></section>
@@ -1001,7 +992,6 @@ body{overflow-x:clip;padding-bottom:145px}
             <div class="rrow"><button class="btn primary" id="pxFind" type="button"><svg class="ic"><use href="#i-search"/></svg>جستجوی خودکار پوستر (بدون کلید)</button></div>
             <div class="rrow"><input id="pxUrl" dir="ltr" aria-label="لینک مستقیم عکس پوستر" placeholder="یا لینک مستقیم عکس پوستر" autocomplete="off"><button class="btn" id="pxUrlOk" type="button">اعمال</button></div>
             <div id="pxRes" class="pxg"></div>
-            <a class="lbLink" id="lbLink" target="_blank" rel="noopener" hidden>باز کردن صفحه فیلم در Letterboxd</a>
           </div>
         </div>
       </details>
@@ -1032,7 +1022,7 @@ let LANG = 'fa'; try{ LANG = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'f
 const EN = LANG === 'en', LOC = EN ? 'en-US' : 'fa-IR';
 const LX = (f, e) => EN ? e : f;
 const _z = s => String(s).replace(/‌/g,'').replace(/[۰-۹]/g, d => '0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)]).replace(/٫/g,'.').replace(/\s+/g,' ').trim();
-const EN_MAP = new Map(Object.entries({"تغییر تم": "Change theme", "تم: خودکار": "Theme: auto", "تم: تیره": "Theme: dark", "تم: روشن": "Theme: light", "حساب کاربری": "Account", "ورود / ثبت‌نام": "Sign in / Sign up", "آرشیو فیلم‌های من": "My Film Archive", "در حال بارگذاری…": "Loading…", "هنوز فیلمی ثبت نشده": "No films logged yet", "ذخیره فقط روی همین دستگاه است؛ برای همگام‌سازی وارد شو": "Saved on this device only; sign in to sync", "مدتی است پشتیبان نگرفته‌ای؛ اطلاعات فقط روی همین مرورگر ذخیره می‌شود.": "You haven't made a backup in a while; your data is stored only in this browser.", "ذخیره پشتیبان": "Save backup", "داشبورد": "Dashboard", "همه": "All", "دیده‌ام": "Watched", "می‌خواهم ببینم": "Want to watch", "دفترچه تماشا": "Watch diary", "تماشای دونفره": "Watch together", "جستجو در نام فیلم، کارگردان، یادداشت…": "Search title, director, notes…", "فیلتر ژانر": "Genre filter", "همه ژانرها": "All genres", "درام": "Drama", "کمدی": "Comedy", "جنایی و معمایی": "Crime & Mystery", "ترسناک": "Horror", "علمی‌تخیلی": "Sci-Fi", "اکشن": "Action", "عاشقانه": "Romance", "مستند": "Documentary", "انیمیشن": "Animation", "فیلم کوتاه": "Short film", "تاریخی و جنگی": "History & War", "سایر": "Other", "مرتب‌سازی": "Sort", "جدیدترین": "Newest", "بیشترین امتیاز": "Highest rated", "سال ساخت": "Release year", "نام فیلم": "Title", "فیلتر پیشرفته ▾": "Advanced filter ▾", "پیشنهاد تصادفی از فهرست انتظار": "Random pick from watchlist", "کارگردان": "Director", "بازیگر": "Actor", "کشور": "Country", "همه کشورها": "All countries", "حداقل امتیاز": "Minimum rating", "هر امتیاز": "Any rating", "3 به بالا": "3 and up", "3.5 به بالا": "3.5 and up", "4 به بالا": "4 and up", "4.5 به بالا": "4.5 and up", "از سال": "From year", "تا سال": "To year", "حداکثر مدت (دقیقه)": "Max runtime (min)", "فقط ♥ شده‌ها": "Only ♥ liked", "پاک کردن فیلترها": "Clear filters", "کل فیلم‌ها": "Total films", "دیده‌شده": "Watched", "فهرست انتظار": "Watchlist", "میانگین امتیاز (از 5)": "Average rating (out of 5)", "آخرین تماشاها": "Recent watches", "هنوز تماشایی با تاریخ ثبت نشده.": "No watches with a date logged yet.", "تماشا در هر سال": "Watches per year", "اتاق تماشای دونفره": "Watch-together room", "سینمای خصوصی شما دو نفر": "Your private cinema for two", "لینک مستقیم فیلم را بگذار، یا فایل را از دستگاه خودت انتخاب کن.": "Paste a direct movie link, or pick a file from your device.", "پخش": "Play", "جلو و عقب بردن": "Seek", "10 ثانیه عقب": "Back 10 seconds", "10 ثانیه جلو": "Forward 10 seconds", "قطع / وصل صدا": "Mute / unmute", "میزان صدا": "Volume", "پخش / توقف": "Play / pause", "سرعت پخش": "Playback speed", "زیرنویس": "Subtitles", "انتخاب فایل زیرنویس…": "Choose subtitle file…", "نمایش زیرنویس": "Show subtitles", "زیرنویس 0.5 ثانیه زودتر": "Subtitles 0.5 s earlier", "زیرنویس 0.5 ثانیه دیرتر": "Subtitles 0.5 s later", "زیرنویسی انتخاب نشده": "No subtitle selected", "زیرنویس بدون جابه‌جایی": "Subtitles not shifted", "تمام‌صفحه": "Fullscreen", "واکنش سریع": "Quick reactions", "انتخاب فایل از دستگاه": "Choose file from device", "شروع هم‌زمان 3-2-1": "Start together 3-2-1", "برو به نقطهٔ او": "Jump to their position", "حالت سینما": "Cinema mode", "با فایل دستگاه، هر دو نفر باید": "With a device file, both of you must pick the", "همان فایل": "same file", "را انتخاب کنید؛ فقط زمان پخش همگام می‌شود، نه خود فیلم. میان‌برها: فاصله = پخش/توقف، ← → = 10 ثانیه، ↑ ↓ = صدا، F = تمام‌صفحه، M = بی‌صدا. روی ویدئو دوبار بزن: کنار چپ/راست 10 ثانیه، وسط تمام‌صفحه.": "— only the playback time is synced, not the movie itself. Shortcuts: Space = play/pause, ← → = 10 seconds, ↑ ↓ = volume, F = fullscreen, M = mute. Double-tap the video: left/right side = 10 seconds, middle = fullscreen.", "منتظر…": "Waiting…", "آفلاین": "Offline", "نام شما": "Your name", "ساخت اتاق": "Create room", "خروج": "Leave", "کد اتاق دوست": "Friend's room code", "ورود به اتاق": "Join room", "کد اتاق (برای دوستت بفرست)": "Room code (send it to your friend)", "کپی کد": "Copy code", "کپی لینک": "Copy link", "ارسال": "Share", "گفتگو": "Chat", "پیام…": "Message…", "یک نفر اتاق می‌سازد و کد (یا لینک) را به دیگری می‌دهد. هر دو نفر می‌توانند پخش، توقف و جلو و عقب بردن را کنترل کنند و همگام می‌شود. ویدئو از هیچ سروری رد نمی‌شود؛ هر نفر مستقیم از لینک (یا فایل خودش) می‌بیند. لینک http روی صفحهٔ https یا لینکی که دانلودش محدود است پخش نمی‌شود. اتصال از سرویس رایگان PeerJS استفاده می‌کند و گاهی بدون فیلترشکن یا روی شبکه‌های سخت‌گیر برقرار نمی‌شود.": "One person creates the room and gives the code (or link) to the other. Both can play, pause and seek, and everything stays in sync. The video never passes through any server; each person watches directly from the link (or their own file). An http link on an https page, or a link with restricted downloads, won't play. The connection uses the free PeerJS service and sometimes fails without a VPN or on strict networks.", "ابزارها": "Tools", "ابزارها و داده‌ها": "Tools & data", "آوردن فیلم‌ها از Letterboxd": "Import films from Letterboxd", "در سایت لترباکس (نسخه وب): Settings ← Data ← Export your data. فایل zip که دانلود می‌شود را همین‌جا انتخاب کن؛ فیلم‌ها، امتیازها، یادداشت‌ها و فهرست انتظارت وارد می‌شود.": "On the Letterboxd website (desktop version): Settings ← Data ← Export your data. Pick the downloaded zip file here; your films, ratings, notes and watchlist will be imported.", "انتخاب فایل Letterboxd": "Choose Letterboxd file", "نسخه پشتیبان": "Backup", "اطلاعات روی همین دستگاه و مرورگر ذخیره می‌شود. برای انتقال به دستگاه دیگر یا اطمینان بیشتر، فایل پشتیبان بگیر.": "Your data is stored on this device and browser. To move it to another device, or just to be safe, save a backup file.", "ذخیره فایل پشتیبان": "Save backup file", "بازگردانی از فایل": "Restore from file", "پوستر خودکار (بدون نیاز به کلید)": "Auto posters (no key needed)", "پوستر را از iTunes و ویکی‌پدیا پیدا می‌کند و برای همهٔ فیلم‌های بدون پوستر می‌گذارد؛ بعد از وارد کردن فیلم‌ها از Letterboxd یک‌بار بزن. حدود 3 ثانیه برای هر فیلم طول می‌کشد (سرویس اپل در دقیقه حدود 20 درخواست می‌پذیرد)، هر لحظه می‌توانی متوقفش کنی و صفحه را هم باز بگذار. اگر نشد، فیلترشکن روشن باشد.": "Finds posters from iTunes and Wikipedia and applies them to every film that has none; run it once after importing from Letterboxd. It takes about 3 seconds per film (Apple's service allows roughly 20 requests per minute); you can stop it any time, and keep this page open. If it fails, turn your VPN on.", "پیدا کردن پوستر برای همهٔ فیلم‌ها": "Find posters for all films", "امتحان دوبارهٔ پیدانشده‌ها": "Retry the ones not found", "اتصال به TMDB (اختیاری، فقط اگر کلید داری)": "Connect to TMDB (optional, only if you have a key)", "یک کلید پیش‌فرض داخل سایت تعبیه شده و فعال است. اگر کلید شخصی خودت را اینجا بگذاری (از themoviedb.org/settings/api)، فقط در مرورگر خودت ذخیره می‌شود و جای کلید پیش‌فرض را می‌گیرد.": "A built-in default key is embedded in the site and active. If you put your own key here (from themoviedb.org/settings/api), it is stored only in your browser and replaces the default.", "با کلید TMDB، اطلاعات فیلم‌ها (کارگردان، بازیگران، کشور، مدت و ژانر) هم کامل می‌شود و پوستر اول از TMDB گرفته می‌شود؛ اگر پیدا نشد، از iTunes و ویکی‌پدیا.": "With the TMDB key, film details (director, cast, country, runtime and genre) are completed too, and the poster is taken from TMDB first; if not found, from iTunes and Wikipedia.", "کلید پیش‌فرض سایت فعال است.": "The site's built-in key is active.", "اطلاعات فیلم از TMDB کامل شد": "Film details completed from TMDB", "API Key یا Read Access Token": "API Key or Read Access Token", "ذخیره کلید": "Save key", "حذف کلید": "Delete key", "کلیدی ذخیره نشده.": "No key saved.", "+ فیلم جدید": "+ New film", "فیلم جدید": "New film", "نام فیلم *": "Title *", "پر کردن از TMDB (اختیاری)": "Fill from TMDB (optional)", "عنوان اصلی / انگلیسی": "Original / English title", "مدت (دقیقه)": "Runtime (min)", "بازیگران": "Cast", "ژانر": "Genre", "امتیاز من": "My rating", "یک بار لمس: ستاره کامل — دو بار: نیم‌ستاره — سه بار: پاک شدن": "Tap once: full star — twice: half star — three times: clear", "تاریخ تماشا": "Date watched", "دفترچه تماشا (هر بار دیدن فیلم)": "Watch diary (every time you watch the film)", "تاریخ": "Date", "امتیاز این نوبت": "Rating for this viewing", "بدون امتیاز": "No rating", "یادداشت این نوبت": "Note for this viewing", "+ ثبت یک بار تماشا": "+ Log a viewing", "با ثبت نوبت‌ها، تاریخ و امتیاز بالا فقط برای فیلم‌هایی بدون دفترچه به کار می‌رود.": "Once you log viewings, the date and rating above only apply to films without a diary.", "یادداشت من (نور، قاب‌بندی، صدا، حس فیلم…)": "My notes (lighting, framing, sound, mood…)", "♥ دوست داشتم": "♥ I loved it", "پوستر": "Poster", "انتخاب عکس از گالری": "Choose image from gallery", "حذف عکس": "Remove image", "جستجوی خودکار پوستر (بدون کلید)": "Auto-find poster (no key)", "یا لینک مستقیم عکس پوستر": "Or paste a direct poster image link", "اعمال": "Apply", "باز کردن صفحه فیلم در Letterboxd": "Open film page on Letterboxd", "بستن": "Close", "حذف": "Delete", "ذخیره": "Save", "ذخیره خودکار انجام نشد؛ فایل پشتیبان بگیر": "Auto-save failed; make a backup file", "چیزی پیدا نشد": "Nothing found", "آرشیوت خالی است": "Your archive is empty", "جستجو یا فیلتر را تغییر بده.": "Change your search or filter.", "با دکمه «فیلم جدید» اولین فیلمت را اضافه کن، یا فیلم‌هایت را از Letterboxd وارد کن.": "Add your first film with the “New film” button, or import your films from Letterboxd.", "ویرایش فیلم": "Edit film", "نام فیلم را بنویس": "Enter the film title", "ذخیره شد": "Saved", "مطمئنی؟ دوباره بزن": "Sure? Tap again", "حذف شد": "Deleted", "فایل پشتیبان ساخته شد": "Backup file created", "فایل پشتیبان معتبر نیست": "Invalid backup file", "مرورگرت zip را باز نمی‌کند؛ فایل‌های csv را جدا انتخاب کن": "Your browser can't open zip files; pick the csv files separately", "فایل Letterboxd شناخته نشد": "Letterboxd file not recognized", "خواندن فایل Letterboxd انجام نشد": "Couldn't read the Letterboxd file", "تاریخ را انتخاب کن": "Pick a date", "این عکس خوانده نشد": "This image couldn't be read", "لینک باید با http یا https شروع شود": "The link must start with http or https", "زیرنویس بارگذاری شد": "Subtitles loaded", "خواندن زیرنویس انجام نشد": "Couldn't read the subtitles", "اول فایل زیرنویس را انتخاب کن": "Choose a subtitle file first", "توقف": "Pause", "اول لینک یا فایل فیلم را بگذار": "Add a movie link or file first", "پخش شروع نشد": "Playback didn't start", "برای شروع پخش، روی دکمهٔ پلی بزن": "Press the play button to start", "هشدار: مدت فیلم تو با فیلم او فرق دارد؛ احتمالاً نسخه‌ها یکی نیست و همگامی دقیق نمی‌شود.": "Warning: your video's length differs from theirs; the versions probably don't match, so sync won't be exact.", "اول فیلم را بارگذاری کن": "Load a movie first", "متصل شد": "Connected", "منتظر ورود نفر دوم": "Waiting for the second person", "اتصال قطع شد": "Connection lost", "ارتباط قطع شد": "Disconnected", "خطا در اتصال": "Connection error", "اتاقی با این کد پیدا نشد": "No room found with this code", "به سرور اتصال وصل نشد؛ اینترنت یا فیلترشکن را بررسی کن": "Couldn't reach the server; check your internet or VPN", "اتصال برقرار نشد": "Couldn't connect", "کد اتاق را وارد کن": "Enter the room code", "در حال اتصال…": "Connecting…", "کتابخانهٔ اتصال بارگذاری نشد؛ اینترنت را بررسی کن": "Couldn't load the connection library; check your internet", "اتصال طول کشید؛ کد را دوباره بررسی کن": "Connecting is taking long; double-check the code", "کپی شد": "Copied", "ویدئو باز نشد: لینک مستقیم mp4/webm نیست، دسترسی ندارد، فرمت را مرورگر نمی‌شناسد، یا http روی صفحهٔ https است": "The video didn't open: not a direct mp4/webm link, no access, unsupported format, or http on an https page", "از اتاق خارج شدی": "You left the room", "کد کپی شد": "Code copied", "لینک کپی شد": "Link copied", "هنوز کسی متصل نیست": "Nobody is connected yet", "درخواست همگام‌سازی فرستاده شد": "Sync request sent", "کد اتاق وارد شد؛ نامت را بنویس و «ورود به اتاق» را بزن": "Room code filled in; enter your name and press “Join room”", "ویکی‌پدیا": "Wikipedia", "پوستر خودکار پیدا شد": "Poster found automatically", "در حال توقف…": "Stopping…", "برای بقیه چیزی پیدا نشد؛ «امتحان دوبارهٔ پیدانشده‌ها» را بزن": "Nothing found for the rest; press “Retry the ones not found”", "همهٔ فیلم‌ها پوستر دارند": "All films already have posters", "اتصال برقرار نیست؛ اینترنت یا فیلترشکن را بررسی کن": "No connection; check your internet or VPN", "متوقف شد": "Stopped", "تمام شد": "Done", "ارتباط برقرار نشد (اینترنت یا فیلترشکن)": "Couldn't connect (internet or VPN)", "پوستر انتخاب شد": "Poster selected", "لینک عکس باید با http یا https شروع شود": "The image link must start with http or https", "پوستر گذاشته شد": "Poster set", "چیزی برای امتحان دوباره نبود": "Nothing to retry", "فیلمی با این شرط‌ها در فهرست انتظار نیست": "No film on your watchlist matches these filters", "کلید ذخیره شده است.": "Key saved.", "کلید معتبر به نظر نمی‌رسد": "That doesn't look like a valid key", "کلید ذخیره شد.": "Key saved.", "کلید حذف شد.": "Key deleted.", "کلید TMDB نداری؟ از «جستجوی خودکار پوستر» پایین‌تر استفاده کن": "No TMDB key? Use “Auto-find poster” below instead", "کلید TMDB معتبر نیست": "Invalid TMDB key", "ارتباط با TMDB برقرار نشد (اینترنت یا فیلترشکن)": "Couldn't reach TMDB (internet or VPN)", "اطلاعات فیلم پر شد": "Film details filled in", "دریافت اطلاعات فیلم انجام نشد": "Couldn't fetch the film details", "ایمیل یا رمز اشتباه است": "Wrong email or password", "این ایمیل قبلاً ثبت شده؛ وارد شو": "This email is already registered; sign in", "رمز باید حداقل 6 نویسه باشد": "The password must be at least 6 characters", "ایمیل هنوز تأیید نشده؛ ایمیلت را چک کن": "Email not confirmed yet; check your inbox", "ایمیل معتبر نیست": "Invalid email", "تلاش زیاد بود؛ چند دقیقه بعد دوباره امتحان کن": "Too many attempts; try again in a few minutes", "جدول دیتابیس ساخته نشده؛ مرحلهٔ SQL را انجام بده": "The database table hasn't been created; run the SQL step", "دسترسی رد شد؛ دوباره وارد شو یا کلید را بررسی کن": "Access denied; sign in again or check the key", "ارتباط با سرور برقرار نشد (اینترنت یا فیلترشکن)": "Couldn't reach the server (internet or VPN)", "نشست تمام شد؛ دوباره وارد شو": "Session expired; sign in again", "در حال همگام‌سازی…": "Syncing…", "همگام شد ✓": "Synced ✓", "همگام نشد": "Sync failed", "آدرس باید مثل https://xxxx.supabase.co باشد": "The address should look like https://xxxx.supabase.co", "خارج شدی": "Signed out", "ساخت حساب": "Create account", "اول ایمیلت را بنویس": "Enter your email first", "اگر این ایمیل ثبت شده باشد، لینک بازنشانی رمز برایش فرستاده شد.": "If this email is registered, a password reset link has been sent to it.", "ایمیل و رمز را وارد کن": "Enter your email and password", "ایمیل تأیید برایت فرستاده شد؛ بعد از تأیید، وارد شو.": "A confirmation email was sent; sign in after confirming.", "آرشیو حساب قبلی از این دستگاه پاک شد": "The previous account's archive was removed from this device", "دفترچه خالی است": "The diary is empty", "برای فیلم‌های دیده‌شده تاریخ تماشا ثبت کن.": "Log a watch date for the films you've watched.", "یادداشت و نقد": "Notes & review", "تاریخچهٔ تماشا": "Watch history", "هنوز تماشایی ثبت نشده.": "No viewings logged yet.", "صفحهٔ فیلم در Letterboxd": "Film page on Letterboxd", "دیدمش ✓": "Watched it ✓", "یکی دیگر": "Another one", "ویرایش": "Edit", "نتیجه‌ای پیدا نشد": "No results found", "در حال جستجو…": "Searching…", "پوستری پیدا نشد؛ نام انگلیسی فیلم را در «عنوان اصلی» بنویس و دوباره بزن.": "No poster found; type the film's English name in “Original title” and try again.", "اتصال به دیتابیس حساب‌ها": "Connect to the accounts database", "برای ساخت حساب باید یک‌بار اتصال به دیتابیس را تنظیم کنی (مراحلش در راهنمای راه‌اندازی است). آدرس پروژه و کلید public را اینجا بگذار.": "To create accounts you need to set up the database connection once (the steps are in the setup guide). Paste the project URL and the public key here.", "حساب من": "My account", "هر تغییری که بدهی خودکار روی حساب ذخیره می‌شود و روی هر دستگاهی با همین حساب وارد شوی همان آرشیو را می‌بینی.": "Every change you make is saved to your account automatically, and on any device you sign in to with it you'll see the same archive.", "همگام‌سازی حالا": "Sync now", "رمز جدید": "New password", "رمز جدید (حداقل 6 نویسه)": "New password (at least 6 characters)", "ذخیره رمز": "Save password", "رمز عبور (حداقل 6 نویسه)": "Password (at least 6 characters)", "رمزم را فراموش کرده‌ام": "I forgot my password", "تنظیم اتصال": "Connection settings", "ورود": "Sign in", "ثبت‌نام": "Sign up", "ایمیل": "Email"}).map(([k,v]) => [_z(k), v]));
+const EN_MAP = new Map(Object.entries({"تغییر تم": "Change theme", "تم: خودکار": "Theme: auto", "تم: تیره": "Theme: dark", "تم: روشن": "Theme: light", "حساب کاربری": "Account", "ورود / ثبت‌نام": "Sign in / Sign up", "آرشیو فیلم‌های من": "My Film Archive", "در حال بارگذاری…": "Loading…", "هنوز فیلمی ثبت نشده": "No films logged yet", "ذخیره فقط روی همین دستگاه است؛ برای همگام‌سازی وارد شو": "Saved on this device only; sign in to sync", "مدتی است پشتیبان نگرفته‌ای؛ اطلاعات فقط روی همین مرورگر ذخیره می‌شود.": "You haven't made a backup in a while; your data is stored only in this browser.", "ذخیره پشتیبان": "Save backup", "داشبورد": "Dashboard", "همه": "All", "دیده‌ام": "Watched", "می‌خواهم ببینم": "Want to watch", "دفترچه تماشا": "Watch diary", "تماشای دونفره": "Watch together", "جستجو در نام فیلم، کارگردان، یادداشت…": "Search title, director, notes…", "فیلتر ژانر": "Genre filter", "همه ژانرها": "All genres", "درام": "Drama", "کمدی": "Comedy", "جنایی و معمایی": "Crime & Mystery", "ترسناک": "Horror", "علمی‌تخیلی": "Sci-Fi", "اکشن": "Action", "عاشقانه": "Romance", "مستند": "Documentary", "انیمیشن": "Animation", "فیلم کوتاه": "Short film", "تاریخی و جنگی": "History & War", "سایر": "Other", "مرتب‌سازی": "Sort", "جدیدترین": "Newest", "بیشترین امتیاز": "Highest rated", "سال ساخت": "Release year", "نام فیلم": "Title", "فیلتر پیشرفته ▾": "Advanced filter ▾", "پیشنهاد تصادفی از فهرست انتظار": "Random pick from watchlist", "کارگردان": "Director", "بازیگر": "Actor", "کشور": "Country", "همه کشورها": "All countries", "حداقل امتیاز": "Minimum rating", "هر امتیاز": "Any rating", "3 به بالا": "3 and up", "3.5 به بالا": "3.5 and up", "4 به بالا": "4 and up", "4.5 به بالا": "4.5 and up", "از سال": "From year", "تا سال": "To year", "حداکثر مدت (دقیقه)": "Max runtime (min)", "فقط ♥ شده‌ها": "Only ♥ liked", "پاک کردن فیلترها": "Clear filters", "کل فیلم‌ها": "Total films", "دیده‌شده": "Watched", "فهرست انتظار": "Watchlist", "میانگین امتیاز (از 5)": "Average rating (out of 5)", "آخرین تماشاها": "Recent watches", "هنوز تماشایی با تاریخ ثبت نشده.": "No watches with a date logged yet.", "تماشا در هر سال": "Watches per year", "اتاق تماشای دونفره": "Watch-together room", "سینمای خصوصی شما دو نفر": "Your private cinema for two", "لینک مستقیم فیلم را بگذار، یا فایل را از دستگاه خودت انتخاب کن.": "Paste a direct movie link, or pick a file from your device.", "پخش": "Play", "جلو و عقب بردن": "Seek", "10 ثانیه عقب": "Back 10 seconds", "10 ثانیه جلو": "Forward 10 seconds", "قطع / وصل صدا": "Mute / unmute", "میزان صدا": "Volume", "پخش / توقف": "Play / pause", "سرعت پخش": "Playback speed", "زیرنویس": "Subtitles", "انتخاب فایل زیرنویس…": "Choose subtitle file…", "نمایش زیرنویس": "Show subtitles", "زیرنویس 0.5 ثانیه زودتر": "Subtitles 0.5 s earlier", "زیرنویس 0.5 ثانیه دیرتر": "Subtitles 0.5 s later", "زیرنویسی انتخاب نشده": "No subtitle selected", "زیرنویس بدون جابه‌جایی": "Subtitles not shifted", "تمام‌صفحه": "Fullscreen", "واکنش سریع": "Quick reactions", "انتخاب فایل از دستگاه": "Choose file from device", "شروع هم‌زمان 3-2-1": "Start together 3-2-1", "برو به نقطهٔ او": "Jump to their position", "حالت سینما": "Cinema mode", "با فایل دستگاه، هر دو نفر باید": "With a device file, both of you must pick the", "همان فایل": "same file", "را انتخاب کنید؛ فقط زمان پخش همگام می‌شود، نه خود فیلم. میان‌برها: فاصله = پخش/توقف، ← → = 10 ثانیه، ↑ ↓ = صدا، F = تمام‌صفحه، M = بی‌صدا. روی ویدئو دوبار بزن: کنار چپ/راست 10 ثانیه، وسط تمام‌صفحه.": "— only the playback time is synced, not the movie itself. Shortcuts: Space = play/pause, ← → = 10 seconds, ↑ ↓ = volume, F = fullscreen, M = mute. Double-tap the video: left/right side = 10 seconds, middle = fullscreen.", "منتظر…": "Waiting…", "آفلاین": "Offline", "نام شما": "Your name", "ساخت اتاق": "Create room", "خروج": "Leave", "کد اتاق دوست": "Friend's room code", "ورود به اتاق": "Join room", "کد اتاق (برای دوستت بفرست)": "Room code (send it to your friend)", "کپی کد": "Copy code", "کپی لینک": "Copy link", "ارسال": "Share", "گفتگو": "Chat", "پیام…": "Message…", "یک نفر اتاق می‌سازد و کد (یا لینک) را به دیگری می‌دهد. هر دو نفر می‌توانند پخش، توقف و جلو و عقب بردن را کنترل کنند و همگام می‌شود. ویدئو از هیچ سروری رد نمی‌شود؛ هر نفر مستقیم از لینک (یا فایل خودش) می‌بیند. لینک http روی صفحهٔ https یا لینکی که دانلودش محدود است پخش نمی‌شود. اتصال از سرویس رایگان PeerJS استفاده می‌کند و گاهی بدون فیلترشکن یا روی شبکه‌های سخت‌گیر برقرار نمی‌شود.": "One person creates the room and gives the code (or link) to the other. Both can play, pause and seek, and everything stays in sync. The video never passes through any server; each person watches directly from the link (or their own file). An http link on an https page, or a link with restricted downloads, won't play. The connection uses the free PeerJS service and sometimes fails without a VPN or on strict networks.", "ابزارها": "Tools", "ابزارها و داده‌ها": "Tools & data", "آوردن فیلم‌ها از Letterboxd": "Import films from Letterboxd", "در سایت لترباکس (نسخه وب): Settings ← Data ← Export your data. فایل zip که دانلود می‌شود را همین‌جا انتخاب کن؛ فیلم‌ها، امتیازها، یادداشت‌ها و فهرست انتظارت وارد می‌شود.": "On the Letterboxd website (desktop version): Settings ← Data ← Export your data. Pick the downloaded zip file here; your films, ratings, notes and watchlist will be imported.", "انتخاب فایل Letterboxd": "Choose Letterboxd file", "نسخه پشتیبان": "Backup", "اطلاعات روی همین دستگاه و مرورگر ذخیره می‌شود. برای انتقال به دستگاه دیگر یا اطمینان بیشتر، فایل پشتیبان بگیر.": "Your data is stored on this device and browser. To move it to another device, or just to be safe, save a backup file.", "ذخیره فایل پشتیبان": "Save backup file", "بازگردانی از فایل": "Restore from file", "پوستر خودکار (بدون نیاز به کلید)": "Auto posters (no key needed)", "پوستر را از iTunes و ویکی‌پدیا پیدا می‌کند و برای همهٔ فیلم‌های بدون پوستر می‌گذارد. حدود 3 ثانیه برای هر فیلم طول می‌کشد (سرویس اپل در دقیقه حدود 20 درخواست می‌پذیرد)، هر لحظه می‌توانی متوقفش کنی و صفحه را هم باز بگذار. اگر نشد، فیلترشکن روشن باشد.": "Finds posters from iTunes and Wikipedia and applies them to every film that has none. It takes about 3 seconds per film (Apple's service allows roughly 20 requests per minute); you can stop it any time, and keep this page open. If it fails, turn your VPN on.", "پیدا کردن پوستر برای همهٔ فیلم‌ها": "Find posters for all films", "امتحان دوبارهٔ پیدانشده‌ها": "Retry the ones not found", "اتصال به TMDB (اختیاری، فقط اگر کلید داری)": "Connect to TMDB (optional, only if you have a key)", "یک کلید پیش‌فرض داخل سایت تعبیه شده و فعال است. اگر کلید شخصی خودت را اینجا بگذاری (از themoviedb.org/settings/api)، فقط در مرورگر خودت ذخیره می‌شود و جای کلید پیش‌فرض را می‌گیرد.": "A built-in default key is embedded in the site and active. If you put your own key here (from themoviedb.org/settings/api), it is stored only in your browser and replaces the default.", "با کلید TMDB، اطلاعات فیلم‌ها (کارگردان، بازیگران، کشور، مدت و ژانر) هم کامل می‌شود و پوستر اول از TMDB گرفته می‌شود؛ اگر پیدا نشد، از iTunes و ویکی‌پدیا.": "With the TMDB key, film details (director, cast, country, runtime and genre) are completed too, and the poster is taken from TMDB first; if not found, from iTunes and Wikipedia.", "کلید پیش‌فرض سایت فعال است.": "The site's built-in key is active.", "اطلاعات فیلم از TMDB کامل شد": "Film details completed from TMDB", "API Key یا Read Access Token": "API Key or Read Access Token", "ذخیره کلید": "Save key", "حذف کلید": "Delete key", "کلیدی ذخیره نشده.": "No key saved.", "+ فیلم جدید": "+ New film", "فیلم جدید": "New film", "نام فیلم *": "Title *", "پر کردن از TMDB (اختیاری)": "Fill from TMDB (optional)", "عنوان اصلی / انگلیسی": "Original / English title", "مدت (دقیقه)": "Runtime (min)", "بازیگران": "Cast", "ژانر": "Genre", "امتیاز من": "My rating", "یک بار لمس: ستاره کامل — دو بار: نیم‌ستاره — سه بار: پاک شدن": "Tap once: full star — twice: half star — three times: clear", "تاریخ تماشا": "Date watched", "دفترچه تماشا (هر بار دیدن فیلم)": "Watch diary (every time you watch the film)", "تاریخ": "Date", "امتیاز این نوبت": "Rating for this viewing", "بدون امتیاز": "No rating", "یادداشت این نوبت": "Note for this viewing", "+ ثبت یک بار تماشا": "+ Log a viewing", "با ثبت نوبت‌ها، تاریخ و امتیاز بالا فقط برای فیلم‌هایی بدون دفترچه به کار می‌رود.": "Once you log viewings, the date and rating above only apply to films without a diary.", "یادداشت من (نور، قاب‌بندی، صدا، حس فیلم…)": "My notes (lighting, framing, sound, mood…)", "♥ دوست داشتم": "♥ I loved it", "پوستر": "Poster", "انتخاب عکس از گالری": "Choose image from gallery", "حذف عکس": "Remove image", "جستجوی خودکار پوستر (بدون کلید)": "Auto-find poster (no key)", "یا لینک مستقیم عکس پوستر": "Or paste a direct poster image link", "اعمال": "Apply", "باز کردن صفحه فیلم در Letterboxd": "Open film page on Letterboxd", "بستن": "Close", "حذف": "Delete", "ذخیره": "Save", "ذخیره خودکار انجام نشد؛ فایل پشتیبان بگیر": "Auto-save failed; make a backup file", "چیزی پیدا نشد": "Nothing found", "آرشیوت خالی است": "Your archive is empty", "جستجو یا فیلتر را تغییر بده.": "Change your search or filter.", "با دکمه «فیلم جدید» اولین فیلمت را اضافه کن، یا فیلم‌هایت را از Letterboxd وارد کن.": "Add your first film with the “New film” button, or import your films from Letterboxd.", "ویرایش فیلم": "Edit film", "نام فیلم را بنویس": "Enter the film title", "ذخیره شد": "Saved", "مطمئنی؟ دوباره بزن": "Sure? Tap again", "حذف شد": "Deleted", "فایل پشتیبان ساخته شد": "Backup file created", "فایل پشتیبان معتبر نیست": "Invalid backup file", "مرورگرت zip را باز نمی‌کند؛ فایل‌های csv را جدا انتخاب کن": "Your browser can't open zip files; pick the csv files separately", "فایل Letterboxd شناخته نشد": "Letterboxd file not recognized", "خواندن فایل Letterboxd انجام نشد": "Couldn't read the Letterboxd file", "تاریخ را انتخاب کن": "Pick a date", "این عکس خوانده نشد": "This image couldn't be read", "لینک باید با http یا https شروع شود": "The link must start with http or https", "زیرنویس بارگذاری شد": "Subtitles loaded", "خواندن زیرنویس انجام نشد": "Couldn't read the subtitles", "اول فایل زیرنویس را انتخاب کن": "Choose a subtitle file first", "توقف": "Pause", "اول لینک یا فایل فیلم را بگذار": "Add a movie link or file first", "پخش شروع نشد": "Playback didn't start", "برای شروع پخش، روی دکمهٔ پلی بزن": "Press the play button to start", "هشدار: مدت فیلم تو با فیلم او فرق دارد؛ احتمالاً نسخه‌ها یکی نیست و همگامی دقیق نمی‌شود.": "Warning: your video's length differs from theirs; the versions probably don't match, so sync won't be exact.", "اول فیلم را بارگذاری کن": "Load a movie first", "متصل شد": "Connected", "منتظر ورود نفر دوم": "Waiting for the second person", "اتصال قطع شد": "Connection lost", "ارتباط قطع شد": "Disconnected", "خطا در اتصال": "Connection error", "اتاقی با این کد پیدا نشد": "No room found with this code", "به سرور اتصال وصل نشد؛ اینترنت یا فیلترشکن را بررسی کن": "Couldn't reach the server; check your internet or VPN", "اتصال برقرار نشد": "Couldn't connect", "کد اتاق را وارد کن": "Enter the room code", "در حال اتصال…": "Connecting…", "کتابخانهٔ اتصال بارگذاری نشد؛ اینترنت را بررسی کن": "Couldn't load the connection library; check your internet", "اتصال طول کشید؛ کد را دوباره بررسی کن": "Connecting is taking long; double-check the code", "کپی شد": "Copied", "ویدئو باز نشد: لینک مستقیم mp4/webm نیست، دسترسی ندارد، فرمت را مرورگر نمی‌شناسد، یا http روی صفحهٔ https است": "The video didn't open: not a direct mp4/webm link, no access, unsupported format, or http on an https page", "از اتاق خارج شدی": "You left the room", "کد کپی شد": "Code copied", "لینک کپی شد": "Link copied", "هنوز کسی متصل نیست": "Nobody is connected yet", "درخواست همگام‌سازی فرستاده شد": "Sync request sent", "کد اتاق وارد شد؛ نامت را بنویس و «ورود به اتاق» را بزن": "Room code filled in; enter your name and press “Join room”", "ویکی‌پدیا": "Wikipedia", "پوستر خودکار پیدا شد": "Poster found automatically", "در حال توقف…": "Stopping…", "برای بقیه چیزی پیدا نشد؛ «امتحان دوبارهٔ پیدانشده‌ها» را بزن": "Nothing found for the rest; press “Retry the ones not found”", "همهٔ فیلم‌ها پوستر دارند": "All films already have posters", "اتصال برقرار نیست؛ اینترنت یا فیلترشکن را بررسی کن": "No connection; check your internet or VPN", "متوقف شد": "Stopped", "تمام شد": "Done", "ارتباط برقرار نشد (اینترنت یا فیلترشکن)": "Couldn't connect (internet or VPN)", "پوستر انتخاب شد": "Poster selected", "لینک عکس باید با http یا https شروع شود": "The image link must start with http or https", "پوستر گذاشته شد": "Poster set", "چیزی برای امتحان دوباره نبود": "Nothing to retry", "فیلمی با این شرط‌ها در فهرست انتظار نیست": "No film on your watchlist matches these filters", "کلید ذخیره شده است.": "Key saved.", "کلید معتبر به نظر نمی‌رسد": "That doesn't look like a valid key", "کلید ذخیره شد.": "Key saved.", "کلید حذف شد.": "Key deleted.", "کلید TMDB نداری؟ از «جستجوی خودکار پوستر» پایین‌تر استفاده کن": "No TMDB key? Use “Auto-find poster” below instead", "کلید TMDB معتبر نیست": "Invalid TMDB key", "ارتباط با TMDB برقرار نشد (اینترنت یا فیلترشکن)": "Couldn't reach TMDB (internet or VPN)", "اطلاعات فیلم پر شد": "Film details filled in", "دریافت اطلاعات فیلم انجام نشد": "Couldn't fetch the film details", "ایمیل یا رمز اشتباه است": "Wrong email or password", "این ایمیل قبلاً ثبت شده؛ وارد شو": "This email is already registered; sign in", "رمز باید حداقل 6 نویسه باشد": "The password must be at least 6 characters", "ایمیل هنوز تأیید نشده؛ ایمیلت را چک کن": "Email not confirmed yet; check your inbox", "ایمیل معتبر نیست": "Invalid email", "تلاش زیاد بود؛ چند دقیقه بعد دوباره امتحان کن": "Too many attempts; try again in a few minutes", "جدول دیتابیس ساخته نشده؛ مرحلهٔ SQL را انجام بده": "The database table hasn't been created; run the SQL step", "دسترسی رد شد؛ دوباره وارد شو یا کلید را بررسی کن": "Access denied; sign in again or check the key", "ارتباط با سرور برقرار نشد (اینترنت یا فیلترشکن)": "Couldn't reach the server (internet or VPN)", "نشست تمام شد؛ دوباره وارد شو": "Session expired; sign in again", "در حال همگام‌سازی…": "Syncing…", "همگام شد ✓": "Synced ✓", "همگام نشد": "Sync failed", "آدرس باید مثل https://xxxx.supabase.co باشد": "The address should look like https://xxxx.supabase.co", "خارج شدی": "Signed out", "ساخت حساب": "Create account", "اول ایمیلت را بنویس": "Enter your email first", "اگر این ایمیل ثبت شده باشد، لینک بازنشانی رمز برایش فرستاده شد.": "If this email is registered, a password reset link has been sent to it.", "ایمیل و رمز را وارد کن": "Enter your email and password", "ایمیل تأیید برایت فرستاده شد؛ بعد از تأیید، وارد شو.": "A confirmation email was sent; sign in after confirming.", "آرشیو حساب قبلی از این دستگاه پاک شد": "The previous account's archive was removed from this device", "دفترچه خالی است": "The diary is empty", "برای فیلم‌های دیده‌شده تاریخ تماشا ثبت کن.": "Log a watch date for the films you've watched.", "یادداشت و نقد": "Notes & review", "تاریخچهٔ تماشا": "Watch history", "هنوز تماشایی ثبت نشده.": "No viewings logged yet.", "صفحهٔ فیلم در Letterboxd": "Film page on Letterboxd", "دیدمش ✓": "Watched it ✓", "یکی دیگر": "Another one", "ویرایش": "Edit", "نتیجه‌ای پیدا نشد": "No results found", "در حال جستجو…": "Searching…", "پوستری پیدا نشد؛ نام انگلیسی فیلم را در «عنوان اصلی» بنویس و دوباره بزن.": "No poster found; type the film's English name in “Original title” and try again.", "اتصال به دیتابیس حساب‌ها": "Connect to the accounts database", "برای ساخت حساب باید یک‌بار اتصال به دیتابیس را تنظیم کنی (مراحلش در راهنمای راه‌اندازی است). آدرس پروژه و کلید public را اینجا بگذار.": "To create accounts you need to set up the database connection once (the steps are in the setup guide). Paste the project URL and the public key here.", "حساب من": "My account", "هر تغییری که بدهی خودکار روی حساب ذخیره می‌شود و روی هر دستگاهی با همین حساب وارد شوی همان آرشیو را می‌بینی.": "Every change you make is saved to your account automatically, and on any device you sign in to with it you'll see the same archive.", "همگام‌سازی حالا": "Sync now", "رمز جدید": "New password", "رمز جدید (حداقل 6 نویسه)": "New password (at least 6 characters)", "ذخیره رمز": "Save password", "رمز عبور (حداقل 6 نویسه)": "Password (at least 6 characters)", "رمزم را فراموش کرده‌ام": "I forgot my password", "تنظیم اتصال": "Connection settings", "ورود": "Sign in", "ثبت‌نام": "Sign up", "ایمیل": "Email"}).map(([k,v]) => [_z(k), v]));
 const EN_RE = [[/^(\d+) فیلم دیدهام$/,'$1 watched'],[/^(\d+) در فهرست انتظار$/,'$1 on watchlist'],[/^تماشا در هر ماه سال (\d+)$/,'Watches per month in $1'],[/^(\d+) دقیقه$/,'$1 min'],[/^(\d+) ستاره$/,(m)=>m[1]==='1'?'1 star':m[1]+' stars'],[/^پوستر (.+)$/,'Poster: $1'],[/^واکنش (.+)$/,'React: $1'],[/^حساب: (.+)$/,'Account: $1'],[/^آخرین همگامسازی: (.+)$/,'Last sync: $1'],[/^خطا: (.+)$/,'Error: $1'],[/^(\d+) فیلم اضافه شد$/,(m)=>m[1]==='1'?'1 film added':m[1]+' films added'],[/^(\d+) فیلم تازه اضافه شد$/,(m)=>m[1]==='1'?'1 new film added':m[1]+' new films added'],[/^(\d+) فیلم دوباره در صف جستجو قرار گرفت$/,'$1 films queued for another search'],[/^(.+) وارد اتاق شد$/,'$1 joined the room'],[/^متصل با (.+)$/,'Connected with $1'],[/^نام او حالا «(.+)» است$/,'Their name is now “$1”'],[/^(\d+) میلیثانیه$/,'$1 ms'],[/^(.+) این فایل را انتخاب کرد: (.+) — همان فایل را از دستگاه خودت انتخاب کن\.$/,'$1 picked this file: $2 — pick the same file from your device.'],[/^جابهجایی فعلی: (دیرتر|زودتر) ([\d.]+) ثانیه$/,(m)=>'Current offset: '+m[2]+' s '+(m[1]==='دیرتر'?'later':'earlier')],[/^در حال جستجو… (\d+) از (\d+) — برای توقف بزن$/,'Searching… $1 of $2 — click to stop'],[/^(\d+) فیلم از TMDB کامل شد( \(متوقف شد\))?$/,(m)=>m[1]+' films completed from TMDB'+(m[2]?' (stopped)':'')],[/^(\d+) پوستر پیدا شد$/,'$1 posters found'],[/^(\d+) پوستر از (\d+) فیلم پیدا شد( \(متوقف شد\))?$/,(m)=>m[1]+' posters found from '+m[2]+' films'+(m[3]?' (stopped)':'')],[/\(یا anon key\)/,'(or anon key)']];
 const UX_EN_MAP = new Map(Object.entries({
   'اضافه کردن فیلم':'Add film',
@@ -1060,7 +1050,7 @@ const UX_EN_MAP = new Map(Object.entries({
 
   'ثبت اولین فیلم':'Add first film','وارد کردن از Letterboxd':'Import from Letterboxd',
   'به آرشیو فیلم‌هایت خوش آمدی':'Welcome to your film archive',
-  'اولین فیلمت را ثبت کن، یا فهرست فیلم‌ها را از Letterboxd بیاور. اطلاعات در حساب شخصی ذخیره می‌شوند؛ برای اطمینان بیشتر می‌توانی پشتیبان هم بگیری.':'Add your first film or import your Letterboxd library. Data starts in this browser; make a backup for safer storage and transfer.',
+  'اولین فیلمت را ثبت کن. اطلاعات در حساب شخصی ذخیره می‌شوند؛ برای اطمینان بیشتر می‌توانی پشتیبان هم بگیری.':'Add your first film. Data starts in this browser; make a backup for safer storage and transfer.',
   'پاک کردن همه فیلترها':'Clear all filters','فیلتر فعال':'active filters',
   'تغییرات ذخیره‌نشده':'Unsaved changes','تغییرات این فیلم هنوز ذخیره نشده است. می‌خواهی ویرایش را ادامه بدهی؟':'These film edits are not saved yet. Do you want to keep editing?',
   'ادامه ویرایش':'Keep editing','دور انداختن تغییرات':'Discard changes','انصراف':'Cancel',
@@ -1238,10 +1228,9 @@ function renderDash(){
   const F=state.films, seen=F.filter(f=>f.status==='seen'), rated=seen.filter(f=>f.rating>0);
   if(!F.length){
     $('dash').innerHTML=`<div class="welcome"><h2>به آرشیو فیلم‌هایت خوش آمدی</h2>
-      <p>اولین فیلمت را ثبت کن، یا فهرست فیلم‌ها را از Letterboxd بیاور. اطلاعات در حساب شخصی ذخیره می‌شوند؛ برای اطمینان بیشتر می‌توانی پشتیبان هم بگیری.</p>
-      <div class="actions"><button class="btn primary" type="button" id="firstFilm">ثبت اولین فیلم</button><button class="btn" type="button" id="firstImport">وارد کردن از Letterboxd</button></div></div>`;
+      <p>اولین فیلمت را ثبت کن. اطلاعات در حساب شخصی ذخیره می‌شوند؛ برای اطمینان بیشتر می‌توانی پشتیبان هم بگیری.</p>
+      <div class="actions"><button class="btn primary" type="button" id="firstFilm">ثبت اولین فیلم</button></div></div>`;
     $('firstFilm').onclick=()=>openSheet(null);
-    $('firstImport').onclick=()=>{ $('menuBtn').click(); $('lbBtn').focus(); };
     return;
   }
   const avg=rated.length?rated.reduce((a,f)=>a+f.rating,0)/rated.length:0;
@@ -1474,7 +1463,7 @@ function render(){
       : state.films.length ? LX('چیزی پیدا نشد','Nothing found') : LX('آرشیوت خالی است','Your archive is empty');
     const emptyHelp = noPriority ? LX('در صفحهٔ ویرایش یک فیلم، علامت ♥ دوست داشتم را فعال کن تا اینجا نمایش داده شود.','Edit a movie and mark it with ♥ to show it here.')
       : state.films.length ? LX('جستجو یا فیلتر را تغییر بده.','Change your search or filters.')
-      : LX('اولین فیلمت را اضافه کن یا از Letterboxd وارد کن.','Add your first movie or import from Letterboxd.');
+      : LX('اولین فیلمت را اضافه کن.','Add your first movie.');
     $('grid').innerHTML = `<div class="empty" style="grid-column:1/-1"><b>${esc(emptyTitle)}</b>${esc(emptyHelp)}<div style="margin-top:12px"><button class="btn" type="button" id="clearFiltersEmpty">${LX('پاک کردن همه فیلترها','Clear filters')}</button></div></div>`;
     return;
   }
@@ -1625,9 +1614,6 @@ function openSheet(id){
   $('delBtn').hidden = !f;
   $('delBtn').textContent = 'حذف'; $('delBtn').dataset.armed = '0';
   ['moreDetails','moreHistory','morePoster'].forEach(id=>$(id).open=false);
-  const link = $('lbLink');
-  const filmLink=safeExternalHref(f?.lb);
-  if(filmLink){ link.href = filmLink; link.hidden = false; } else { link.hidden = true; }
   paintStatus(); paintRate(); paintPoster(); paintLogs();
   sheetInitial = snapshotSheet();
   openModal('overlay','#fTitle');
@@ -1766,118 +1752,6 @@ async function importBackup(file){
   }catch(e){toast('فایل پشتیبان معتبر نیست یا بیش از حد بزرگ است');}
 }
 
-/* ---------- ورود از Letterboxd (zip یا csv) ---------- */
-function parseCSV(text){
-  const rows = []; let row = [], cur = '', q = false;
-  text = text.replace(/^\uFEFF/, '');
-  for(let i=0;i<text.length;i++){
-    const c = text[i];
-    if(q){
-      if(c==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else q=false; }
-      else cur += c;
-    }else if(c==='"') q = true;
-    else if(c===','){ row.push(cur); cur=''; }
-    else if(c==='\n' || c==='\r'){
-      if(c==='\r' && text[i+1]==='\n') i++;
-      row.push(cur); cur=''; rows.push(row); row=[];
-    } else cur += c;
-  }
-  if(cur!=='' || row.length){ row.push(cur); rows.push(row); }
-  const head = (rows.shift()||[]).map(h=>h.trim());
-  return rows.filter(r=>r.some(x=>x!=='')).map(r=>Object.fromEntries(head.map((h,i)=>[h, r[i] ?? ''])));
-}
-
-/* خواندن zip بدون کتابخانه */
-async function readZip(buf){
-  const dv = new DataView(buf), u8 = new Uint8Array(buf);
-  let eocd = -1;
-  for(let i=buf.byteLength-22; i>=Math.max(0,buf.byteLength-70000); i--){
-    if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; }
-  }
-  if(eocd<0) throw new Error('zip');
-  const count = dv.getUint16(eocd+10,true);
-  let p = dv.getUint32(eocd+16,true);
-  const dec = new TextDecoder('utf-8');
-  const files = {};
-  for(let n=0;n<count;n++){
-    if(dv.getUint32(p,true)!==0x02014b50) break;
-    const method = dv.getUint16(p+10,true), csize = dv.getUint32(p+20,true);
-    const nl = dv.getUint16(p+28,true), el = dv.getUint16(p+30,true), cl = dv.getUint16(p+32,true);
-    const lho = dv.getUint32(p+42,true);
-    const name = dec.decode(u8.subarray(p+46, p+46+nl));
-    p += 46+nl+el+cl;
-    const ln = name.toLowerCase(); if(!(ln==='likes/films.csv' || (!ln.includes('/') && ln.endsWith('.csv')))) continue;
-    const lnl = dv.getUint16(lho+26,true), lel = dv.getUint16(lho+28,true);
-    const start = lho+30+lnl+lel;
-    const data = u8.subarray(start, start+csize);
-    let out;
-    if(method===0) out = data;
-    else if(method===8){
-      const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-      out = new Uint8Array(await new Response(stream).arrayBuffer());
-    } else continue;
-    files[name.toLowerCase()] = dec.decode(out);
-  }
-  return files;
-}
-
-async function importLetterboxd(fileList){
-  if(!requireCloud())return;
-  const oldState=state.films.map(f=>({...f,logs:(f.logs||[]).map(l=>({...l}))}));
-  try{
-    const csvs = {};
-    for(const f of fileList){
-      if(f.name.toLowerCase().endsWith('.zip')){
-        if(!('DecompressionStream' in window)){ toast('مرورگرت zip را باز نمی‌کند؛ فایل‌های csv را جدا انتخاب کن'); return; }
-        Object.assign(csvs, await readZip(await f.arrayBuffer()));
-      }else csvs[f.name.toLowerCase()] = await f.text();
-    }
-    const rows = n => csvs[n] ? parseCSV(csvs[n]) : [];
-    const byId = new Map(state.films.map(f=>[f.id,f]));
-    const byKey = new Map(state.films.map(f=>[`${f.title.toLowerCase()}|${f.year||''}`, f]));
-    let added = 0, touched = 0;
-    const num = x => Number(x) || 0;
-    const get = (r, status) => {
-      const title = (r.Name||'').trim(); if(!title) return null;
-      touched++;
-      const year = /^\d{4}$/.test(r.Year||'') ? Number(r.Year) : '';
-      const uri = r['Letterboxd URI'] || '';
-      const id = uri ? 'lb_' + uri.replace(/\/$/,'').split('/').pop() : '';
-      const k = `${title.toLowerCase()}|${year}`;
-      let f = (id && byId.get(id)) || byKey.get(k);
-      if(!f){
-        f = { id:id||newId(), created:Date.parse(r.Date)||Date.now(), title, director:'', year, genre:'', status, rating:0, date:'', notes:'', poster:'', lb:uri, logs:[], liked:false };
-        state.films.push(f); byId.set(f.id,f); byKey.set(k,f); added++;
-      } else if(!f.lb && uri) f.lb = uri;
-      if(!f.logs) f.logs = [];
-      return f;
-    };
-    const addLog = (f, d, rating, note) => { if(validD(d) && !f.logs.some(l=>l.date===d)) f.logs.push({date:d, rating, note:note||''}); };
-
-    rows('watched.csv').forEach(r=>{ const f=get(r,'seen'); if(f) f.status='seen'; });
-    rows('ratings.csv').forEach(r=>{ const f=get(r,'seen'); if(f){ f.status='seen'; if(r.Rating) f.rating=num(r.Rating); } });
-    rows('diary.csv').forEach(r=>{ const f=get(r,'seen'); if(f){ f.status='seen'; addLog(f, r['Watched Date']||r.Date, num(r.Rating), (r.Tags||'').trim()); if(r.Rating && !f.rating) f.rating=num(r.Rating); } });
-    rows('reviews.csv').forEach(r=>{ const f=get(r,'seen'); if(!f) return; f.status='seen';
-      addLog(f, r['Watched Date']||r.Date, num(r.Rating), (r.Tags||'').trim());
-      const t = (r.Review||'').replace(/<[^>]+>/g,'').trim();
-      if(t && !(f.notes||'').includes(t)) f.notes = f.notes ? f.notes + '\n\n— — —\n\n' + t : t;
-      if(r.Rating && !f.rating) f.rating=num(r.Rating); });
-    rows(csvs['likes/films.csv'] ? 'likes/films.csv' : 'films.csv').forEach(r=>{ const f=get(r,'seen'); if(f) f.liked=true; });
-    rows('watchlist.csv').forEach(r=>{ get(r,'want'); });
-
-    state.films.forEach(f=>{
-      if(f.logs && f.logs.length){
-        f.logs.sort((a,b)=>b.date.localeCompare(a.date));
-        f.date = f.logs[0].date;
-        if(!f.rating) f.rating = (f.logs.find(l=>l.rating)||{}).rating || 0;
-      }
-    });
-    if(!touched){ toast('فایل Letterboxd شناخته نشد'); return; }
-    if(!await saveFilms()){state.films=oldState;render();return;}
-    render();toast(`${fa(added)} فیلم تازه اضافه شد`);
-  }catch(e){ console.error(e); toast('خواندن فایل Letterboxd انجام نشد'); }
-}
-
 /* ---------- اتصال رویدادها ---------- */
 function init(){
   initModalAccessibility();
@@ -1961,8 +1835,6 @@ function init(){
   $('exportBtn').addEventListener('click', exportData);
   $('importBtn').addEventListener('click', ()=>$('importFile').click());
   $('importFile').addEventListener('change', e=>{ if(e.target.files[0]) importBackup(e.target.files[0]); e.target.value=''; });
-  $('lbBtn').addEventListener('click', ()=>$('lbFile').click());
-  $('lbFile').addEventListener('change', e=>{ if(e.target.files.length) importLetterboxd([...e.target.files]); e.target.value=''; });
 
   initRoom(); dust(); initPlus(); initPosters(); initDrawer();
   kvGet(THEME_KEY).then(t=>{ if(THEMES.includes(t)) theme = t; applyTheme(); });
@@ -2865,7 +2737,6 @@ function openDetail(id, rnd){
     ${f.notes ? `<h3 class="sec">یادداشت و نقد</h3><p style="white-space:pre-wrap">${esc(f.notes)}</p>` : ''}
     <h3 class="sec">تاریخچهٔ تماشا</h3>
     ${logs.length ? logs.map(e=>`<div class="drw"><span>${fdate(e.date)}</span>${e.rating ? `<b class="stars" aria-label="امتیاز این نوبت تماشا: ${fa(e.rating)} از ${fa(5)}">${fa(e.rating)} از ${fa(5)} ${starsText(e.rating)}</b>` : ''}${e.note ? `<i>${esc(e.note)}</i>` : ''}</div>`).join('') : '<div class="hint">هنوز تماشایی ثبت نشده.</div>'}
-    ${safeExternalHref(f.lb) ? `<a class="lbLink" href="${esc(safeExternalHref(f.lb))}" target="_blank" rel="noopener noreferrer">صفحهٔ فیلم در Letterboxd</a>` : ''}
     <div class="actions"><button class="btn" id="dClose" type="button">بستن</button>${f.status==='want' ? '<button class="btn" id="dSeen" type="button">دیدمش ✓</button>' : ''}${rnd ? '<button class="btn" id="dAgain" type="button">یکی دیگر</button>' : ''}<button class="btn primary" id="dEdit" type="button">ویرایش</button></div>`;
   openModal('dOv','#dClose');
   $('dClose').onclick = () => closeModal('dOv');
@@ -3093,9 +2964,15 @@ async function loadAccountArchive(){
       .map(f=>({...f,logs:Array.isArray(f.logs)?f.logs:[]}));
     acMeta={snap:{},deleted:doc?.deleted||{},owner,synced:Date.now()};
     acMeta.snap=hashFilms();
+    /* Letterboxd import was removed: drop every film that came from it (ids lb_*) and any Letterboxd link, once per account */
+    const lbBefore=state.films.length;let lbTouched=false;
+    state.films=state.films.filter(f=>!String(f.id).startsWith('lb_'));
+    state.films.forEach(f=>{if('lb' in f){delete f.lb;lbTouched=true;}});
+    const lbPurge=lbTouched||state.films.length!==lbBefore;
     accountProfile=normalizeAccountProfile(doc?.profile);profileDirty=false;
     cloudReady=true;cloudError='';
     setSync(LX('آرشیو حساب آماده است ✓','Account archive loaded ✓'));render();
+    if(lbPurge)stampLater();
     publishAccountProfile();syncLibraryArt();
     return true;
   }catch(err){
@@ -3402,28 +3279,28 @@ function startAccount(){
 startLang();
 init();
 </script>
-<script src="group-watch.js?v=20261125c"></script>
+<script src="group-watch.js?v=20261125d"></script>
 <script src="assets/vendor/supabase-js-2.119.2.js"></script>
-<script src="group-watch-realtime.js?v=20261125c"></script>
-<script src="room-experience.js?v=20261125c"></script>
-<script src="group-watch-account.js?v=20261125c"></script>
-<script src="mkv-support.js?v=20261125c"></script>
-<script src="cinema-news.js?v=20261125c"></script>
-<script src="cinema-translation.js?v=20261125c"></script>
-<script src="sidebar-ui.js?v=20261125c"></script>
-<script src="add-film-ui.js?v=20261125c"></script>
-<script src="account-profile.js?v=20261125c"></script>
-<script src="film-wiki.js?v=20261125c"></script>
-<script src="film-discovery.js?v=20261125c"></script>
-<script src="film-similar.js?v=20261125c"></script>
-<script src="film-friends.js?v=20261125c"></script>
-<script src="follow-bell.js?v=20261125c"></script>
-<script src="film-notes-sync.js?v=20261125c"></script>
-<script src="admin-panel.js?v=20261125c"></script>
-<script src="critic-panel.js?v=20261125c"></script>
-<script src="site-announce.js?v=20261125c"></script>
-<script src="film-scenes.js?v=20261125c"></script>
-<script src="panel-dock.js?v=20261125c"></script>
-<script src="site-tour.js?v=20261125c"></script>
+<script src="group-watch-realtime.js?v=20261125d"></script>
+<script src="room-experience.js?v=20261125d"></script>
+<script src="group-watch-account.js?v=20261125d"></script>
+<script src="mkv-support.js?v=20261125d"></script>
+<script src="cinema-news.js?v=20261125d"></script>
+<script src="cinema-translation.js?v=20261125d"></script>
+<script src="sidebar-ui.js?v=20261125d"></script>
+<script src="add-film-ui.js?v=20261125d"></script>
+<script src="account-profile.js?v=20261125d"></script>
+<script src="film-wiki.js?v=20261125d"></script>
+<script src="film-discovery.js?v=20261125d"></script>
+<script src="film-similar.js?v=20261125d"></script>
+<script src="film-friends.js?v=20261125d"></script>
+<script src="follow-bell.js?v=20261125d"></script>
+<script src="film-notes-sync.js?v=20261125d"></script>
+<script src="admin-panel.js?v=20261125d"></script>
+<script src="critic-panel.js?v=20261125d"></script>
+<script src="site-announce.js?v=20261125d"></script>
+<script src="film-scenes.js?v=20261125d"></script>
+<script src="panel-dock.js?v=20261125d"></script>
+<script src="site-tour.js?v=20261125d"></script>
 </body>
 </html>
