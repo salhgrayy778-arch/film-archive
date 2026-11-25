@@ -140,3 +140,15 @@ code changes and CI workflow status do not prove production account security.
   fields only; the site re-validates them before use) and can read the role list and audit log.
 - Presence (`film_ping`) stores only user id, first/last seen, visit count and the page query
   (e.g. `?film=1726`); only staff can read it.
+
+## Round 8: likes, announcements, suspension, critic desk
+
+- `security/film-round8.sql` (included in `film-all-in-one.sql`, rebuilt with `python3 scripts/build_all_in_one.py`).
+- `film_review_likes`: public read; a member can add/remove only their own like, only with a confirmed
+  e-mail (`film_email_verified()`), never on their own review (RLS), at most 300 likes per hour (trigger).
+- `film_announcements`: everyone reads active rows; only admins write (RLS + `film_is_admin()`); each change is
+  logged in `film_audit`. The banner is rendered with `textContent`.
+- `film_admin_set_ban(user, ban)`: admin only, never yourself or another admin; sets `auth.users.banned_until`,
+  closes the member's sessions and is logged as `user_suspended` / `user_restored`. A suspended member also
+  fails `film_email_verified()`, so they cannot post reviews or likes with an old token.
+- The critic desk (`critic-panel.js`) is a UI; reviews it publishes go through the same RLS as every review.

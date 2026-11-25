@@ -137,10 +137,11 @@ revoke all on function public.film_ping(text) from public;
 grant execute on function public.film_ping(text) to authenticated;
 
 -- 6) Admin-only user directory and numbers (reads auth.users inside the database, no secret key in the browser)
+drop function if exists public.film_admin_users(text, int, int);
 create or replace function public.film_admin_users(p_search text default '', p_limit int default 50, p_offset int default 0)
   returns table(user_id uuid, email text, display_name text, created_at timestamptz, last_sign_in_at timestamptz,
                 email_confirmed boolean, last_seen timestamptz, visits int, last_path text,
-                roles text[], review_count bigint, followers bigint, total bigint)
+                roles text[], review_count bigint, followers bigint, banned boolean, total bigint)
   language plpgsql stable security definer set search_path = public, auth as $$
 begin
   if not public.film_is_admin() then raise exception 'admin only' using errcode = '42501'; end if;
@@ -150,6 +151,7 @@ begin
          coalesce((select array_agg(r.role order by r.role) from public.film_roles r where r.user_id = u.id), '{}'::text[]),
          (select count(*) from public.film_public_reviews v where v.user_id = u.id),
          (select count(*) from public.film_follows f where f.followed_id = u.id),
+         (u.banned_until is not null and u.banned_until > now()),
          count(*) over()
   from auth.users u
   left join public.film_public_profiles p on p.user_id = u.id

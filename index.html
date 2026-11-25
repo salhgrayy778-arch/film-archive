@@ -630,6 +630,8 @@ body{overflow-x:clip;padding-bottom:145px}
 <link rel="stylesheet" href="room-experience.css">
 <link rel="stylesheet" href="film-social.css">
 <link rel="stylesheet" href="admin-panel.css">
+<link rel="stylesheet" href="critic-panel.css">
+<link rel="stylesheet" href="film-polish.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1307,10 +1309,17 @@ function toast(msg){
 
 /* ---------- پالت‌های رنگی با رنگ‌های مکمل ---------- */
 const THEME_OPTIONS = [
-  {id:'auto',fa:'خودکار',en:'Auto',noteFa:'هماهنگ با سیستم',noteEn:'Follows system appearance',swatches:['#0D1B1A','#C9A25A','#EFE8D6']},
-  {id:'dark',fa:'تیره کلاسیک',en:'Classic Dark',noteFa:'سبز تیره و طلایی',noteEn:'Deep teal × Gold',swatches:['#0D1B1A','#C9A25A','#8AB9BA']},
-  {id:'light',fa:'روشن کلاسیک',en:'Classic Light',noteFa:'کرم و آبی',noteEn:'Cream × Blue',swatches:['#EFE8D6','#7E5E1C','#396E93']},
-  ...[{"id":"ocean","fa":"اقیانوس مرجانی","en":"Coral Ocean","noteFa":"فیروزه‌ای و مرجانی","noteEn":"Teal × Coral","swatches":["#071A23","#FFAB8B","#53CED4"]},{"id":"violet","fa":"بنفش و لیمویی","en":"Violet Lime","noteFa":"بنفش و سبز لیمویی","noteEn":"Violet × Lime","swatches":["#1B1227","#D9FF89","#B39CFF"]},{"id":"midnight","fa":"نیمه‌شب سینمایی","en":"Midnight Cinema","noteFa":"آبی و کهربایی","noteEn":"Blue × Amber","swatches":["#0B1630","#FFBA73","#68B1FF"]},{"id":"forest","fa":"جنگل و رز","en":"Forest Rose","noteFa":"سبز جنگلی و صورتی","noteEn":"Forest × Rose","swatches":["#EFF7F0","#126345","#C5486B"]},{"id":"desert","fa":"کویر و نیلی","en":"Desert Indigo","noteFa":"نارنجی و نیلی","noteEn":"Orange × Indigo","swatches":["#FFF4E7","#A44414","#506CC5"]},{"id":"berry","fa":"تمشکی و نعنایی","en":"Berry Mint","noteFa":"صورتی و نعنایی","noteEn":"Pink × Mint","swatches":["#241525","#90EDC2","#FF91C0"]}]
+  {id:'auto',fa:'خودکار',en:'Auto',noteFa:'هماهنگ با روشن/تیره بودن دستگاه',noteEn:'Follows your device appearance',swatches:['#0A1516','#D2AA62','#F1EBDC']},
+  {id:'dark',fa:'سینمای کلاسیک',en:'Classic Cinema',noteFa:'تیره · سبز مشکی و برنج طلایی',noteEn:'Dark · Deep teal × Brass gold',swatches:['#0A1516','#D2AA62','#7FB7B8']},
+  {id:'light',fa:'کاغذ کرم',en:'Warm Paper',noteFa:'روشن · کرم و آبی فولادی',noteEn:'Light · Cream × Steel blue',swatches:['#F1EBDC','#86610F','#2F6A8F']},
+  {id:'noir',fa:'نوآر',en:'Noir',noteFa:'تیره · سیاه‌وسفید و نقره‌ای',noteEn:'Dark · Monochrome × Silver',swatches:['#0C0C0D','#E4E4E0','#9AA7B5']},
+  {id:'velvet',fa:'پردهٔ مخملی',en:'Velvet Curtain',noteFa:'تیره · قرمز شرابی و طلایی',noteEn:'Dark · Oxblood × Gold',swatches:['#160A0E','#E6B55E','#E3637A']},
+  {id:'midnight',fa:'نیمه‌شب سینمایی',en:'Midnight Cinema',noteFa:'تیره · آبی و کهربایی',noteEn:'Dark · Blue × Amber',swatches:['#091328','#FFBA73','#68B1FF']},
+  {id:'ocean',fa:'اقیانوس مرجانی',en:'Coral Ocean',noteFa:'تیره · فیروزه‌ای و مرجانی',noteEn:'Dark · Teal × Coral',swatches:['#06171F','#FFAB8B','#53CED4']},
+  {id:'violet',fa:'بنفش و لیمویی',en:'Violet Lime',noteFa:'تیره · بنفش و سبز لیمویی',noteEn:'Dark · Violet × Lime',swatches:['#17101F','#D6F27F','#B39CFF']},
+  {id:'berry',fa:'تمشکی و نعنایی',en:'Berry Mint',noteFa:'تیره · صورتی و نعنایی',noteEn:'Dark · Pink × Mint',swatches:['#1F121F','#8FE8C0','#FF91C0']},
+  {id:'forest',fa:'جنگل و رز',en:'Forest Rose',noteFa:'روشن · سبز جنگلی و صورتی',noteEn:'Light · Forest × Rose',swatches:['#EDF5EE','#0F5C40','#B8405F']},
+  {id:'desert',fa:'کویر و نیلی',en:'Desert Indigo',noteFa:'روشن · نارنجی و نیلی',noteEn:'Light · Orange × Indigo',swatches:['#FBF1E3','#9A3F12','#4A64BD']}
 ];
 const THEMES = THEME_OPTIONS.map(o => o.id);
 let theme = 'auto';
@@ -3272,13 +3281,23 @@ function paintAuth(){
     });
   } else {
     const su = v==='signup', em = ($('auEmail') && $('auEmail').value) || '';
-    B.innerHTML = `<h2>${su ? 'ساخت حساب' : 'ورود'}</h2>
-      <div class="field"><div class="seg"><button id="auTl" type="button" aria-pressed="${!su}">ورود</button><button id="auTs" type="button" aria-pressed="${su}">ثبت‌نام</button></div></div>
-      <div class="field"><label for="auEmail">ایمیل</label><input id="auEmail" type="email" dir="ltr" inputmode="email" autocomplete="username" value="${esc(em)}"></div>
-      <div class="field"><label for="auPass">رمز عبور (حداقل ۶ نویسه)</label><input id="auPass" type="password" dir="ltr" autocomplete="${su ? 'new-password' : 'current-password'}"></div>
+    B.innerHTML = `<div class="auHero"><span class="auLogo" aria-hidden="true">🎞️</span><div><h2>${su ? LX('ساخت حساب','Create account') : LX('ورود','Sign in')}</h2><p>${su ? LX('آرشیو شخصی و دوستان فیلم‌بازت را بساز','Build your own archive and meet fellow film fans') : LX('به آرشیو فیلم‌هایت برگرد','Welcome back to your film archive')}</p></div></div>
+      <div class="field"><div class="seg"><button id="auTl" type="button" aria-pressed="${!su}">${LX('ورود','Sign in')}</button><button id="auTs" type="button" aria-pressed="${su}">${LX('ثبت‌نام','Sign up')}</button></div></div>
+      <div class="field"><label for="auEmail">${LX('ایمیل','E-mail')}</label><input id="auEmail" type="email" dir="ltr" inputmode="email" autocomplete="username" value="${esc(em)}" placeholder="name@example.com"></div>
+      <div class="field"><label for="auPass">${LX('رمز عبور (حداقل ۶ نویسه)','Password (min. 6 characters)')}</label><div class="auPassWrap"><input id="auPass" type="password" dir="ltr" autocomplete="${su ? 'new-password' : 'current-password'}"><button class="auEye" id="auEye" type="button" aria-label="${LX('نمایش رمز','Show password')}" aria-pressed="false">👁</button></div>${su?'<div class="auMeter" aria-hidden="true"><i id="auBar"></i></div><small class="auStrength" id="auStrength"></small>':''}</div>
       ${su?`<div class="field"><label for="auPass2">${LX('تکرار رمز عبور','Repeat password')}</label><input id="auPass2" type="password" dir="ltr" autocomplete="new-password"></div>`:''}${msg}
       <div class="actions"><button class="btn" id="auClose" type="button">بستن</button><button class="btn primary" id="auGo" type="button">${su ? 'ساخت حساب' : 'ورود'}</button></div>
       <p style="margin-top:14px"><button class="linkbtn" id="auForgot" type="button">رمزم را فراموش کرده‌ام</button> · <button class="linkbtn" id="auCfg" type="button">تنظیم اتصال</button></p>`;
+    on('auEye', ()=>{ const i=$('auPass'),b=$('auEye'),show=i.type==='password'; i.type=show?'text':'password'; const j=$('auPass2'); if(j)j.type=i.type; b.setAttribute('aria-pressed',String(show)); b.setAttribute('aria-label',show?LX('پنهان کردن رمز','Hide password'):LX('نمایش رمز','Show password')); });
+    if(su){
+      $('auPass').addEventListener('input',()=>{
+        const v=$('auPass').value;let sc=0;
+        if(v.length>=6)sc++;if(v.length>=10)sc++;if(/[a-z]/.test(v)&&/[A-Z]/.test(v))sc++;if(/\d/.test(v)&&/[^\w\s]/.test(v))sc++;
+        const bar=$('auBar'),lab=$('auStrength');if(!bar)return;
+        bar.style.width=(v?Math.max(12,sc*25):0)+'%';bar.dataset.level=String(v?sc:0);
+        lab.textContent=!v?'':sc<=1?LX('رمز ضعیف','Weak password'):sc===2?LX('رمز متوسط','Fair password'):sc===3?LX('رمز خوب','Good password'):LX('رمز قوی','Strong password');
+      });
+    }
     on('auTl', ()=>{ auView = 'login'; paintAuth(); });
     on('auTs', ()=>{ auView = 'signup'; paintAuth(); });
     on('auCfg', ()=>{ auView = 'config'; paintAuth(); });
@@ -3383,5 +3402,7 @@ init();
 <script src="follow-bell.js"></script>
 <script src="film-notes-sync.js"></script>
 <script src="admin-panel.js"></script>
+<script src="critic-panel.js"></script>
+<script src="site-announce.js"></script>
 </body>
 </html>

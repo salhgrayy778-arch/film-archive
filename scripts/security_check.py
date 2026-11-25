@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parent.parent
 files={path: (root/path).read_text(encoding="utf-8")
        for path in ("index.html","cinema-news.js","cinema-translation.js",
                     "group-watch.js","group-watch-account.js","sidebar-ui.js","add-film-ui.js",
-                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql","security/film-email-guard.sql","security/film-hardening.sql","film-notes-sync.js")}
+                    "account-profile.js","admin-panel.js","follow-bell.js","film-friends.js","security/film-admin-v3.sql","security/film-admin-v4.sql","security/film-email-guard.sql","security/film-hardening.sql","film-notes-sync.js","critic-panel.js","site-announce.js","security/film-round8.sql","security/film-all-in-one.sql")}
 index=files["index.html"]
 errors=[]
 def check(ok,message):
@@ -84,6 +84,12 @@ for needle in ("film_guard_email","film_email_verified()","film_blocked_email_do
 hard=files["security/film-hardening.sql"]
 for needle in ("film_throttle","film_profile_avatar_format","film_guard_display_name","film_profile_json_size"):
     check(needle in hard,"film-hardening.sql is missing: "+needle)
+for name in ("critic-panel.js","site-announce.js"):
+    check("innerHTML" not in files[name] and "eval(" not in files[name] and "document.write" not in files[name],name+" must not use innerHTML/eval")
+r8=files["security/film-round8.sql"]
+for needle in ("film_review_likes","enable row level security","film_email_verified()","film_announcements","film_is_admin()","film_admin_set_ban","cannot suspend yourself","remove the admin role first","revoke all on function public.film_admin_set_ban"):
+    check(needle in r8,"film-round8.sql is missing: "+needle)
+check("film-round8" in files["security/film-all-in-one.sql"] and "film_review_likes" in files["security/film-all-in-one.sql"],"film-all-in-one.sql is out of date (run scripts/build_all_in_one.py)")
 check("innerHTML" not in files["film-notes-sync.js"] and "eval(" not in files["film-notes-sync.js"],"film-notes-sync.js must not use innerHTML/eval")
 check("https://cdnjs.cloudflare.com" not in index and "@supabase/supabase-js@2" not in index,"Third-party CDN scripts must be vendored (assets/vendor)")
 check("https://*.supabase.co" not in index.split("Content-Security-Policy")[1][:1500],"CSP connect-src must name the project host, not a wildcard")

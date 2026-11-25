@@ -308,7 +308,7 @@ async function openProfile(id){
    getProfiles([id],true),
    get('/film_follows?select=follower_id&followed_id=eq.'+id+'&limit=1000').catch(()=>[]),
    get('/film_follows?select=followed_id&follower_id=eq.'+id+'&limit=1000').catch(()=>[]),
-   get('/film_public_reviews?select=id,film_id,film_title,rating,review,created_at&user_id=eq.'+id+'&order=created_at.desc&limit=40').catch(()=>[]),
+   get('/film_public_reviews?select=id,user_id,film_id,film_title,rating,review,created_at&user_id=eq.'+id+'&order=created_at.desc&limit=40').catch(()=>[]),
    mine||!ready()?Promise.resolve(new Set()):myFollowing(true),
    getRoles([id])
   ]);
@@ -439,7 +439,9 @@ function renderProfileReviews(panel,reviews){
   const card=make('article','fsCard fsInner');
   const line=make('p','fsFilmLine');line.append(filmButton(r.film_id,r.film_title));if(r.rating)line.append(' ',score(r.rating));
   line.appendChild(make('small','fsDate',relTime(r.created_at)));card.appendChild(line);
-  if(r.review)card.appendChild(make('p','fsText',r.review));panel.appendChild(card);
+  if(r.review)card.appendChild(make('p','fsText',r.review));
+  if(r.id)card.appendChild(make('div','fsCardFoot')).appendChild(likeBar(r));
+  panel.appendChild(card);
  }
 }
 async function openConnections(id,kind){
@@ -484,16 +486,82 @@ function trashButton(r,card){
  };
  return b;
 }
+/* ---------- hearts on reviews ---------- */
+const likes=new Map();let likeQueue=new Set(),likeTimer=0;
+async function fetchLikes(ids,force){
+ ids=[...new Set(ids.map(Number).filter(n=>n>0&&(force||!likes.has(n))))];
+ for(let i=0;i<ids.length;i+=80){
+  const chunk=ids.slice(i,i+80);
+  try{
+   const rows=await get('/film_review_likes?select=review_id,user_id&review_id=in.('+chunk.join(',')+')&limit=5000');
+   for(const id of chunk)likes.set(id,new Set());
+   for(const row of rows)likes.get(Number(row.review_id))?.add(row.user_id);
+  }catch(e){for(const id of chunk)likes.set(id,new Set());}
+ }
+}
+function queueLikes(id){
+ likeQueue.add(Number(id));clearTimeout(likeTimer);
+ likeTimer=setTimeout(async()=>{const ids=[...likeQueue];likeQueue=new Set();await fetchLikes(ids);for(const id of ids)paintHearts(id);},40);
+}
+function paintBox(box,id){
+ const set=likes.get(Number(id));if(!set)return;
+ const me=ready()?ses.id:'';
+ const on=!!me&&set.has(me);
+ const b=box.querySelector('button');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));
+ b.firstChild.textContent=on?'♥':'♡';
+ box.querySelector('span').textContent=set.size?faNum(set.size):'';
+ b.title=on?T('برداشتن لایک','Remove like'):T('پسندیدن این نظر','Like this review');
+ b.setAttribute('aria-label',b.title+(set.size?' ('+set.size+')':''));
+}
+function paintHearts(id){
+ document.querySelectorAll('.fsLike[data-rid="'+Number(id)+'"]').forEach(box=>paintBox(box,id));
+}
+function likeBar(r){
+ const box=make('div','fsLike');box.dataset.rid=Number(r.id);
+ const b=make('button','fsHeart');b.type='button';b.appendChild(document.createTextNode('♡'));b.setAttribute('aria-pressed','false');
+ const count=make('span','fsLikeCount');box.append(b,count);
+ const mine=()=>ready()&&r.user_id===ses.id;
+ if(mine())b.classList.add('own');
+ b.onclick=async()=>{
+  if(!ready()){if(typeof openAuth==='function')openAuth('login');return;}
+  if(mine()){toast(T('نظر خودت را نمی‌توانی لایک کنی','You cannot like your own review'));return;}
+  const id=Number(r.id);await fetchLikes([id]);
+  const set=likes.get(id)||new Set();likes.set(id,set);
+  const had=set.has(ses.id);
+  if(had)set.delete(ses.id);else set.add(ses.id);paintHearts(id);b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),400);
+  try{
+   if(had)await write('/film_review_likes?review_id=eq.'+id+'&user_id=eq.'+ses.id,{method:'DELETE'});
+   else await write('/film_review_likes',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({review_id:id,user_id:ses.id})});
+  }catch(e){
+   if(had)set.add(ses.id);else set.delete(ses.id);paintHearts(id);
+   toast(e.status===404?T('بخش لایک هنوز فعال نشده است (SQL مرحلهٔ ۸ را یک‌بار اجرا کن).','Likes are not enabled yet (run the step-8 SQL once).')
+    :T('لایک ثبت نشد؛ ایمیل باید تأیید شده باشد و اتصال برقرار باشد.','Could not like: your e-mail must be confirmed and you must be online.'));
+  }
+ };
+ if(likes.has(Number(r.id)))paintBox(box,r.id);else queueLikes(r.id);
+ return box;
+}
+async function saveMyReview(movie,rating,review,existingId){
+ const body={user_id:ses.id,film_id:Number(movie.id),film_title:String(movie.title||movie.original_title||'').slice(0,180),rating:rating||null,review:String(review||'').slice(0,1500),updated_at:new Date().toISOString()};
+ await publishMyProfile().catch(()=>{});
+ if(existingId)await write('/film_public_reviews?id=eq.'+Number(existingId),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});
+ else await write('/film_public_reviews?on_conflict=user_id,film_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
+ window.dispatchEvent(new CustomEvent('film-review-saved',{detail:{film_id:body.film_id}}));
+}
 function reviewCard(r,pm,role,opts){
  const card=make('article','fsCard fsReview'+(role==='critic'?' fsCritic':''));
  const top=make('div','fsRow');
  top.append(avatar(pm.get(r.user_id),opts?.big?48:38),nameButton(r.user_id,pm.get(r.user_id),role));
  const grow=make('span','fsGrow');top.appendChild(grow);
  if(r.rating)top.appendChild(score(r.rating,role==='critic'?'fsScoreBig':''));
+ if(opts?.onEdit&&ready()&&r.user_id===ses.id){const eb=make('button','fsEdit','✏️ '+T('ویرایش','Edit'));eb.type='button';eb.onclick=opts.onEdit;top.appendChild(eb);}
  if(r.id&&((window.filmStaff?.isStaff?.())||(ready()&&r.user_id===ses.id)))top.appendChild(trashButton(r,card));
  card.appendChild(top);
  if(r.review)card.appendChild(make('p','fsText',r.review));
- card.appendChild(make('small','fsDate',relTime(r.updated_at||r.created_at)));
+ const foot=make('div','fsCardFoot');
+ if(r.id)foot.appendChild(likeBar(r));
+ foot.appendChild(make('small','fsDate',relTime(r.updated_at||r.created_at)));
+ card.appendChild(foot);
  return card;
 }
 function average(list){const v=list.map(r=>Number(r.rating)).filter(x=>x>0);return v.length?{avg:v.reduce((a,b)=>a+b,0)/v.length,n:v.length}:null;}
@@ -523,9 +591,11 @@ async function renderReviews(movie){
  const userIds=[...new Set(reviews.map(r=>r.user_id))];
  await getRoles(userIds);
  const isCritic=r=>roles.get(r.user_id)==='critic';
- const critics=reviews.filter(isCritic),members=reviews.filter(r=>!isCritic(r));
+ const criticsAll=reviews.filter(isCritic),membersAll=reviews.filter(r=>!isCritic(r));
  const following=ready()?await myFollowing():new Set();
  const mineReview=ready()?reviews.find(r=>r.user_id===ses.id):null;
+ const critics=criticsAll.filter(r=>r!==mineReview),members=membersAll.filter(r=>r!==mineReview);
+ await fetchLikes(reviews.map(r=>r.id),true);
  const friendReviews=reviews.filter(r=>following.has(r.user_id)&&r.user_id!==(ready()?ses.id:''));
  const firstPage=members.slice(0,10);
  const needProfiles=[...critics,...friendReviews,...firstPage].map(r=>r.user_id).concat(ready()?[ses.id]:[]);
@@ -534,9 +604,19 @@ async function renderReviews(movie){
  bodyEl.replaceChildren();
 
  const sums=make('div','fsSums');
- sums.append(summaryBox(T('میانگین منتقدان','Critics’ average'),average(critics),'fsSumCritic'),
-  summaryBox(T('میانگین کاربران','Members’ average'),average(members)));
+ sums.append(summaryBox(T('میانگین منتقدان','Critics’ average'),average(criticsAll),'fsSumCritic'),
+  summaryBox(T('میانگین کاربران','Members’ average'),average(membersAll)));
  bodyEl.appendChild(sums);
+ const mineBox=make('div','fsMine');bodyEl.appendChild(mineBox);
+ const showMine=(editing)=>{
+  mineBox.replaceChildren();
+  if(mineReview&&!editing){
+   const s=make('div','fsSection');s.appendChild(make('h3','',T('نظر من','My review')));
+   s.appendChild(reviewCard(mineReview,new Map([[ses.id,profiles.get(ses.id)]]),roles.get(ses.id),{big:true,onEdit:()=>showMine(true)}));
+   mineBox.appendChild(s);
+  }else mineBox.appendChild(composer(movie,mineReview,editing?()=>showMine(false):null));
+ };
+ showMine(false);
 
  const sec=(title,cls)=>{const s=make('div','fsSection '+(cls||''));s.appendChild(make('h3','',title));bodyEl.appendChild(s);return s;};
  const cs=sec(T('نظر منتقدان','Critics’ reviews'),'fsCriticsSection');
@@ -563,11 +643,10 @@ async function renderReviews(movie){
  if(!members.length)emptyNote(us,T('هنوز نظری ثبت نشده؛ اولین نفر باش.','No member reviews yet — be the first.'));
  more.onclick=paint;us.appendChild(more);await paint();
 
- bodyEl.appendChild(composer(movie,mineReview));
 }
-function composer(movie,mineReview){
+function composer(movie,mineReview,onCancel){
  const box=make('form','fsCard fsCompose');
- box.appendChild(make('h3','',mineReview?T('نظر من (قابل ویرایش)','My review (editable)'):T('نظر من','My review')));
+ box.appendChild(make('h3','',mineReview?T('ویرایش نظر من','Edit my review'):T('نظر من','My review')));
  if(!ready()){
   box.appendChild(make('p','fsText',T('برای ثبت نظر و امتیاز، وارد حساب شو یا ثبت‌نام کن.','Sign in or sign up to rate and review.')));
   const b=make('button','btn primary',T('ورود / ثبت‌نام','Sign in / Sign up'));b.type='button';b.onclick=()=>openAuth('login');box.appendChild(b);return box;
@@ -590,6 +669,7 @@ function composer(movie,mineReview){
    catch(e){backendProblem(e);}
   };actions.appendChild(del);
  }
+ if(onCancel){const c=make('button','btn',T('انصراف','Cancel'));c.type='button';c.onclick=onCancel;actions.appendChild(c);}
  box.append(stars,text,actions,make('p','fsHint',T('نظر و امتیاز تو برای همهٔ بازدیدکنندگان سایت قابل مشاهده است و دنبال‌کننده‌هایت آن را در صفحهٔ فیلم می‌بینند.','Your rating and review are visible to everyone and show up for your followers on the film page.')));
  let busy=false;
  box.onsubmit=async e=>{
@@ -597,11 +677,8 @@ function composer(movie,mineReview){
   const review=text.value.trim();
   if(!rating&&!review){toast(T('امتیاز یا متن نظر را وارد کن','Add a rating or some text'));return;}
   busy=true;submit.disabled=true;
-  const body={user_id:ses.id,film_id:movie.id,film_title:String(movie.title||movie.original_title||'').slice(0,180),rating:rating||null,review,updated_at:new Date().toISOString()};
   try{
-   await publishMyProfile().catch(()=>{});
-   if(mineReview)await write('/film_public_reviews?id=eq.'+mineReview.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});
-   else await write('/film_public_reviews',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});
+   await saveMyReview(movie,rating,review,mineReview?.id);
    toast(T('نظر ذخیره شد ✓','Review saved ✓'));renderReviews(movie);
   }catch(error){backendProblem(error);toast(T('ذخیره نظر ناموفق بود','Could not save the review'));busy=false;submit.disabled=false;}
  };
@@ -650,5 +727,5 @@ window.addEventListener('popstate',()=>{
 });
 const initial=new URL(location.href).searchParams.get('user');
 if(validId(initial))show(initial);
-window.filmFriends={open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar,refresh:refreshReviews};
+window.filmFriends={open:show,openProfile,openFeed,publishMyProfile,getProfiles,get,validId,avatar,refresh:refreshReviews,saveMyReview,likeBar,fetchLikes};
 })();

@@ -43,7 +43,9 @@ function explain(e){
  if(/remove the admin role first/.test(m))return T('این کاربر ادمین است؛ اول نقش ادمین او را بگیر.','This user is an admin; remove the admin role first.');
  if(/cannot delete yourself/.test(m))return T('حساب خودت را نمی‌شود حذف کرد.','You cannot delete your own account.');
  if(/last admin/.test(m))return T('آخرین ادمین را نمی‌شود حذف کرد.','The last admin cannot be removed.');
- if(/404|PGRST20|does not exist|42P01/.test(m))return T('هنوز فایل security/film-admin-v3.sql در Supabase اجرا نشده است.','security/film-admin-v3.sql has not been run in Supabase yet.');
+ if(/404|PGRST20|does not exist|42P01/.test(m))return T('بخشی از SQL امنیتی هنوز در Supabase اجرا نشده است؛ فایل security/film-all-in-one.sql را یک‌بار اجرا کن.','Part of the security SQL has not been run in Supabase yet; run security/film-all-in-one.sql once.');
+ if(/cannot suspend yourself/.test(m))return T('حساب خودت را نمی‌شود تعلیق کرد.','You cannot suspend yourself.');
+ if(/violates check constraint/.test(m))return T('متن اعلان باید بین ۱ تا ۲۴۰ نویسه باشد.','The announcement must be 1–240 characters.');
  return T('انجام نشد: ','Failed: ')+m.slice(0,140);
 }
 
@@ -71,7 +73,7 @@ function syncLaunch(){
  let b=$('adminLaunch');
  if(!isStaff()){if(b)b.remove();const d=$('adminDialog');if(d?.open)d.close();return;}
  if(b)return;
- b=make('button','apLaunch','🛡️ '+T('پنل مدیریت','Staff panel'));b.id='adminLaunch';b.type='button';
+ b=make('button','apLaunch');b.append(make('span','lIcon','🛡️'),make('span','lLbl',T('پنل مدیریت','Staff panel')));b.title=T('پنل مدیریت','Staff panel');b.setAttribute('aria-label',b.title);b.id='adminLaunch';b.type='button';
  b.onclick=()=>openPanel();document.body.appendChild(b);
 }
 
@@ -115,6 +117,7 @@ let current='overview',timer=0,dialog,navBox,main,msgBox;
 const SECTIONS=[
  {id:'overview',fa:'نمای کلی',en:'Overview',icon:'📊',admin:true},
  {id:'users',fa:'کاربران',en:'Users',icon:'👥',admin:true},
+ {id:'announce',fa:'اعلان‌های سایت',en:'Announcements',icon:'📣',admin:true},
  {id:'reviews',fa:'نظرها',en:'Reviews',icon:'💬'},
  {id:'catalog',fa:'اصلاح آرشیو فیلم‌ها',en:'Film archive fixes',icon:'🎞️'},
  {id:'roles',fa:'نقش‌ها و سابقه',en:'Roles & history',icon:'🏷️'},
@@ -155,7 +158,7 @@ function show(id){
  if(!meta||(meta.admin&&!isAdmin()))id=isAdmin()?'overview':'reviews';
  current=id;say('');drawNav();clearInterval(timer);
  main.replaceChildren(make('div','fsSkeleton'));
- const run={overview,users:usersView,reviews:reviewsView,catalog:catalogView,roles:rolesView,audit:auditView}[id];
+ const run={overview,users:usersView,announce:announceView,reviews:reviewsView,catalog:catalogView,roles:rolesView,audit:auditView}[id];
  const serial=++renderSerial;
  Promise.resolve(run(serial)).catch(e=>{if(serial===renderSerial){main.replaceChildren();say(explain(e),true);}});
  if(id==='overview')timer=setInterval(()=>{if(dialog.open&&current==='overview')overview(++renderSerial,true).catch(()=>{});},30000);
@@ -224,7 +227,20 @@ let userQuery='',userPage=0;
 async function usersView(serial){
  const root=make('div','apStack');
  const bar=make('div','apBar');const q=make('input');q.type='search';q.placeholder=T('جست‌وجو با نام یا ایمیل…','Search by name or e-mail…');q.value=userQuery;q.setAttribute('aria-label',q.placeholder);
- const list=make('div');bar.appendChild(q);root.append(bar,list);main.replaceChildren(root);
+ const csv=make('button','btn',T('⬇ خروجی CSV کاربران','⬇ Export users (CSV)'));csv.type='button';
+ csv.onclick=async()=>{
+  csv.disabled=true;
+  try{
+   const all=[];for(let o=0;o<2000;o+=200){const part=await rpc('film_admin_users',{p_search:userQuery,p_limit:200,p_offset:o});all.push(...(part||[]));if(!part||part.length<200)break;}
+   const esc=v=>{let x=String(v??'');if(/^[=+\-@\t\r]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"';};
+   const head=['email','display_name','roles','joined','last_sign_in','last_seen','visits','reviews','email_confirmed','suspended'];
+   const lines=[head.join(',')].concat(all.map(u=>[u.email,u.display_name,(u.roles||[]).join('|'),u.created_at,u.last_sign_in_at,u.last_seen,u.visits,u.review_count,u.email_confirmed?'yes':'no',u.banned?'yes':'no'].map(esc).join(',')));
+   const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='film-users-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+   say(T('فایل CSV ساخته شد ('+num(all.length)+' کاربر).','CSV created ('+all.length+' users).'));
+  }catch(e){say(explain(e),true);}finally{csv.disabled=false;}
+ };
+ const list=make('div');bar.append(q,csv);root.append(bar,list);main.replaceChildren(root);
  let debounce=0;
  async function load(){
   list.replaceChildren(make('div','fsSkeleton'));
@@ -238,6 +254,7 @@ async function usersView(serial){
    const dot=make('span','apDot'+(online(u.last_seen)?' on':u.last_seen&&Date.now()-new Date(u.last_seen)<864e5?' day':''));
    dot.title=online(u.last_seen)?T('آنلاین','Online'):T('آفلاین','Offline');
    const who=make('div','apUser');who.append(dot,avatarEl(u.user_id,30),make('span','',u.display_name||(u.email||'').split('@')[0]));
+   if(u.banned){const sb_=make('span','apBanned','🚫 '+T('تعلیق','Suspended'));who.appendChild(sb_);tr.classList.add('apIsBanned');}
    tr.append(cell(who),cell(u.email||'','apLtr'),cell(badges(u.roles)),cell(online(u.last_seen)?T('آنلاین','Online'):ago(u.last_seen)),cell(when(u.last_sign_in_at)),cell(when(u.created_at)),cell(num(u.visits)),cell(num(u.review_count)),cell(u.email_confirmed?'✓':T('تأیید نشده','Unconfirmed')));
    tr.onclick=()=>drawer(u,tr,serial);tr.onkeydown=e=>{if(e.key==='Enter')drawer(u,tr,serial);};
    trs.push(tr);
@@ -280,6 +297,18 @@ async function drawer(u,tr,serial){
  box.appendChild(rr);
  box.appendChild(make('p','apHint',T('منتقد: نظرش با نشان و نمره در «نظر منتقدان» می‌آید. مودریتور: حذف نظرها و اصلاح آرشیو فیلم‌ها. ادمین: همهٔ این پنل.','Critic: shown in “Critics’ reviews”. Moderator: delete reviews, fix film archive. Admin: this whole panel.')));
  if(u.user_id!==ses.id){
+  if(!(u.roles||[]).includes('admin')){
+   const sus=make('div','apSuspend');
+   sus.appendChild(make('h4','',T('تعلیق حساب','Suspend account')));
+   sus.appendChild(make('p','apHint',u.banned?T('این حساب تعلیق است: وارد نمی‌شود و نمی‌تواند نظر یا لایک بگذارد. با بازگرداندن، دوباره عادی می‌شود.','This account is suspended: it cannot sign in, review or like. Restore to make it normal again.')
+    :T('حساب تعلیق‌شده نمی‌تواند وارد شود، نظر بگذارد یا لایک کند؛ اطلاعاتش حذف نمی‌شود و هر وقت خواستی بازش می‌گردانی.','A suspended account cannot sign in, review or like. Nothing is deleted and you can restore it any time.')));
+   sus.appendChild(confirmButton(u.banned?T('بازگرداندن حساب','Restore account'):T('تعلیق حساب','Suspend account'),async()=>{
+    await rpc('film_admin_set_ban',{p_user:u.user_id,p_ban:!u.banned});
+    say(u.banned?T('حساب بازگردانده شد.','Account restored.'):T('حساب تعلیق شد؛ ورودهای فعال او هم بسته شد.','Account suspended; its active sessions were closed.'));
+    if(live(serial))usersView(serial);
+   },'btn'+(u.banned?' primary':' danger')));
+   box.appendChild(sus);
+  }
   const zone=make('div','apDanger');zone.appendChild(make('h4','',T('حذف حساب','Delete account')));
   zone.appendChild(make('p','apHint',T('با حذف حساب، آرشیو، پروفایل عمومی، نظرها و دنبال‌کردن‌های این کاربر برای همیشه پاک می‌شود و برگشت ندارد. برای تأیید، ایمیل او را دقیقاً بنویس.','Deleting removes this member’s archive, public profile, reviews and follows permanently. Type the e-mail to confirm.')));
   const typed=make('input');typed.type='email';typed.dir='ltr';typed.placeholder=u.email||'';typed.autocomplete='off';typed.setAttribute('aria-label',T('ایمیل برای تأیید حذف','E-mail to confirm deletion'));
@@ -301,6 +330,40 @@ async function drawer(u,tr,serial){
   if(!rows?.length)hist.appendChild(empty(T('هنوز نقشی نداشته.','No role changes yet.')));
   for(const e of rows||[])hist.appendChild(auditLine(e,true));
  }catch(e){hist.appendChild(empty(explain(e)));}
+}
+
+/* ---------- announcements (admin) ---------- */
+async function announceView(serial){
+ const root=make('div','apStack');
+ root.appendChild(make('p','apHint',T('اعلانِ فعال به‌صورت یک نوار بالای صفحه به همهٔ بازدیدکننده‌ها نشان داده می‌شود (هر نفر می‌تواند آن را ببندد). برای اطلاع‌رسانی نگهداری، رویداد یا قانون جدید استفاده کن.','An active announcement shows as a bar at the top for every visitor (each person can dismiss it). Use it for maintenance, events or new rules.')));
+ const form=make('form','apBox apForm');form.appendChild(make('h3','',T('اعلان تازه','New announcement')));
+ const msg=make('textarea');msg.rows=2;msg.maxLength=240;msg.required=true;msg.placeholder=T('متن اعلان (حداکثر ۲۴۰ نویسه)…','Announcement text (max 240 characters)…');msg.setAttribute('aria-label',msg.placeholder);
+ const level=make('select');for(const [v,a,b] of [['info','ℹ️ اطلاع‌رسانی','ℹ️ Info'],['warn','⚠️ هشدار','⚠️ Warning']]){const o=make('option','',T(a,b));o.value=v;level.appendChild(o);}
+ const go=make('button','btn primary',T('انتشار اعلان','Publish'));go.type='submit';
+ const row=make('div','apLine');row.append(level,go);form.append(msg,row);
+ const list=make('section','apBox');
+ root.append(form,list);main.replaceChildren(root);
+ async function load(){
+  list.replaceChildren(make('h3','',T('اعلان‌ها','Announcements')));
+  const rows=await api('/film_announcements?select=id,message,level,active,created_at&order=created_at.desc&limit=50');
+  if(!live(serial))return;
+  if(!(rows||[]).length)list.appendChild(empty(T('هنوز اعلانی نگذاشته‌ای.','No announcements yet.')));
+  for(const r of rows||[]){
+   const line=make('div','apLine apAnn'+(r.active?'':' off'));
+   line.append(make('span','apAnnIcon',r.level==='warn'?'⚠️':'ℹ️'),make('span','apGrow',r.message),make('small','',ago(r.created_at)));
+   const t=make('button','btn',r.active?T('غیرفعال کردن','Turn off'):T('فعال کردن','Turn on'));t.type='button';
+   t.onclick=async()=>{t.disabled=true;try{await api('/film_announcements?id=eq.'+Number(r.id),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({active:!r.active})});window.dispatchEvent(new Event('film-announce-changed'));load().catch(e=>say(explain(e),true));}catch(e){say(explain(e),true);t.disabled=false;}};
+   line.append(t,confirmButton(T('حذف','Delete'),async()=>{await api('/film_announcements?id=eq.'+Number(r.id),{method:'DELETE'});window.dispatchEvent(new Event('film-announce-changed'));load().catch(e=>say(explain(e),true));},'btn danger'));
+   list.appendChild(line);
+  }
+ }
+ form.onsubmit=async ev=>{
+  ev.preventDefault();const text=msg.value.trim();if(!text)return;go.disabled=true;
+  try{await api('/film_announcements',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({message:text,level:level.value,created_by:ses.id})});
+   msg.value='';say(T('اعلان منتشر شد.','Announcement published.'));window.dispatchEvent(new Event('film-announce-changed'));await load();}
+  catch(e){say(explain(e),true);}finally{go.disabled=false;}
+ };
+ await load();
 }
 
 /* ---------- reviews (staff) ---------- */
@@ -442,10 +505,15 @@ function auditLine(e,short){
   review_deleted:T(`${actor} نظر ${target} را برای فیلم ${film} حذف کرد`,`${actor} deleted ${target}’s review of ${film}`)+(e.detail?.review?` — «${String(e.detail.review).slice(0,80)}»`:''),
   catalog_edit:T(`${actor} اطلاعات فیلم ${film} را اصلاح کرد`,`${actor} corrected film ${film}`)+(e.detail?.fields?.length?' ('+e.detail.fields.join(', ')+')':'')+(e.detail?.hidden?T(' · مخفی شد',' · hidden'):''),
   catalog_reset:T(`${actor} اصلاح فیلم ${film} را برگرداند`,`${actor} reset film ${film}`),
-  user_deleted:T(`${actor} حساب ${e.detail?.email||target} را حذف کرد`,`${actor} deleted the account ${e.detail?.email||target}`)
+  user_deleted:T(`${actor} حساب ${e.detail?.email||target} را حذف کرد`,`${actor} deleted the account ${e.detail?.email||target}`),
+  user_suspended:T(`${actor} حساب ${e.detail?.email||target} را تعلیق کرد`,`${actor} suspended ${e.detail?.email||target}`),
+  user_restored:T(`${actor} حساب ${e.detail?.email||target} را بازگرداند`,`${actor} restored ${e.detail?.email||target}`),
+  announcement_insert:T(`${actor} اعلان تازه گذاشت: «${e.detail?.message||''}»`,`${actor} posted an announcement: “${e.detail?.message||''}”`),
+  announcement_update:T(`${actor} اعلان «${e.detail?.message||''}» را ${e.detail?.active?'فعال':'غیرفعال'} کرد`,`${actor} ${e.detail?.active?'enabled':'disabled'} the announcement “${e.detail?.message||''}”`),
+  announcement_delete:T(`${actor} اعلان «${e.detail?.message||''}» را حذف کرد`,`${actor} deleted the announcement “${e.detail?.message||''}”`)
  }[e.action]||e.action;
  line.append(make('span','apGrow',text),make('small','',short?when(e.at):ago(e.at)));
- if(e.action==='role_granted')line.classList.add('good');if(e.action==='role_revoked'||e.action==='review_deleted'||e.action==='user_deleted')line.classList.add('bad');
+ if(e.action==='role_granted')line.classList.add('good');if(['role_revoked','review_deleted','user_deleted','user_suspended'].includes(e.action))line.classList.add('bad');
  return line;
 }
 async function rolesView(serial){
@@ -484,7 +552,7 @@ async function rolesView(serial){
 /* ---------- audit log (staff) ---------- */
 async function auditView(serial){
  const root=make('div','apStack'),bar=make('div','apBar');
- const sel=make('select');for(const [v,fa_,en_] of [['','همهٔ رویدادها','All events'],['role_granted','نقش داده شد','Role granted'],['role_revoked','نقش گرفته شد','Role removed'],['review_deleted','نظر حذف شد','Review deleted'],['catalog_edit','اصلاح آرشیو','Catalog fix'],['catalog_reset','برگرداندن اصلاح','Catalog reset'],['user_deleted','حساب حذف شد','Account deleted']]){const o=make('option','',T(fa_,en_));o.value=v;sel.appendChild(o);}
+ const sel=make('select');for(const [v,fa_,en_] of [['','همهٔ رویدادها','All events'],['role_granted','نقش داده شد','Role granted'],['role_revoked','نقش گرفته شد','Role removed'],['review_deleted','نظر حذف شد','Review deleted'],['catalog_edit','اصلاح آرشیو','Catalog fix'],['catalog_reset','برگرداندن اصلاح','Catalog reset'],['user_deleted','حساب حذف شد','Account deleted'],['user_suspended','حساب تعلیق شد','Account suspended'],['user_restored','حساب بازگردانده شد','Account restored'],['announcement_insert','اعلان تازه','Announcement posted']]){const o=make('option','',T(fa_,en_));o.value=v;sel.appendChild(o);}
  bar.appendChild(sel);const list=make('div');root.append(bar,list);main.replaceChildren(root);
  async function load(){
   list.replaceChildren(make('div','fsSkeleton'));
