@@ -82,7 +82,7 @@ function maybeShow(tries){
  if(installed()||banner)return;
  const at=Number(get(KEY))||0;if(at&&Date.now()-at<14*864e5)return;
  if(!(deferred||isIOS))return; // other browsers cannot install: the Tools menu still offers the guide
- const busy=doc.querySelector('dialog[open],.overlay.open,.stLayer,.suLayer,.fcMenu')||doc.body.classList.contains('roomFocus')||doc.body.classList.contains('cinema')||doc.getElementById('drawer')?.classList.contains('open');
+ const busy=doc.querySelector('dialog[open],.overlay.open,.stLayer,.suLayer,.fcMenu,.piBar')||doc.body.classList.contains('roomFocus')||doc.body.classList.contains('cinema')||doc.getElementById('drawer')?.classList.contains('open');
  if(busy){if(tries<20)setTimeout(()=>maybeShow(tries+1),4000);return;}
  showBanner();
 }

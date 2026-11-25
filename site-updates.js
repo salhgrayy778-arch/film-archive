@@ -9,11 +9,17 @@ const make=(tag,cls,text)=>{const e=doc.createElement(tag);if(cls)e.className=cl
 
 /* newest first */
 const UPDATES=[
+ {id:'2026-11-25-d',date:'2026-11-25',
+  fa:'اعلان زنده روی گوشی و کامپیوتر',en:'Live notifications on phone and desktop',
+  items:[
+   ['🔔','وقتی کسی دنبالت کند، نظرت را لایک کند یا نقشی بگیری، همان لحظه خبردار می‌شوی؛ روی گوشی و روی کامپیوتر.','You now get told right away when someone follows you, likes your review or you get a role, on phone and desktop.'],
+   ['⚙️','بعد از ورود، یک پیشنهاد کوتاه برای روشن کردن اعلان‌ها می‌بینی؛ هر وقت خواستی از ابزارها ← اعلان روی گوشی هم می‌شود.','After signing in you see a short offer to turn them on; you can also use Tools → Phone notifications any time.'],
+   ['📲','روی آیفون برای دریافت اعلان باید اول سایت را نصب کنی (ابزارها ← نصب روی گوشی).','On iPhone, install the site first to receive notifications (Tools → Install on your phone).']
+  ]},
  {id:'2026-11-25-c',date:'2026-11-25',
   fa:'نصب مثل اپ، لایک پایدار و اطلاعات فیلم بدون فیلترشکن',en:'Install as an app, steady likes and film info without a VPN',
   items:[
    ['📲','حالا می‌توانی سایت را مثل یک اپ روی گوشی نصب کنی: دکمهٔ «نصب» یا «ابزارها ← نصب روی گوشی».','You can now install the site like an app on your phone: tap "Install" or Tools → Install on your phone.'],
-   ['🔔','اعلان روی گوشی: وقتی کسی دنبالت کند، نظرت را لایک کند یا نقشی بگیری، روی گوشی خبردار می‌شوی (ابزارها ← اعلان روی گوشی).','Phone notifications: get told on your phone when someone follows you, likes your review or you get a role (Tools → Phone notifications).'],
    ['❤️','قلب لایک دیگر ناپدید نمی‌شود؛ هر وقت خواستی برش می‌داری و دوباره می‌زنی.','The like heart no longer disappears; remove it and tap it again any time.'],
    ['🎬','اطلاعات و پوستر فیلم‌ها از مسیر خود سایت گرفته می‌شود، پس بدون فیلترشکن هم کار می‌کند.','Film details now come through the site itself, so they work without a VPN.']
   ]},

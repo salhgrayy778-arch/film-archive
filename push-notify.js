@@ -46,10 +46,48 @@ async function disable(){
  if(s){try{await restCall('/film_push_subs?endpoint=eq.'+encodeURIComponent(s.endpoint),{method:'DELETE'});}catch(e){}try{await s.unsubscribe();}catch(e){}}
  setFlag(false);announce();return 'off';
 }
+
+/* Offer notifications once after sign-in (everyone who can use them): "Turn on" or, on iPhone, "Install first".
+   "Later" asks again after a week; turning on or blocking in the browser ends it. */
+const askKey=()=>'film-push-ask-v1:'+(typeof ses!=='undefined'&&ses?ses.id:'');
+const T=(fa,en)=>typeof EN!=='undefined'&&EN?en:fa;
+let bar=null,askTimer=0,askTries=0;
+function closeBar(){bar?.remove();bar=null;}
+async function maybeAsk(){
+ clearTimeout(askTimer);
+ if(bar||typeof ses==='undefined'||!ses)return;
+ const last=(()=>{try{return Number(localStorage.getItem(askKey()))||0;}catch(e){return 0;}})();
+ if(last&&Date.now()-last<7*864e5)return;
+ const st=await state();
+ if(st!=='off'&&st!=='need-install')return;
+ if(st==='off'&&Notification.permission!=='default')return;
+ const busy=document.querySelector('dialog[open],.overlay.open,.stLayer,.suLayer,.piBar,.fcMenu')||document.body.classList.contains('roomFocus')||document.body.classList.contains('cinema')||document.getElementById('drawer')?.classList.contains('open')||(window.visualViewport?.scale||1)>1.05||document.activeElement?.matches?.('input,textarea');
+ if(busy){if(++askTries<25)askTimer=setTimeout(maybeAsk,4000);return;}
+ const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e;};
+ bar=mk('div','piBar');bar.setAttribute('role','region');bar.setAttribute('aria-label',T('اعلان روی گوشی','Phone notifications'));
+ const ic=mk('span','piIcon piBell','🔔');
+ const tx=mk('div','piText');
+ tx.append(mk('b','',T('اعلان‌ها را روشن کن','Turn on notifications')),
+  mk('small','',st==='off'?T('وقتی کسی دنبالت کند یا نظرت را لایک کند، روی گوشی یا کامپیوتر خبردار شو.','Get told on your phone or computer when someone follows you or likes your review.')
+   :T('برای دریافت اعلان روی آیفون، اول سایت را نصب کن.','On iPhone, install the site first to get notifications.')));
+ const go=mk('button','piGo',st==='off'?T('روشن کن','Turn on'):T('نصب','Install'));go.type='button';
+ const later=mk('button','piLater','✕');later.type='button';later.setAttribute('aria-label',T('بعداً','Later'));
+ const remember=()=>{try{localStorage.setItem(askKey(),String(Date.now()));}catch(e){}};
+ later.onclick=()=>{remember();closeBar();};
+ go.onclick=async()=>{
+  remember();
+  if(st==='off'){go.disabled=true;go.textContent='…';const r=await enable();
+   if(r==='on'){tx.querySelector('b').textContent=T('اعلان‌ها روشن شد ✓','Notifications are on ✓');tx.querySelector('small').textContent='';setTimeout(closeBar,1800);}
+   else{closeBar();try{window.toast?.(r==='denied'?T('اجازهٔ اعلان داده نشد','Notification permission was not granted'):T('روشن نشد؛ از ابزارها دوباره امتحان کن','Could not turn on; try again from Tools'));}catch(e){}}
+  }else{closeBar();window.filmInstall?.install?.();}
+ };
+ bar.append(ic,tx,go,later);document.body.appendChild(bar);
+}
 // signing out: this phone must stop receiving the previous account's notifications
 window.addEventListener('film-account-state',async()=>{
- if(typeof ses!=='undefined'&&ses){announce();return;}
+ if(typeof ses!=='undefined'&&ses){announce();askTries=0;clearTimeout(askTimer);askTimer=setTimeout(maybeAsk,7000);return;}
+ closeBar();
  const r=supported()?await reg():null;try{(await r?.pushManager.getSubscription())?.unsubscribe();}catch(e){}announce();
 });
-window.filmPush={state,enable,disable,supported,isIOS,standalone};
+window.filmPush={ask:maybeAsk,state,enable,disable,supported,isIOS,standalone};
 })();
