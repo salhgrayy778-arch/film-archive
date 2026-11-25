@@ -593,7 +593,7 @@ function paintBox(box,id){
  const local=!!me&&!serverSeen.has(id)&&mirrorGet().has(id);
  const on=!!me&&(set.has(me)||local);
  const total=Math.max(set.size,local&&!set.has(me)?set.size+1:0);
- const b=box.querySelector('button');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));
+ const b=box.querySelector('button');b.hidden=false;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));
  const cn=box.querySelector('span');cn.textContent=total?faNum(total):'';
  /* paint the heart with its own attributes so it can never turn invisible (stale CSS, theme colours): red + filled when liked */
  const sv=b.querySelector('svg');if(sv){sv.setAttribute('fill',on?'#ff4d6d':'none');sv.setAttribute('stroke',on?'#ff4d6d':'#8a948f');}
@@ -625,7 +625,7 @@ function likeBar(r){
   const id=Number(r.id);await fetchLikes([id]);
   const set=likes.get(id)||new Set();likes.set(id,set);
   const had=set.has(ses.id);
-  if(had)set.delete(ses.id);else set.add(ses.id);serverSeen.add(id);paintHearts(id);b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),400);
+  if(had)set.delete(ses.id);else set.add(ses.id);serverSeen.add(id);paintHearts(id);b.classList.add('fsRxPop');setTimeout(()=>b.classList.remove('fsRxPop'),400);
   try{
    if(had)await write('/film_review_likes?review_id=eq.'+id+'&user_id=eq.'+ses.id,{method:'DELETE'});
    else{

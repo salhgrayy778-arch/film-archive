@@ -17,6 +17,13 @@ try{
 <script>/* anti-clickjacking: never run inside someone else's frame */if(window.top!==window.self){try{window.top.location.replace(window.self.location.href);}catch(e){}document.documentElement.style.display='none';}</script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' https: data: blob:; connect-src 'self' https://api.themoviedb.org https://itunes.apple.com https://www.wikidata.org https://en.wikipedia.org https://fa.wikipedia.org https://qphlhhuxtlchejbrkeec.supabase.co wss://qphlhhuxtlchejbrkeec.supabase.co https://0.peerjs.com wss://0.peerjs.com https://*.peerjs.com wss://*.peerjs.com https://cdn.jsdelivr.net; media-src 'self' https: blob:; worker-src 'self' blob:; upgrade-insecure-requests">
 <script>try{if(localStorage.getItem("film-archive-lang")==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr";}const savedTheme=localStorage.getItem("film-archive-theme");if(savedTheme&&savedTheme!=="auto")document.documentElement.setAttribute("data-theme",savedTheme);}catch(e){}</script>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0C0B22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Film Archive">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23F2D394%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23B5843F%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2215%22%20fill%3D%22%230B1B21%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2226%22%20width%3D%2244%22%20height%3D%2230%22%20rx%3D%227%22%20fill%3D%22%23132A30%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M9%2026%208%2016%2050%207%2053%2018Z%22%20fill%3D%22%23152C31%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M19%2013%2026%2022M34%2010%2042%2019%22%20stroke%3D%22%23D6B572%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2241%22%20r%3D%2210.5%22%20fill%3D%22none%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%222.5%22%2F%3E%3Cpath%20d%3D%22m29%2035%2011%206-11%206Z%22%20fill%3D%22%23E3C283%22%2F%3E%3C%2Fsvg%3E">
 <title>My Film Archive | World Cinema News</title>
 <meta name="application-name" content="My Film Archive">
@@ -627,24 +634,24 @@ body{overflow-x:clip;padding-bottom:145px}
 #dashboard #grid{padding-top:3px}
 @media(max-width:560px){.dashNav{gap:6px;margin-top:13px}.dashNavBtn{font-size:12px;padding:9px 12px}.dashLibraryHeading h2{font-size:19px}}
 </style>
-<link rel="stylesheet" href="cinema-news.css?v=20261125h">
-<link rel="stylesheet" href="sidebar.css?v=20261125h">
-<link rel="stylesheet" href="theme-picker.css?v=20261125h">
-<link rel="stylesheet" href="film-context.css?v=20261125h">
-<link rel="stylesheet" href="site-updates.css?v=20261125h">
-<link rel="stylesheet" href="add-film.css?v=20261125h">
-<link rel="stylesheet" href="cinematic-shell.css?v=20261125h">
-<link rel="stylesheet" href="account-profile.css?v=20261125h">
-<link rel="stylesheet" href="film-discovery.css?v=20261125h">
-<link rel="stylesheet" href="room-experience.css?v=20261125h">
-<link rel="stylesheet" href="film-social.css?v=20261125h">
-<link rel="stylesheet" href="admin-panel.css?v=20261125h">
-<link rel="stylesheet" href="critic-panel.css?v=20261125h">
-<link rel="stylesheet" href="film-polish.css?v=20261125h">
-<link rel="stylesheet" href="film-fonts.css?v=20261125h">
-<link rel="stylesheet" href="film-scenes.css?v=20261125h">
-<link rel="stylesheet" href="panel-dock.css?v=20261125h">
-<link rel="stylesheet" href="site-tour.css?v=20261125h">
+<link rel="stylesheet" href="cinema-news.css?v=20261125i">
+<link rel="stylesheet" href="sidebar.css?v=20261125i">
+<link rel="stylesheet" href="theme-picker.css?v=20261125i">
+<link rel="stylesheet" href="film-context.css?v=20261125i">
+<link rel="stylesheet" href="site-updates.css?v=20261125i">
+<link rel="stylesheet" href="add-film.css?v=20261125i">
+<link rel="stylesheet" href="cinematic-shell.css?v=20261125i">
+<link rel="stylesheet" href="account-profile.css?v=20261125i">
+<link rel="stylesheet" href="film-discovery.css?v=20261125i">
+<link rel="stylesheet" href="room-experience.css?v=20261125i">
+<link rel="stylesheet" href="film-social.css?v=20261125i">
+<link rel="stylesheet" href="admin-panel.css?v=20261125i">
+<link rel="stylesheet" href="critic-panel.css?v=20261125i">
+<link rel="stylesheet" href="film-polish.css?v=20261125i">
+<link rel="stylesheet" href="film-fonts.css?v=20261125i">
+<link rel="stylesheet" href="film-scenes.css?v=20261125i">
+<link rel="stylesheet" href="panel-dock.css?v=20261125i">
+<link rel="stylesheet" href="site-tour.css?v=20261125i">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -2686,9 +2693,30 @@ const TMG = {18:'درام',35:'کمدی',80:'جنایی و معمایی',9648:'�
    network failures in a row the direct API is skipped for three minutes (callers fall back to the local cache and
    to Wikidata/Wikipedia); one successful call re-enables it immediately. */
 const tmHealth = { fails:0, until:0 };
-function tmReachable(){ return Date.now() >= tmHealth.until; }
+function tmDirectOk(){ return Date.now() >= tmHealth.until; }
+function tmReachable(){ return tmDirectOk() || !tmProxy.off; }
+/* Route 1 (works inside Iran): the site's own Supabase Edge Function "tmdb-proxy", which holds the key as a secret.
+   Route 2: TMDB directly (works for visitors abroad / with a VPN). If the proxy isn't deployed (404) it is skipped
+   for this session. */
+const tmProxy = { off:false };
+async function tmViaProxy(path, params){
+  const base = (typeof SB_URL === 'string' && SB_URL) || '';
+  if(!base || tmProxy.off) return null;
+  const u = new URL(base + '/functions/v1/tmdb-proxy');
+  u.searchParams.set('path', path);
+  Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
+  let r;
+  try{ r = await fetch(u, {signal: (AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined), headers:{apikey: (typeof SB_KEY==='string'?SB_KEY:'')}}); }
+  catch(e){ return null; }
+  if(r.status === 404 || r.status === 401 || r.status === 403 || r.status >= 500){ if(r.status !== 502) tmProxy.off = true; return null; }
+  if(!r.ok) throw new Error('http');
+  tmHealth.fails = 0; tmHealth.until = 0;
+  return r.json();
+}
 async function tm(path, params){
-  if(!tmReachable()) throw new Error('tmdb-blocked');
+  const viaProxy = await tmViaProxy(path, params);
+  if(viaProxy) return viaProxy;
+  if(!tmDirectOk()) throw new Error('tmdb-blocked');
   const u = new URL('https://api.themoviedb.org/3' + path);
   Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
   const o = {signal: (AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined)};
@@ -3295,30 +3323,31 @@ function startAccount(){
 startLang();
 init();
 </script>
-<script src="group-watch.js?v=20261125h"></script>
+<script src="group-watch.js?v=20261125i"></script>
 <script src="assets/vendor/supabase-js-2.119.2.js"></script>
-<script src="group-watch-realtime.js?v=20261125h"></script>
-<script src="room-experience.js?v=20261125h"></script>
-<script src="group-watch-account.js?v=20261125h"></script>
-<script src="mkv-support.js?v=20261125h"></script>
-<script src="cinema-news.js?v=20261125h"></script>
-<script src="cinema-translation.js?v=20261125h"></script>
-<script src="sidebar-ui.js?v=20261125h"></script>
-<script src="film-context.js?v=20261125h"></script>
-<script src="site-updates.js?v=20261125h"></script>
-<script src="add-film-ui.js?v=20261125h"></script>
-<script src="account-profile.js?v=20261125h"></script>
-<script src="film-wiki.js?v=20261125h"></script>
-<script src="film-discovery.js?v=20261125h"></script>
-<script src="film-similar.js?v=20261125h"></script>
-<script src="film-friends.js?v=20261125h"></script>
-<script src="follow-bell.js?v=20261125h"></script>
-<script src="film-notes-sync.js?v=20261125h"></script>
-<script src="admin-panel.js?v=20261125h"></script>
-<script src="critic-panel.js?v=20261125h"></script>
-<script src="site-announce.js?v=20261125h"></script>
-<script src="film-scenes.js?v=20261125h"></script>
-<script src="panel-dock.js?v=20261125h"></script>
-<script src="site-tour.js?v=20261125h"></script>
+<script src="group-watch-realtime.js?v=20261125i"></script>
+<script src="room-experience.js?v=20261125i"></script>
+<script src="group-watch-account.js?v=20261125i"></script>
+<script src="mkv-support.js?v=20261125i"></script>
+<script src="cinema-news.js?v=20261125i"></script>
+<script src="cinema-translation.js?v=20261125i"></script>
+<script src="sidebar-ui.js?v=20261125i"></script>
+<script src="film-context.js?v=20261125i"></script>
+<script src="site-updates.js?v=20261125i"></script>
+<script src="pwa-install.js?v=20261125i"></script>
+<script src="add-film-ui.js?v=20261125i"></script>
+<script src="account-profile.js?v=20261125i"></script>
+<script src="film-wiki.js?v=20261125i"></script>
+<script src="film-discovery.js?v=20261125i"></script>
+<script src="film-similar.js?v=20261125i"></script>
+<script src="film-friends.js?v=20261125i"></script>
+<script src="follow-bell.js?v=20261125i"></script>
+<script src="film-notes-sync.js?v=20261125i"></script>
+<script src="admin-panel.js?v=20261125i"></script>
+<script src="critic-panel.js?v=20261125i"></script>
+<script src="site-announce.js?v=20261125i"></script>
+<script src="film-scenes.js?v=20261125i"></script>
+<script src="panel-dock.js?v=20261125i"></script>
+<script src="site-tour.js?v=20261125i"></script>
 </body>
 </html>

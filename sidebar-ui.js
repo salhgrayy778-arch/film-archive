@@ -56,6 +56,8 @@ const help=group('راهنما و تازه‌ها','Help & updates');
 const upBtn=action(help,'✨','تازه‌های سایت','Site updates','آخرین به‌روزرسانی‌های مهم','The latest important updates',()=>{close.click();setTimeout(()=>window.filmUpdates?.open?.(),250);},'drawerUpdates');
 const upDot=()=>{const b=upBtn.querySelector('b');b.querySelector('.suDot')?.remove();if(window.filmUpdates?.unseen?.()){const d=el('i','suDot');d.setAttribute('aria-label',T('جدید','New'));b.appendChild(d);}};
 upDot();window.addEventListener('film-updates-state',upDot);new MutationObserver(upDot).observe(drawer,{attributes:true,attributeFilter:['class']});
+const inst=action(help,'📲','نصب روی گوشی (مثل اپ)','Install on your phone','سایت را روی صفحهٔ اصلی گوشی داشته باش','Keep the site on your home screen',()=>{close.click();setTimeout(()=>window.filmInstall?.install?.(),250);},'drawerInstall');
+const instShow=()=>{inst.hidden=Boolean(window.filmInstall?.installed?.());};instShow();window.addEventListener('film-install-state',instShow);
 action(help,'🧭','نمایش دوبارهٔ آموزش سایت','Replay the site tour','معرفی کوتاه بخش‌های سایت','A short intro to every section',()=>{
   close.click();setTimeout(()=>{try{window.filmTour?.start(true);}catch(e){}},250);
 },'drawerTourReplay');
